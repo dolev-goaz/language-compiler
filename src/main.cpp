@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "../header/file_util.hpp"
+#include "../header/token.hpp"
 
 void handle_compile(char* path);
 
@@ -23,5 +24,7 @@ int main(int argc, char** argv) {
 
 void handle_compile(char* path) {
     std::string file_contents = read_file(path);
-    std::cout << file_contents << std::endl;
+
+    TokenParser tokenizer = TokenParser(file_contents);
+    std::vector<Token> tokens = tokenizer.tokenize();
 }
