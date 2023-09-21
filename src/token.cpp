@@ -42,6 +42,7 @@ bool TokenParser::try_consume(char character) {
         .type = tokenMappingsSymbols[character],
         .value = std::nullopt,
     };
+    this->tokens.push_back(token);
 
     this->consume();
     return true;
