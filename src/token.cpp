@@ -60,11 +60,9 @@ void TokenParser::consume_word() {
     }
 
     // keyword doesn't exist
-    if (tokenMappingsKeywords.count(buffer) == 0) {
-        std::cerr << "Invalid keyword: '" << buffer << "'" << std::endl;
-        printf("Line: %lu, Column: %lu\n", m_line, m_col);
-        exit(EXIT_FAILURE);
-    }
+    TokenType type = tokenMappingsKeywords.count(buffer) == 0
+                         ? TokenType::idenfitier
+                         : tokenMappingsKeywords[buffer];
 
     TokenMeta meta = {.line_num = line, .line_pos = col};
     Token token = {

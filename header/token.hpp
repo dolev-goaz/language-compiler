@@ -9,6 +9,7 @@ enum class TokenType {
     semicol,
     exit,
     int_lit,
+    idenfitier,
     open_paren,
     close_paren,
 };
