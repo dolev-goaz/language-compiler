@@ -5,7 +5,12 @@ $$
 
 \text{function} &\to func ([func\_params]) [statement] \\
 
-\text{func\_params} &\to [[identifier],]^*[identifier]\\
+\text{func\_params} &\to
+\begin{cases}
+    \varepsilon \\
+    [identifier] \\
+    [identifier],[func\_params] \\
+\end{cases} \\
 
 \text{statement} &\to 
 \begin{cases}
@@ -42,7 +47,7 @@ $$
 \begin {cases}
     \varepsilon \\
     [expression] \\
-    [expression][,[expression]]^*
+    [expression],[func\_call\_params]^*
 \end {cases} \\
 
 \text{binary\_expression} &\to
