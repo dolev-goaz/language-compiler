@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <map>
 #include <optional>
 #include <vector>
 
@@ -12,15 +13,18 @@ enum class TokenType {
     close_paren,
 };
 
+extern std::map<std::string, TokenType> tokenMappingsKeywords;
+extern std::map<char, TokenType> tokenMappingsSymbols;
+
 struct TokenMeta {
-    int line_num;
-    int line_pos;
+    size_t line_num;
+    size_t line_pos;
 };
 
 struct Token {
     TokenMeta meta;
     TokenType type;
-    std::string value;
+    std::optional<std::string> value;
 };
 
 class TokenParser {

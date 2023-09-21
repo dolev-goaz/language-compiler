@@ -1,5 +1,14 @@
 #include "../header/token.hpp"
 
+std::map<std::string, TokenType> tokenMappingsKeywords = {
+    {"exit", TokenType::exit},
+};
+std::map<char, TokenType> tokenMappingsSymbols = {
+    {';', TokenType::semicol},
+    {'(', TokenType::open_paren},
+    {')', TokenType::close_paren},
+};
+
 char TokenParser::consume() {
     char current = m_src.at(m_char_ind++);
     if (current == '\n') {
@@ -24,12 +33,18 @@ std::optional<char> TokenParser::peek(size_t offset) {
 }
 
 bool TokenParser::try_consume(char character) {
-    if (this->peek().has_value() && this->peek().value() == character) {
-        this->consume();
-        return true;
+    if (!this->peek().has_value() || this->peek().value() != character) {
+        return false;
     }
+    TokenMeta meta = {.line_num = m_line, .line_pos = m_col};
+    Token token = {
+        .meta = meta,
+        .type = tokenMappingsSymbols[character],
+        .value = std::nullopt,
+    };
 
-    return false;
+    this->consume();
+    return true;
 }
 
 void TokenParser::consume_word() {
@@ -44,10 +59,18 @@ void TokenParser::consume_word() {
         buffer.push_back(this->consume());
     }
 
+    // keyword doesn't exist
+    if (tokenMappingsKeywords.count(buffer) == 0) {
+        std::cerr << "Invalid keyword: '" << buffer << "'" << std::endl;
+        printf("Line: %lu, Column: %lu\n", m_line, m_col);
+        exit(EXIT_FAILURE);
+    }
+
     TokenMeta meta = {.line_num = line, .line_pos = col};
     Token token = {
         .meta = meta,
-        .value = buffer,
+        .type = tokenMappingsKeywords[buffer],
+        .value = std::nullopt,
     };
     this->tokens.push_back(token);
 }
@@ -88,16 +111,19 @@ std::vector<Token> TokenParser::tokenize() {
         }
 
         // consume special characters
-        if (this->try_consume('(')) {
-            this->tokens.push_back({.type = TokenType::open_paren});
-        } else if (this->try_consume(')')) {
-            this->tokens.push_back({.type = TokenType::close_paren});
-        } else if (this->try_consume(';')) {
-            this->tokens.push_back({.type = TokenType::semicol});
-        } else {
+
+        bool found = false;
+        for (auto &pair : tokenMappingsSymbols) {
+            // first contains the key
+            if (this->try_consume(pair.first)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
             std::cerr << "Invalid character: '" << current << "'" << std::endl
                       << "Character code: " << (int)current << std::endl;
-            printf("Line: %d, Column: %d\n", m_line, m_col);
+            printf("Line: %lu, Column: %lu\n", m_line, m_col);
             exit(EXIT_FAILURE);
         }
     }
