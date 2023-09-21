@@ -3,9 +3,9 @@ $$
 
 \text{program} &\to [function]^* \\
 
-\text{func\_params} &\to [[identifier],]^*[identifier]\\
-
 \text{function} &\to func ([func\_params]) [statement] \\
+
+\text{func\_params} &\to [[identifier],]^*[identifier]\\
 
 \text{statement} &\to 
 \begin{cases}
@@ -24,7 +24,8 @@ $$
  int\_16 \\
  int\_32 \\
  int\_64 \\
- [identifier]
+ char \\
+ [identifier] \\
 \end{cases} \\
 
 \text{expression} &\to
@@ -39,7 +40,7 @@ $$
 
 \text{func\_call\_params} &\to
 \begin {cases}
-    \epsilon \\
+    \varepsilon \\
     [expression] \\
     [expression][,[expression]]^*
 \end {cases} \\
@@ -53,7 +54,20 @@ $$
     [expression] / [expression] \\
 \end {cases} \\
 
-\text{unary\_expression} &\to [[expression]] \\
+\text{unary\_expression} &\to
+\begin {cases}
+    +[expression] \\
+    -[expression]
+\end{cases} \\
+
+\text{identifier} &\to [a-zA-Z][\text{a-zA-Z0-9\_}]^* \\
+
+\text{int\_literal} &\to
+\begin {cases}
+    \text{[0-9]}^+ \\
+    \text{0x[0-9a-fA-F]}^+ \\
+    \text{0b[01]}^+
+\end {cases}
 
 \end{align}
 $$
