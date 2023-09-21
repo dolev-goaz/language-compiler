@@ -67,7 +67,7 @@ void TokenParser::consume_word() {
     TokenMeta meta = {.line_num = line, .line_pos = col};
     Token token = {
         .meta = meta,
-        .type = tokenMappingsKeywords[buffer],
+        .type = type,
         .value = std::nullopt,
     };
     this->tokens.push_back(token);
