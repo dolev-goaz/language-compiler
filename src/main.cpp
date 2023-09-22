@@ -25,6 +25,10 @@ int main(int argc, char** argv) {
 void handle_compile(char* path) {
     std::string file_contents = read_file(path);
 
-    TokenParser tokenizer = TokenParser(file_contents);
+    Tokenizer tokenizer = Tokenizer(file_contents);
     std::vector<Token> tokens = tokenizer.tokenize();
+
+    for (auto&& token : tokens) {
+        std::cout << (int)token.type << std::endl;
+    }
 }

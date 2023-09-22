@@ -28,9 +28,9 @@ struct Token {
     std::optional<std::string> value;
 };
 
-class TokenParser {
+class Tokenizer {
    public:
-    TokenParser(std::string src) : m_src(src) {}
+    Tokenizer(std::string src) : m_src(src) {}
     std::vector<Token> tokenize();
 
    private:

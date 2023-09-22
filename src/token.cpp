@@ -9,7 +9,7 @@ std::map<char, TokenType> tokenMappingsSymbols = {
     {')', TokenType::close_paren},
 };
 
-char TokenParser::consume() {
+char Tokenizer::consume() {
     char current = m_src.at(m_char_ind++);
     if (current == '\n') {
         m_line += 1;
@@ -21,7 +21,7 @@ char TokenParser::consume() {
     return current;
 }
 
-std::optional<char> TokenParser::peek(size_t offset) {
+std::optional<char> Tokenizer::peek(size_t offset) {
     if (m_char_ind + offset >= m_src.length()) {
         return std::nullopt;
     }
@@ -32,7 +32,7 @@ std::optional<char> TokenParser::peek(size_t offset) {
     return current;
 }
 
-bool TokenParser::try_consume(char character) {
+bool Tokenizer::try_consume(char character) {
     if (!this->peek().has_value() || this->peek().value() != character) {
         return false;
     }
@@ -48,7 +48,7 @@ bool TokenParser::try_consume(char character) {
     return true;
 }
 
-void TokenParser::consume_word() {
+void Tokenizer::consume_word() {
     std::string buffer;
     size_t line = m_line, col = m_col;
     // check first character is an alphabet char
@@ -74,7 +74,7 @@ void TokenParser::consume_word() {
     this->tokens.push_back(token);
 }
 
-void TokenParser::consume_number() {
+void Tokenizer::consume_number() {
     std::string buffer;
     size_t line = m_line, col = m_col;
     while (this->peek().has_value() && std::isdigit(this->peek().value())) {
@@ -90,7 +90,7 @@ void TokenParser::consume_number() {
     this->tokens.push_back(token);
 }
 
-std::vector<Token> TokenParser::tokenize() {
+std::vector<Token> Tokenizer::tokenize() {
     m_line = 1, m_col = 1;  // for token metadata
     m_char_ind = 0;
 
