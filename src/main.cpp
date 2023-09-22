@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "../header/file_util.hpp"
+#include "../header/parser.hpp"
 #include "../header/token.hpp"
 
 void handle_compile(char* path);
@@ -28,7 +29,11 @@ void handle_compile(char* path) {
     Tokenizer tokenizer = Tokenizer(file_contents);
     std::vector<Token> tokens = tokenizer.tokenize();
 
-    for (auto&& token : tokens) {
-        std::cout << (int)token.type << std::endl;
-    }
+    // for (auto&& token : tokens) {
+    //     std::string value = token.value.has_value() ? token.value.value() :
+    //     ""; std::cout << (int)token.type << " " << value << std::endl;
+    // }
+
+    Parser parser = Parser(tokens);
+    ASTProgram program = parser.parse_program();
 }
