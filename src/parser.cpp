@@ -48,14 +48,15 @@ std::optional<ASTExpression> Parser::parse_expression() {
 std::optional<ASTStatement> Parser::parse_statement() {
     if (test_peek(TokenType::exit)) {
         consume();  // consume 'exit' token
-        assert_consume(TokenType::open_paren, "Expected '('");
+        assert_consume(TokenType::open_paren,
+                       "Expected '(' after function 'exit'");
         auto expression = parse_expression();
         if (!expression.has_value()) {
-            std::cerr << "Invalid expression" << std::endl;
+            std::cerr << "Invalid expression parameter" << std::endl;
             exit(EXIT_FAILURE);
         }
-        assert_consume(TokenType::close_paren, "Expected ')'");
-        assert_consume(TokenType::semicol, "Expected ';'");
+        assert_consume(TokenType::close_paren, "Expected ')' after expression");
+        assert_consume(TokenType::semicol, "Expected ';' after function call");
 
         ASTStatementExit statement;
         statement.code = expression.value();
