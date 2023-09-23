@@ -32,14 +32,13 @@ bool Parser::test_peek(TokenType type) {
 
 std::optional<ASTExpression> Parser::parse_expression() {
     if (test_peek(TokenType::int_lit)) {
-        ASTIntLiteral literal;
-        literal.value = consume().value();
-        return literal;
+        ASTIntLiteral literal{.value = consume().value()};
+
+        return ASTExpression{.expression = literal};
     }
     if (test_peek(TokenType::idenfitier)) {
-        ASTIdentifier identifier;
-        identifier.value = consume().value();
-        return identifier;
+        ASTIdentifier identifier{.value = consume().value()};
+        return ASTExpression{.expression = identifier};
     }
 
     return std::nullopt;
@@ -58,10 +57,8 @@ std::optional<ASTStatement> Parser::parse_statement() {
         assert_consume(TokenType::close_paren, "Expected ')' after expression");
         assert_consume(TokenType::semicol, "Expected ';' after function call");
 
-        ASTStatementExit statement;
-        statement.code = expression.value();
-
-        return statement;
+        ASTStatementExit statement_exit{.status_code = expression.value()};
+        return ASTStatement{.statement = statement_exit};
     }
 
     return std::nullopt;

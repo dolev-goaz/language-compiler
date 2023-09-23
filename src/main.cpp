@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "../header/file_util.hpp"
+#include "../header/generator.hpp"
 #include "../header/parser.hpp"
 #include "../header/token.hpp"
 
@@ -36,4 +37,8 @@ void handle_compile(char* path) {
 
     Parser parser = Parser(tokens);
     ASTProgram program = parser.parse_program();
+
+    Generator generator(program);
+    std::string res = generator.generate_program();
+    std::cout << res << std::endl;
 }

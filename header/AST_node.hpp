@@ -1,30 +1,30 @@
+#pragma once
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "./token.hpp"
 
-class ASTNode {};
-
-class ASTExpression : public ASTNode {};  // used for inheritence
-
-class ASTIdentifier : public ASTExpression {
-   public:
+struct ASTIntLiteral {
     Token value;
 };
 
-class ASTIntLiteral : public ASTExpression {
-   public:
+struct ASTIdentifier {
     Token value;
 };
 
-class ASTStatement : public ASTNode {};
-
-class ASTStatementExit : public ASTStatement {
-   public:
-    ASTExpression code;
+struct ASTExpression {
+    std::variant<ASTIdentifier, ASTIntLiteral> expression;
 };
 
-class ASTProgram : public ASTNode {
-   public:
+struct ASTStatementExit {
+    ASTExpression status_code;
+};
+
+struct ASTStatement {
+    std::variant<ASTStatementExit> statement;
+};
+
+struct ASTProgram {
     std::vector<ASTStatement> statements;
 };
