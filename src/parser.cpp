@@ -32,12 +32,14 @@ bool Parser::test_peek(TokenType type) {
 
 std::optional<ASTExpression> Parser::parse_expression() {
     if (test_peek(TokenType::int_lit)) {
-        ASTIntLiteral literal{.value = consume().value()};
+        Token token = consume().value();
+        ASTIntLiteral literal{.value = token.value.value()};
 
         return ASTExpression{.expression = literal};
     }
     if (test_peek(TokenType::idenfitier)) {
-        ASTIdentifier identifier{.value = consume().value()};
+        Token token = consume().value();
+        ASTIdentifier identifier{.value = token.value.value()};
         return ASTExpression{.expression = identifier};
     }
 

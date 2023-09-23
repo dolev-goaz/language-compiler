@@ -40,7 +40,7 @@ std::string Generator::generate_expression(const ASTExpression& expression) {
         [this](const auto& n) {
             using ExpressionType = std::decay_t<decltype(n)>;
             if constexpr (std::is_same_v<ExpressionType, ASTIntLiteral>) {
-                return ((ASTIntLiteral)n).value.value.value();
+                return ((ASTIntLiteral)n).value;
             }
             std::cerr << "Unimplemented expression type!" << std::endl;
             exit(EXIT_FAILURE);

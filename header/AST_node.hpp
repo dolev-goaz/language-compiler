@@ -3,14 +3,12 @@
 #include <variant>
 #include <vector>
 
-#include "./token.hpp"
-
 struct ASTIntLiteral {
-    Token value;
+    std::string value;
 };
 
 struct ASTIdentifier {
-    Token value;
+    std::string value;
 };
 
 struct ASTExpression {
