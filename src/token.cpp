@@ -77,7 +77,12 @@ void Tokenizer::consume_word() {
 void Tokenizer::consume_number() {
     std::string buffer;
     size_t line = m_line, col = m_col;
-    while (this->peek().has_value() && std::isdigit(this->peek().value())) {
+    // check first character is a number
+    if (!this->peek().has_value() || !std::isdigit(this->peek().value())) {
+        return;
+    }
+    // rest of the characters can be alphabet or numeric(200, 0x1f, 0b011)
+    while (this->peek().has_value() && std::isalnum(this->peek().value())) {
         buffer.push_back(this->consume());
     }
 
