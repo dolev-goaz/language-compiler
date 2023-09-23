@@ -1,6 +1,6 @@
 #include "../header/generator.hpp"
 std::string Generator::generate_program() {
-    m_generated << "global _start" << std::endl << "_start:" << std::endl;
+    m_generated << "global main" << std::endl << "main:" << std::endl;
 
     for (auto statement : m_prog.statements) {
         generate_statement(statement);

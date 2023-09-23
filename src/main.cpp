@@ -5,7 +5,8 @@
 #include "../header/parser.hpp"
 #include "../header/token.hpp"
 
-void handle_compile(char* path);
+void handle_compile(std::string path);
+void create_executable(std::string asm_code, std::string filename);
 
 int main(int argc, char** argv) {
     if (argc < 3) {
@@ -17,14 +18,14 @@ int main(int argc, char** argv) {
     char* command = argv[1];
 
     if (strcmp(command, "compile") == 0) {
-        char* path = argv[2];
+        std::string path = argv[2];
         handle_compile(path);
         exit(EXIT_SUCCESS);
     }
     return EXIT_FAILURE;
 }
 
-void handle_compile(char* path) {
+void handle_compile(std::string path) {
     std::string file_contents = read_file(path);
 
     Tokenizer tokenizer = Tokenizer(file_contents);
@@ -40,5 +41,17 @@ void handle_compile(char* path) {
 
     Generator generator(program);
     std::string res = generator.generate_program();
-    std::cout << res << std::endl;
+
+    create_executable(res, "output");
+}
+
+void create_executable(std::string asm_code, std::string filename) {
+    write_file("out.asm", asm_code);
+    system("nasm -f elf64 out.asm");
+
+    std::string command = "gcc -o " + filename + " out.o -e main";
+    std::cout << command << std::endl;
+    system(command.c_str());
+
+    system("rm out.asm out.o");
 }
