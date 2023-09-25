@@ -100,9 +100,9 @@ void Lexer::consume_number() {
     }
 
     if (!number_verify(buffer)) {
-        std::cerr << "Invalid number literal: '" << buffer << "'" << std::endl;
-        std::cerr << "Line: " << line << ", Column: " << col << std::endl;
-        exit(EXIT_FAILURE);
+        std::stringstream error_stream;
+        error_stream << "Invalid Number Literal " << buffer;
+        throw LexerException(error_stream.str(), line, col);
     }
 
     TokenMeta meta = {.line_num = line, .line_pos = col};
@@ -146,11 +146,10 @@ std::vector<Token> Lexer::tokenize() {
             }
         }
         if (!found) {
-            std::cerr << "Invalid character: '" << current << "'" << std::endl
-                      << "Character code: " << (int)current << std::endl
-                      << "Line: " << m_line << ", Column: " << m_col
-                      << std::endl;
-            exit(EXIT_FAILURE);
+            std::stringstream err_message;
+            err_message << "Invalid Character '" << current << "'" << std::endl
+                        << "Character Code: " << (int)current;
+            throw LexerException(err_message.str(), m_line, m_col);
         }
     }
 

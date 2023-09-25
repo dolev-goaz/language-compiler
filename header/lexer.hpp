@@ -5,6 +5,8 @@
 #include <regex>
 #include <vector>
 
+#include "./error/lexer_error.hpp"
+
 enum class TokenType {
     none = 0,
     semicol,

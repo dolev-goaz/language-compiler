@@ -29,12 +29,13 @@ void handle_compile(std::string path) {
     std::string file_contents = read_file(path);
 
     Lexer lexer = Lexer(file_contents);
-    std::vector<Token> tokens = lexer.tokenize();
-
-    // for (auto&& token : tokens) {
-    //     std::string value = token.value.has_value() ? token.value.value() :
-    //     ""; std::cout << (int)token.type << " " << value << std::endl;
-    // }
+    std::vector<Token> tokens;
+    try {
+        tokens = lexer.tokenize();
+    } catch (const LexerException& e) {
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     Parser parser = Parser(tokens);
     ASTProgram program = parser.parse_program();
