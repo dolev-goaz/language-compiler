@@ -74,9 +74,7 @@ void Lexer::consume_word() {
     }
 
     // keyword doesn't exist
-    TokenType type = tokenMappingsKeywords.count(buffer) == 0
-                         ? TokenType::identifier
-                         : tokenMappingsKeywords[buffer];
+    TokenType type = tokenMappingsKeywords.count(buffer) == 0 ? TokenType::identifier : tokenMappingsKeywords[buffer];
 
     TokenMeta meta = {.line_num = line, .line_pos = col};
     Token token = {
@@ -147,8 +145,8 @@ std::vector<Token> Lexer::tokenize() {
         }
         if (!found) {
             std::stringstream err_message;
-            err_message << "Invalid Character '" << current << "'" << std::endl
-                        << "Character Code: " << (int)current;
+            err_message << "Invalid Character '" << current << "'" << std::endl;
+            err_message << "Character Code: " << (int)current;
             throw LexerException(err_message.str(), m_line, m_col);
         }
     }

@@ -13,9 +13,7 @@ std::optional<Token> Parser::peek(int offset) {
     }
     return m_tokens.at(m_token_index + offset);
 }
-std::optional<Token> Parser::try_consume(TokenType type) {
-    return this->test_peek(type) ? consume() : std::nullopt;
-}
+std::optional<Token> Parser::try_consume(TokenType type) { return this->test_peek(type) ? consume() : std::nullopt; }
 
 Token Parser::assert_consume(TokenType type, const std::string& msg) {
     std::optional<Token> consumed = try_consume(type);
@@ -26,9 +24,7 @@ Token Parser::assert_consume(TokenType type, const std::string& msg) {
     exit(EXIT_FAILURE);
 }
 
-bool Parser::test_peek(TokenType type) {
-    return peek().has_value() && peek().value().type == type;
-}
+bool Parser::test_peek(TokenType type) { return peek().has_value() && peek().value().type == type; }
 
 std::optional<ASTExpression> Parser::parse_expression() {
     if (test_peek(TokenType::int_lit)) {
@@ -49,8 +45,7 @@ std::optional<ASTExpression> Parser::parse_expression() {
 std::optional<ASTStatement> Parser::parse_statement() {
     if (test_peek(TokenType::exit)) {
         consume();  // consume 'exit' token
-        assert_consume(TokenType::open_paren,
-                       "Expected '(' after function 'exit'");
+        assert_consume(TokenType::open_paren, "Expected '(' after function 'exit'");
         auto expression = parse_expression();
         if (!expression.has_value()) {
             std::cerr << "Invalid expression parameter" << std::endl;
