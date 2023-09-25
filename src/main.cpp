@@ -2,8 +2,8 @@
 
 #include "../header/file_util.hpp"
 #include "../header/generator.hpp"
+#include "../header/lexer.hpp"
 #include "../header/parser.hpp"
-#include "../header/token.hpp"
 
 void handle_compile(std::string path);
 void create_executable(std::string asm_code, std::string filename);
@@ -28,8 +28,8 @@ int main(int argc, char** argv) {
 void handle_compile(std::string path) {
     std::string file_contents = read_file(path);
 
-    Tokenizer tokenizer = Tokenizer(file_contents);
-    std::vector<Token> tokens = tokenizer.tokenize();
+    Lexer lexer = Lexer(file_contents);
+    std::vector<Token> tokens = lexer.tokenize();
 
     // for (auto&& token : tokens) {
     //     std::string value = token.value.has_value() ? token.value.value() :

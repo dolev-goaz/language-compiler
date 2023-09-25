@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "./AST_node.hpp"
-#include "./token.hpp"
+#include "./lexer.hpp"
 
 class Parser {
    public:
