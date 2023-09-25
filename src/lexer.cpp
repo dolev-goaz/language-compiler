@@ -1,6 +1,6 @@
 #include "../header/lexer.hpp"
 
-bool number_verify(std::string num_str) {
+bool number_verify(const std::string& num_str) {
     // Hexadecimal 0[xX][0-9a-fA-F]+
     // Binary 0[bB][01]+
     // Decimal \d+
@@ -36,6 +36,9 @@ std::optional<char> Lexer::peek(size_t offset) {
         return std::nullopt;
     }
     const char current = m_src.at(m_char_ind + offset);
+
+    // if we reached the end of the string or the end of the file,
+    // there is nothing to peek.
     if (current == 0 || current == EOF) {
         return std::nullopt;
     }
@@ -112,7 +115,9 @@ void Lexer::consume_number() {
 }
 
 std::vector<Token> Lexer::tokenize() {
-    m_line = 1, m_col = 1;  // for token metadata
+    // initialize m_line to the first line, m_col to the first column
+    m_line = 1, m_col = 1;
+    // initialize m_char_ind to 0(no characters were read yet)
     m_char_ind = 0;
 
     while (peek().has_value()) {
@@ -133,7 +138,7 @@ std::vector<Token> Lexer::tokenize() {
         // consume special characters
 
         bool found = false;
-        for (auto &pair : tokenMappingsSymbols) {
+        for (auto& pair : tokenMappingsSymbols) {
             // first contains the key
             if (this->try_consume(pair.first)) {
                 found = true;
