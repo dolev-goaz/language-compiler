@@ -8,7 +8,7 @@ struct Generator::StatementVisitor {
     void operator()(const ASTStatementVar& var_declare) const {
         // check variable name already exists
         if (generator.m_variables.count(var_declare.name) > 0) {
-            std::cerr << "Identifier " << var_declare.name << "already exists!" << std::endl;
+            std::cerr << "Variable " << var_declare.name << "already exists!" << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -32,8 +32,23 @@ struct Generator::ExpressionVisitor {
     Generator& generator;
 
     void operator()(const ASTIdentifier& identifier) const {
-        std::cerr << "Not Implemented Yet!" << std::endl;
-        exit(EXIT_FAILURE);
+        if (generator.m_variables.count(identifier.value) == 0) {
+            std::cerr << "Variable " << identifier.value << "does not exist!" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        // get variable metadata
+        Generator::Variable variable = generator.m_variables.at(identifier.value);
+
+        // get variable position in the stack
+        int offset = generator.m_stack_size - variable.stack_location_bytes;
+        // rsp was on the next FREE address, offset it back to the variable's position.
+        offset -= variable.size_bytes;
+
+        // TODO: take variable.size_bytes into account(only push the bytes needed)
+        // push variable value into stack
+        generator.m_generated << "\tpush QWORD [rsp + " << offset << "]" << std::endl;
+        generator.m_stack_size += variable.size_bytes;
     }
 
     void operator()(const ASTIntLiteral& literal) const {

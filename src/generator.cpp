@@ -23,6 +23,7 @@ void Generator::generate_exit(const ASTStatementExit& exit_statement) {
     generate_expression(exit_statement.status_code);
     m_generated << "\tmov rax, 60" << std::endl;
     m_generated << "\tpop rdi" << std::endl;
+    m_stack_size -= 8;  // pop into 8 bit register
     m_generated << "\tsyscall" << std::endl;
 }
 
