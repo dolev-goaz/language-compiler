@@ -20,6 +20,17 @@ class Generator {
     // Pushes the result expression onto the stack
     void generate_expression(const ASTExpression& expression);
 
+    // push a value from the stack to the stack
+    void push_stack_offset(int offset, size_t size);
+
+    // push a literal value to the stack
+    void push_stack_literal(const std::string& value, size_t size);
+
+    // TODO: might need push_stack_register
+
+    // pop from the stack into a register
+    void pop_stack_register(const std::string& reg, size_t size);
+
     std::stringstream m_generated;
     const ASTProgram m_prog;
 

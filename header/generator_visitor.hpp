@@ -45,13 +45,12 @@ struct Generator::ExpressionVisitor {
         // rsp was on the next FREE address, offset it back to the variable's position.
         offset -= variable.size_bytes;
 
-        // TODO: take variable.size_bytes into account(only push the bytes needed)
         // push variable value into stack
-        generator.m_generated << "\tpush QWORD [rsp + " << offset << "]" << std::endl;
-        generator.m_stack_size += variable.size_bytes;
+        generator.push_stack_offset(offset, variable.size_bytes);
     }
 
     void operator()(const ASTIntLiteral& literal) const {
-        generator.m_generated << "\tpush QWORD " << literal.value << std::endl;
+        // TODO: are literals always 8 bytes?
+        generator.push_stack_literal(literal.value, 8);
     }
 };
