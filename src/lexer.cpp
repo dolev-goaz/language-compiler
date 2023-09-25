@@ -74,14 +74,24 @@ void Lexer::consume_word() {
         buffer.push_back(this->consume());
     }
 
-    // keyword doesn't exist
-    TokenType type = tokenMappingsKeywords.count(buffer) == 0 ? TokenType::identifier : tokenMappingsKeywords[buffer];
+    TokenType type;
+    std::optional<std::string> value;
+
+    bool keyword_exists = tokenMappingsKeywords.count(buffer) > 0;
+
+    if (keyword_exists) {
+        type = tokenMappingsKeywords[buffer];
+        value = std::nullopt;
+    } else {
+        type = TokenType::identifier;
+        value = buffer;
+    }
 
     TokenMeta meta = {.line_num = line, .line_pos = col};
     Token token = {
         .meta = meta,
         .type = type,
-        .value = std::nullopt,
+        .value = value,
     };
     this->tokens.push_back(token);
 }
