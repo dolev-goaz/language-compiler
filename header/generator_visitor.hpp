@@ -8,7 +8,7 @@ struct Generator::StatementVisitor {
     void operator()(const ASTStatementVar& var_declare) const {
         // check variable name already exists
         if (generator.m_variables.count(var_declare.name) > 0) {
-            std::cerr << "Variable " << var_declare.name << "already exists!" << std::endl;
+            std::cerr << "Variable '" << var_declare.name << "' already exists!" << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -16,13 +16,14 @@ struct Generator::StatementVisitor {
             .stack_location_bytes = generator.m_stack_size,
             .size_bytes = 8,  // hard coded for now
         };
-        generator.m_variables.insert({var_declare.name, var});
         // TODO: need to refer to size_bytes when initializing(push only the required size)
         if (var_declare.value.has_value()) {
             generator.generate_expression(var_declare.value.value());
         } else {
             // TODO: initialize with 0
         }
+
+        generator.m_variables.insert({var_declare.name, var});  // variable is now set
     }
 };
 
@@ -31,7 +32,7 @@ struct Generator::ExpressionVisitor {
 
     void operator()(const ASTIdentifier& identifier) const {
         if (generator.m_variables.count(identifier.value) == 0) {
-            std::cerr << "Variable " << identifier.value << "does not exist!" << std::endl;
+            std::cerr << "Variable '" << identifier.value << "' does not exist!" << std::endl;
             exit(EXIT_FAILURE);
         }
 
