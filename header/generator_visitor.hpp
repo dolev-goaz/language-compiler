@@ -23,8 +23,6 @@ struct Generator::StatementVisitor {
         } else {
             // TODO: initialize with 0
         }
-
-        generator.m_stack_size += var.size_bytes;
     }
 };
 

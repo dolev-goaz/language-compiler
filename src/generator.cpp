@@ -34,8 +34,7 @@ void Generator::generate_expression(const ASTExpression& expression) {
 void Generator::push_stack_literal(const std::string& value, size_t size) {
     // TODO: include size in the calculations instead of using QWORD immediately.
     m_generated << "\tpush QWORD " << value << std::endl;
-
-    // m_stack_size += size; // idk why this bugs out
+    m_stack_size += size;
 }
 void Generator::push_stack_offset(int offset, size_t size) {
     // TODO: take size into account(only push the bytes needed) instead of using QWORD.
