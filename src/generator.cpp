@@ -1,4 +1,6 @@
 #include "../header/generator.hpp"
+
+#include "../header/generator_visitor.hpp"
 std::string Generator::generate_program() {
     m_generated << "global main" << std::endl << "main:" << std::endl;
 
@@ -15,18 +17,7 @@ std::string Generator::generate_program() {
 }
 
 void Generator::generate_statement(const ASTStatement& statement) {
-    std::visit(
-        [this](const auto& n) {
-            using StatementType = std::decay_t<decltype(n)>;
-            if constexpr (std::is_same_v<StatementType, ASTStatementExit>) {
-                generate_exit(n);
-                return;
-            }
-
-            std::cerr << "Unimplemented statement!" << std::endl;
-            exit(EXIT_FAILURE);
-        },
-        statement.statement);
+    std::visit(Generator::StatementVisitor{*this}, statement.statement);
 }
 void Generator::generate_exit(const ASTStatementExit& exit_statement) {
     std::string expression = generate_expression(exit_statement.status_code);
@@ -36,18 +27,5 @@ void Generator::generate_exit(const ASTStatementExit& exit_statement) {
 }
 
 std::string Generator::generate_expression(const ASTExpression& expression) {
-    std::string result = std::visit(
-        [this](const auto& n) {
-            using ExpressionType = std::decay_t<decltype(n)>;
-            if constexpr (std::is_same_v<ExpressionType, ASTIntLiteral>) {
-                return ((ASTIntLiteral)n).value;
-            }
-            std::cerr << "Unimplemented expression type!" << std::endl;
-            exit(EXIT_FAILURE);
-
-            // unreachable code
-            return std::string("");
-        },
-        expression.expression);
-    return result;
+    return std::visit(Generator::ExpressionVisitor{*this}, expression.expression);
 }

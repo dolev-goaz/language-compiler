@@ -18,4 +18,7 @@ class Generator {
 
     std::stringstream m_generated;
     const ASTProgram m_prog;
+
+    struct StatementVisitor;
+    struct ExpressionVisitor;
 };
