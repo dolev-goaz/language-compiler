@@ -1,5 +1,15 @@
 #include "../header/lexer.hpp"
 
+bool number_verify(std::string num_str) {
+    // Hexadecimal 0[xX][0-9a-fA-F]+
+    // Binary 0[bB][01]+
+    // Decimal \d+
+    std::regex pattern("^(0[xX][0-9A-Fa-f]+|0[bB][01]+|\\d+)$");
+
+    // Use std::regex_match to check if the string matches the pattern
+    return std::regex_match(num_str, pattern);
+}
+
 std::map<std::string, TokenType> tokenMappingsKeywords = {
     {"exit", TokenType::exit},
 };
@@ -84,6 +94,12 @@ void Lexer::consume_number() {
     // rest of the characters can be alphabet or numeric(200, 0x1f, 0b011)
     while (this->peek().has_value() && std::isalnum(this->peek().value())) {
         buffer.push_back(this->consume());
+    }
+
+    if (!number_verify(buffer)) {
+        printf("Invalid number literal: '%s'\n", buffer.c_str());
+        printf("Line: %lu, Column: %lu\n", line, col);
+        exit(EXIT_FAILURE);
     }
 
     TokenMeta meta = {.line_num = line, .line_pos = col};

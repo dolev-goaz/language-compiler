@@ -2,6 +2,7 @@
 #include <iostream>
 #include <map>
 #include <optional>
+#include <regex>
 #include <vector>
 
 enum class TokenType {
