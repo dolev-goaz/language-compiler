@@ -20,7 +20,9 @@ struct Generator::StatementVisitor {
         if (var_declare.value.has_value()) {
             generator.generate_expression(var_declare.value.value());
         } else {
-            // TODO: initialize with 0
+            // initialize with 0
+            ASTIntLiteral zero_literal = {.value = "0"};
+            generator.generate_expression(ASTExpression{.expression = zero_literal});
         }
 
         generator.m_variables.insert({var_declare.name, var});  // variable is now set
