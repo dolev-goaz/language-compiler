@@ -20,12 +20,12 @@ void Generator::generate_statement(const ASTStatement& statement) {
     std::visit(Generator::StatementVisitor{*this}, statement.statement);
 }
 void Generator::generate_exit(const ASTStatementExit& exit_statement) {
-    std::string expression = generate_expression(exit_statement.status_code);
+    generate_expression(exit_statement.status_code);
     m_generated << "\tmov rax, 60" << std::endl;
-    m_generated << "\tmov rdi, " << expression << std::endl;
+    m_generated << "\tpop rdi" << std::endl;
     m_generated << "\tsyscall" << std::endl;
 }
 
-std::string Generator::generate_expression(const ASTExpression& expression) {
-    return std::visit(Generator::ExpressionVisitor{*this}, expression.expression);
+void Generator::generate_expression(const ASTExpression& expression) {
+    std::visit(Generator::ExpressionVisitor{*this}, expression.expression);
 }

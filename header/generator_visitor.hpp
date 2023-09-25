@@ -10,10 +10,12 @@ struct Generator::StatementVisitor {
 struct Generator::ExpressionVisitor {
     Generator& generator;
 
-    std::string operator()(const ASTIdentifier& identifier) const {
+    void operator()(const ASTIdentifier& identifier) const {
         std::cerr << "Not Implemented Yet!" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    std::string operator()(const ASTIntLiteral& literal) const { return literal.value; }
+    void operator()(const ASTIntLiteral& literal) const {
+        generator.m_generated << "\tpush QWORD " << literal.value << std::endl;
+    }
 };

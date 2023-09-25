@@ -14,7 +14,8 @@ class Generator {
     void generate_statement(const ASTStatement& statement);
     void generate_exit(const ASTStatementExit& exit_statement);
 
-    std::string generate_expression(const ASTExpression& expression);
+    // Pushes the result expression onto the stack
+    void generate_expression(const ASTExpression& expression);
 
     std::stringstream m_generated;
     const ASTProgram m_prog;
