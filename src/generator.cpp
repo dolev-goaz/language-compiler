@@ -10,9 +10,9 @@ std::string Generator::generate_program() {
 
     // default exit statement
     m_generated << std::endl << "; default program end" << std::endl;
-    m_generated << "    mov rax, 60" << std::endl;
-    m_generated << "    mov rdi, 0" << std::endl;
-    m_generated << "    syscall" << std::endl;
+    m_generated << "\tmov rax, 60" << std::endl;
+    m_generated << "\tmov rdi, 0" << std::endl;
+    m_generated << "\tsyscall" << std::endl;
     return m_generated.str();
 }
 
@@ -21,9 +21,9 @@ void Generator::generate_statement(const ASTStatement& statement) {
 }
 void Generator::generate_exit(const ASTStatementExit& exit_statement) {
     std::string expression = generate_expression(exit_statement.status_code);
-    m_generated << "    mov rax, 60" << std::endl;
-    m_generated << "    mov rdi, " << expression << std::endl;
-    m_generated << "    syscall" << std::endl;
+    m_generated << "\tmov rax, 60" << std::endl;
+    m_generated << "\tmov rdi, " << expression << std::endl;
+    m_generated << "\tsyscall" << std::endl;
 }
 
 std::string Generator::generate_expression(const ASTExpression& expression) {
