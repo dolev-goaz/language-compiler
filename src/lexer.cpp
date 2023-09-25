@@ -6,17 +6,18 @@ bool number_verify(const std::string& num_str) {
     // Decimal \d+
     std::regex pattern("^(0[xX][0-9A-Fa-f]+|0[bB][01]+|\\d+)$");
 
-    // Use std::regex_match to check if the string matches the pattern
     return std::regex_match(num_str, pattern);
 }
 
 std::map<std::string, TokenType> tokenMappingsKeywords = {
     {"exit", TokenType::exit},
+    {"var", TokenType::var},
 };
 std::map<char, TokenType> tokenMappingsSymbols = {
     {';', TokenType::semicol},
     {'(', TokenType::open_paren},
     {')', TokenType::close_paren},
+    {'=', TokenType::eq},
 };
 
 char Lexer::consume() {

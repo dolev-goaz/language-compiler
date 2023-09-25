@@ -5,6 +5,10 @@ struct Generator::StatementVisitor {
     Generator& generator;
 
     void operator()(const ASTStatementExit& exit) const { generator.generate_exit(exit); }
+    void operator()(const ASTStatementVar& var_declare) const {
+        std::cerr << "Not Implemented Yet!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 };
 
 struct Generator::ExpressionVisitor {

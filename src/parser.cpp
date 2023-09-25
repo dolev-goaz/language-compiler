@@ -58,6 +58,35 @@ std::optional<ASTStatement> Parser::parse_statement() {
         return ASTStatement{.statement = statement_exit};
     }
 
+    if (test_peek(TokenType::var)) {
+        consume();  // consume 'var' token
+        Token identifier = assert_consume(TokenType::identifier, "Expected Identifier for variable name");
+
+        std::optional<ASTExpression> value = std::nullopt;
+
+        if (test_peek(TokenType::eq)) {
+            consume();  // consume 'eq' token
+            auto expression = parse_expression();
+            if (!expression.has_value()) {
+                std::cerr << "Invalid initialized value for variable " << identifier.value.value() << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            value = ASTExpression{
+                .expression = expression.value().expression,
+            };
+        }
+
+        assert_consume(TokenType::semicol, "Expected ';' after variable delcaration");
+
+        ASTStatementVar statement_var = {
+            .name = identifier.value.value(),
+            .value = value,
+        };
+
+        return ASTStatement{.statement = statement_var};
+    }
+
     return std::nullopt;
 }
 
