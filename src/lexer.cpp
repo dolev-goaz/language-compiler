@@ -6,17 +6,18 @@ bool number_verify(const std::string& num_str) {
     // Decimal \d+
     std::regex pattern("^(0[xX][0-9A-Fa-f]+|0[bB][01]+|\\d+)$");
 
-    // Use std::regex_match to check if the string matches the pattern
     return std::regex_match(num_str, pattern);
 }
 
 std::map<std::string, TokenType> tokenMappingsKeywords = {
     {"exit", TokenType::exit},
+    {"var", TokenType::var},
 };
 std::map<char, TokenType> tokenMappingsSymbols = {
     {';', TokenType::semicol},
     {'(', TokenType::open_paren},
     {')', TokenType::close_paren},
+    {'=', TokenType::eq},
 };
 
 char Lexer::consume() {
@@ -73,14 +74,24 @@ void Lexer::consume_word() {
         buffer.push_back(this->consume());
     }
 
-    // keyword doesn't exist
-    TokenType type = tokenMappingsKeywords.count(buffer) == 0 ? TokenType::identifier : tokenMappingsKeywords[buffer];
+    TokenType type;
+    std::optional<std::string> value;
+
+    bool keyword_exists = tokenMappingsKeywords.count(buffer) > 0;
+
+    if (keyword_exists) {
+        type = tokenMappingsKeywords[buffer];
+        value = std::nullopt;
+    } else {
+        type = TokenType::identifier;
+        value = buffer;
+    }
 
     TokenMeta meta = {.line_num = line, .line_pos = col};
     Token token = {
         .meta = meta,
         .type = type,
-        .value = std::nullopt,
+        .value = value,
     };
     this->tokens.push_back(token);
 }

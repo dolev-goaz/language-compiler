@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -19,8 +20,13 @@ struct ASTStatementExit {
     ASTExpression status_code;
 };
 
+struct ASTStatementVar {
+    std::string name;
+    std::optional<ASTExpression> value;
+};
+
 struct ASTStatement {
-    std::variant<ASTStatementExit> statement;
+    std::variant<ASTStatementExit, ASTStatementVar> statement;
 };
 
 struct ASTProgram {
