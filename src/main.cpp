@@ -54,5 +54,5 @@ void create_executable(std::string asm_code, std::string filename) {
     std::cout << command << std::endl;
     system(command.c_str());
 
-    system("rm out.asm out.o");
+    system("rm out.o");
 }

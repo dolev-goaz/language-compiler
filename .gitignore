@@ -3,3 +3,4 @@ obj
 compiler
 code_test.dlv
 output
+out.asm
