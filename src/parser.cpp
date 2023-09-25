@@ -37,7 +37,7 @@ std::optional<ASTExpression> Parser::parse_expression() {
 
         return ASTExpression{.expression = literal};
     }
-    if (test_peek(TokenType::idenfitier)) {
+    if (test_peek(TokenType::identifier)) {
         Token token = consume().value();
         ASTIdentifier identifier{.value = token.value.value()};
         return ASTExpression{.expression = identifier};

@@ -72,7 +72,7 @@ void Lexer::consume_word() {
 
     // keyword doesn't exist
     TokenType type = tokenMappingsKeywords.count(buffer) == 0
-                         ? TokenType::idenfitier
+                         ? TokenType::identifier
                          : tokenMappingsKeywords[buffer];
 
     TokenMeta meta = {.line_num = line, .line_pos = col};
