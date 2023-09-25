@@ -28,9 +28,10 @@ struct Token {
     std::optional<std::string> value;
 };
 
-class Tokenizer {
+// Lexical analysis unit
+class Lexer {
    public:
-    Tokenizer(std::string src) : m_src(src) {}
+    Lexer(std::string src) : m_src(src) {}
     std::vector<Token> tokenize();
 
    private:
