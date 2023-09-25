@@ -100,8 +100,8 @@ void Lexer::consume_number() {
     }
 
     if (!number_verify(buffer)) {
-        printf("Invalid number literal: '%s'\n", buffer.c_str());
-        printf("Line: %lu, Column: %lu\n", line, col);
+        std::cerr << "Invalid number literal: '" << buffer << "'" << std::endl;
+        std::cerr << "Line: " << line << ", Column: " << col << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -147,8 +147,9 @@ std::vector<Token> Lexer::tokenize() {
         }
         if (!found) {
             std::cerr << "Invalid character: '" << current << "'" << std::endl
-                      << "Character code: " << (int)current << std::endl;
-            printf("Line: %lu, Column: %lu\n", m_line, m_col);
+                      << "Character code: " << (int)current << std::endl
+                      << "Line: " << m_line << ", Column: " << m_col
+                      << std::endl;
             exit(EXIT_FAILURE);
         }
     }
