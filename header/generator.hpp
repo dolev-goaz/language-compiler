@@ -15,10 +15,14 @@ class Generator {
     struct Variable;
 
     void generate_statement(const ASTStatement& statement);
-    void generate_exit(const ASTStatementExit& exit_statement);
-
     // Pushes the result expression onto the stack
     void generate_expression(const ASTExpression& expression);
+
+    void generate_expression_identifier(const ASTIdentifier& identifier);
+    void generate_expression_int_literal(const ASTIntLiteral& literal);
+
+    void generate_statement_exit(const ASTStatementExit& exit_statement);
+    void generate_statement_var_declare(const ASTStatementVar& var_statement);
 
     // push a value from the stack to the stack
     void push_stack_offset(int offset, size_t size);
