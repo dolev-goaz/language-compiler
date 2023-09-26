@@ -42,51 +42,65 @@ std::optional<ASTExpression> Parser::parse_expression() {
     return std::nullopt;
 }
 
-std::optional<ASTStatement> Parser::parse_statement() {
-    if (test_peek(TokenType::exit)) {
-        consume();  // consume 'exit' token
-        assert_consume(TokenType::open_paren, "Expected '(' after function 'exit'");
+std::optional<ASTStatementExit> Parser::parse_statement_exit() {
+    // exit([expression]);
+    if (!test_peek(TokenType::exit)) return std::nullopt;
+
+    consume();  // consume 'exit' token
+    assert_consume(TokenType::open_paren, "Expected '(' after function 'exit'");
+    auto expression = parse_expression();
+    if (!expression.has_value()) {
+        std::cerr << "Invalid expression parameter" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    assert_consume(TokenType::close_paren, "Expected ')' after expression");
+    assert_consume(TokenType::semicol, "Expected ';' after function call");
+
+    return ASTStatementExit{.status_code = expression.value()};
+}
+
+std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
+    // var [identifier];
+    // var [identifier] = [expression];
+    if (!test_peek(TokenType::var)) return std::nullopt;
+    consume();  // consume 'var' token
+
+    Token identifier = assert_consume(TokenType::identifier, "Expected Identifier for variable name");
+    std::optional<ASTExpression> value = std::nullopt;
+
+    if (test_peek(TokenType::eq)) {
+        consume();  // consume 'eq' token
         auto expression = parse_expression();
         if (!expression.has_value()) {
-            std::cerr << "Invalid expression parameter" << std::endl;
+            std::cerr << "Invalid initialize value for variable " << identifier.value.value() << std::endl;
             exit(EXIT_FAILURE);
         }
-        assert_consume(TokenType::close_paren, "Expected ')' after expression");
-        assert_consume(TokenType::semicol, "Expected ';' after function call");
 
-        ASTStatementExit statement_exit{.status_code = expression.value()};
-        return ASTStatement{.statement = statement_exit};
-    }
-
-    if (test_peek(TokenType::var)) {
-        consume();  // consume 'var' token
-        Token identifier = assert_consume(TokenType::identifier, "Expected Identifier for variable name");
-
-        std::optional<ASTExpression> value = std::nullopt;
-
-        if (test_peek(TokenType::eq)) {
-            consume();  // consume 'eq' token
-            auto expression = parse_expression();
-            if (!expression.has_value()) {
-                std::cerr << "Invalid initialized value for variable " << identifier.value.value() << std::endl;
-                exit(EXIT_FAILURE);
-            }
-
-            value = ASTExpression{
-                .expression = expression.value().expression,
-            };
-        }
-
-        assert_consume(TokenType::semicol, "Expected ';' after variable delcaration");
-
-        ASTStatementVar statement_var = {
-            .name = identifier.value.value(),
-            .value = value,
+        value = ASTExpression{
+            .expression = expression.value().expression,
         };
-
-        return ASTStatement{.statement = statement_var};
     }
 
+    assert_consume(TokenType::semicol, "Expected ';' after variable delcaration");
+
+    return ASTStatementVar{
+        .name = identifier.value.value(),
+        .value = value,
+    };
+}
+
+std::optional<ASTStatement> Parser::parse_statement() {
+    // check for exit statement
+    if (auto exit_statement = parse_statement_exit(); exit_statement.has_value()) {
+        return ASTStatement{.statement = exit_statement.value()};
+    }
+
+    // check for variable declaration statement
+    if (auto var_declare_statement = parse_statement_var_declare(); var_declare_statement.has_value()) {
+        return ASTStatement{.statement = var_declare_statement.value()};
+    }
+
+    // fallback- no matching statement found
     return std::nullopt;
 }
 

@@ -16,6 +16,10 @@ class Parser {
     size_t m_token_index = 0;
 
     std::optional<ASTStatement> parse_statement();
+
+    std::optional<ASTStatementExit> parse_statement_exit();
+    std::optional<ASTStatementVar> parse_statement_var_declare();
+
     std::optional<ASTExpression> parse_expression();
 
     std::optional<Token> consume();
