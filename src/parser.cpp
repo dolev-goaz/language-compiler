@@ -21,10 +21,10 @@ Token Parser::assert_consume(TokenType type, const std::string& msg) {
         return consumed.value();
     }
     if (auto token = peek(); token.has_value()) {
-        throw ParserError(msg, token.value().meta.line_num, token.value().meta.line_pos);
+        throw ParserException(msg, token.value().meta.line_num, token.value().meta.line_pos);
     }
 
-    throw ParserError(msg);
+    throw ParserException(msg);
 }
 
 bool Parser::test_peek(TokenType type) { return peek().has_value() && peek().value().type == type; }
@@ -53,7 +53,8 @@ std::optional<ASTStatementExit> Parser::parse_statement_exit() {
     assert_consume(TokenType::open_paren, "Expected '(' after function 'exit'");
     auto expression = parse_expression();
     if (!expression.has_value()) {
-        throw ParserError("Invalid expression parameter", statement_begin.meta.line_num, statement_begin.meta.line_pos);
+        throw ParserException("Invalid expression parameter", statement_begin.meta.line_num,
+                              statement_begin.meta.line_pos);
     }
     assert_consume(TokenType::close_paren, "Expected ')' after expression");
     assert_consume(TokenType::semicol, "Expected ';' after function call");
@@ -76,7 +77,7 @@ std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
         if (!expression.has_value()) {
             std::stringstream error_stream;
             error_stream << "Invalid initialize value for variable '" << identifier.value.value() << "'";
-            throw ParserError(error_stream.str(), statement_begin.meta.line_num, statement_begin.meta.line_pos);
+            throw ParserException(error_stream.str(), statement_begin.meta.line_num, statement_begin.meta.line_pos);
         }
 
         value = ASTExpression{
@@ -114,7 +115,7 @@ ASTProgram Parser::parse_program() {
         auto statement = parse_statement();
         if (!statement.has_value()) {
             Token token = peek().value();
-            throw ParserError("Invalid statement", token.meta.line_num, token.meta.line_pos);
+            throw ParserException("Invalid statement", token.meta.line_num, token.meta.line_pos);
         }
 
         result.statements.push_back(statement.value());

@@ -3,10 +3,11 @@
 #include <sstream>
 #include <string>
 
-class ParserError : public std::exception {
+class ParserException : public std::exception {
    public:
-    ParserError(const std::string& message, size_t line, size_t col) : m_message(message), m_line(line), m_col(col) {}
-    ParserError(const std::string& message) : m_message(message), m_line(0), m_col(0) {}
+    ParserException(const std::string& message, size_t line, size_t col)
+        : m_message(message), m_line(line), m_col(col) {}
+    ParserException(const std::string& message) : m_message(message), m_line(0), m_col(0) {}
 
     const char* what() const noexcept override {
         std::stringstream stream;
