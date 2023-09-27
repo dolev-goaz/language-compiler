@@ -20,6 +20,9 @@ Token Parser::assert_consume(TokenType type, const std::string& msg) {
     if (consumed.has_value()) {
         return consumed.value();
     }
+    if (auto token = peek(); token.has_value()) {
+        throw ParserError(msg, token.value().meta.line_num, token.value().meta.line_pos);
+    }
 
     throw ParserError(msg);
 }
