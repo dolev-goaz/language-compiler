@@ -38,7 +38,13 @@ void handle_compile(std::string path) {
     }
 
     Parser parser = Parser(tokens);
-    ASTProgram program = parser.parse_program();
+    ASTProgram program;
+    try {
+        program = parser.parse_program();
+    } catch (const ParserException& e) {
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     Generator generator(program);
     std::string res = generator.generate_program();

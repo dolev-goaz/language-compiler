@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "./AST_node.hpp"
+#include "./error/parser_error.hpp"
 #include "./lexer.hpp"
 
 class Parser {

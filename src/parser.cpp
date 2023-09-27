@@ -20,8 +20,11 @@ Token Parser::assert_consume(TokenType type, const std::string& msg) {
     if (consumed.has_value()) {
         return consumed.value();
     }
-    std::cerr << msg << std::endl;
-    exit(EXIT_FAILURE);
+    if (auto token = peek(); token.has_value()) {
+        throw ParserException(msg, token.value().meta.line_num, token.value().meta.line_pos);
+    }
+
+    throw ParserException(msg);
 }
 
 bool Parser::test_peek(TokenType type) { return peek().has_value() && peek().value().type == type; }
@@ -46,12 +49,12 @@ std::optional<ASTStatementExit> Parser::parse_statement_exit() {
     // exit([expression]);
     if (!test_peek(TokenType::exit)) return std::nullopt;
 
-    consume();  // consume 'exit' token
+    Token statement_begin = consume().value();  // consume 'exit' token
     assert_consume(TokenType::open_paren, "Expected '(' after function 'exit'");
     auto expression = parse_expression();
     if (!expression.has_value()) {
-        std::cerr << "Invalid expression parameter" << std::endl;
-        exit(EXIT_FAILURE);
+        throw ParserException("Invalid expression parameter", statement_begin.meta.line_num,
+                              statement_begin.meta.line_pos);
     }
     assert_consume(TokenType::close_paren, "Expected ')' after expression");
     assert_consume(TokenType::semicol, "Expected ';' after function call");
@@ -63,7 +66,7 @@ std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
     // var [identifier];
     // var [identifier] = [expression];
     if (!test_peek(TokenType::var)) return std::nullopt;
-    consume();  // consume 'var' token
+    Token statement_begin = consume().value();  // consume 'var' token
 
     Token identifier = assert_consume(TokenType::identifier, "Expected Identifier for variable name");
     std::optional<ASTExpression> value = std::nullopt;
@@ -72,8 +75,9 @@ std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
         consume();  // consume 'eq' token
         auto expression = parse_expression();
         if (!expression.has_value()) {
-            std::cerr << "Invalid initialize value for variable " << identifier.value.value() << std::endl;
-            exit(EXIT_FAILURE);
+            std::stringstream error_stream;
+            error_stream << "Invalid initialize value for variable '" << identifier.value.value() << "'";
+            throw ParserException(error_stream.str(), statement_begin.meta.line_num, statement_begin.meta.line_pos);
         }
 
         value = ASTExpression{
@@ -110,8 +114,8 @@ ASTProgram Parser::parse_program() {
     while (peek().has_value()) {
         auto statement = parse_statement();
         if (!statement.has_value()) {
-            std::cerr << "Invalid statement" << std::endl;
-            exit(EXIT_FAILURE);
+            Token token = peek().value();
+            throw ParserException("Invalid statement", token.meta.line_num, token.meta.line_pos);
         }
 
         result.statements.push_back(statement.value());
