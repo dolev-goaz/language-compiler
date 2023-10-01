@@ -1,21 +1,10 @@
 #pragma once
 #include <iostream>
 #include <map>
-#include <sstream>
 #include <stack>
 #include <string>
 
 #include "AST_node.hpp"
-
-class SemanticAnalyzer {
-   public:
-    SemanticAnalyzer(ASTProgram program) : m_prog(program) {}
-    SymbolTable analyze();
-
-   private:
-    const ASTProgram m_prog;
-    SymbolTable m_symbol_table;
-};
 
 class SymbolTable {
    public:
@@ -26,4 +15,14 @@ class SymbolTable {
 
    private:
     std::stack<std::map<std::string, int>> scope_stack;
+};
+
+class SemanticAnalyzer {
+   public:
+    SemanticAnalyzer(ASTProgram program) : m_prog(program) {}
+    SymbolTable analyze();
+
+   private:
+    const ASTProgram m_prog;
+    SymbolTable m_symbol_table;
 };
