@@ -61,15 +61,17 @@ bool Lexer::try_consume(char character) {
     return true;
 }
 
+bool is_valid_identifier_letter(char letter) { return isalnum(letter) || letter == '_'; }
+
 void Lexer::consume_word() {
     std::string buffer;
     size_t line = m_line, col = m_col;
     // check first character is an alphabet char
-    if (!this->peek().has_value() || !std::isalpha(this->peek().value())) {
+    if (!this->peek().has_value() || !is_valid_identifier_letter(this->peek().value())) {
         return;
     }
     // rest of the characters can be alphabet or numeric
-    while (this->peek().has_value() && std::isalnum(this->peek().value())) {
+    while (this->peek().has_value() && is_valid_identifier_letter(this->peek().value())) {
         buffer.push_back(this->consume());
     }
 
