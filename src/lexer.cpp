@@ -11,7 +11,6 @@ bool number_verify(const std::string& num_str) {
 
 std::map<std::string, TokenType> tokenMappingsKeywords = {
     {"exit", TokenType::exit},
-    {"var", TokenType::var},
 };
 std::map<char, TokenType> tokenMappingsSymbols = {
     {';', TokenType::semicol},

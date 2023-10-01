@@ -26,6 +26,6 @@ class Parser {
     std::optional<Token> consume();
     std::optional<Token> peek(int offset = 0);
     std::optional<Token> try_consume(TokenType type);
-    bool test_peek(TokenType type);
+    bool test_peek(TokenType type, int offset = 0);
     Token assert_consume(TokenType type, const std::string& msg);
 };
