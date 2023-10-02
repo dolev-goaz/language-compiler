@@ -36,12 +36,18 @@ std::optional<ASTExpression> Parser::parse_expression() {
         Token token = consume().value();
         ASTIntLiteral literal{.value = token.value.value()};
 
-        return ASTExpression{.expression = literal};
+        return ASTExpression{
+            .data_type = DataType::NONE,
+            .expression = literal,
+        };
     }
     if (test_peek(TokenType::identifier)) {
         Token token = consume().value();
         ASTIdentifier identifier{.value = token.value.value()};
-        return ASTExpression{.expression = identifier};
+        return ASTExpression{
+            .data_type = DataType::NONE,
+            .expression = identifier,
+        };
     }
 
     return std::nullopt;
@@ -83,6 +89,7 @@ std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
         }
 
         value = ASTExpression{
+            .data_type = DataType::NONE,
             .expression = expression.value().expression,
         };
     }

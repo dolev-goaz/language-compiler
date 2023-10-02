@@ -90,7 +90,7 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
     } else {
         // initialize with 0
         ASTIntLiteral zero_literal = {.value = "0"};
-        generate_expression(ASTExpression{.expression = zero_literal});
+        generate_expression(ASTExpression{.data_type = DataType::int_64, .expression = zero_literal});
     }
 
     m_variables.insert({var_statement.name, var});  // variable is now set

@@ -4,6 +4,7 @@
 #include "../header/generator.hpp"
 #include "../header/lexer.hpp"
 #include "../header/parser.hpp"
+#include "../header/semantic_analyzer.hpp"
 
 void handle_compile(std::string path);
 void create_executable(std::string asm_code, std::string filename);
@@ -45,6 +46,9 @@ void handle_compile(std::string path) {
         std::cerr << e.what() << std::endl;
         exit(EXIT_FAILURE);
     }
+
+    SemanticAnalyzer analyzer = SemanticAnalyzer(program);
+    program = analyzer.analyze();
 
     Generator generator(program);
     std::string res = generator.generate_program();

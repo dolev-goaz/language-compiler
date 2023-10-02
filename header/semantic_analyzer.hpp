@@ -6,23 +6,31 @@
 
 #include "AST_node.hpp"
 
+extern std::map<std::string, DataType> datatype_mapping;
+
 class SymbolTable {
    public:
+    struct Variable {
+        DataType data_type;
+    };
     void enterScope();
     void exitScope();
-    bool insert(const std::string& identifier, int value);
-    bool lookup(const std::string& identifier, int& value) const;
+    bool insert(const std::string& identifier, Variable variable_data);
+    bool lookup(const std::string& identifier, Variable& variable_data) const;
 
    private:
-    std::stack<std::map<std::string, int>> scope_stack;
+    typedef std::map<std::string, SymbolTable::Variable> scope;
+    std::stack<scope> scope_stack;
 };
 
 class SemanticAnalyzer {
    public:
     SemanticAnalyzer(ASTProgram program) : m_prog(program) {}
-    SymbolTable analyze();
+    ASTProgram analyze();
 
    private:
-    const ASTProgram m_prog;
+    ASTProgram m_prog;
     SymbolTable m_symbol_table;
+    struct ExpressionVisitor;
+    struct StatementVisitor;
 };
