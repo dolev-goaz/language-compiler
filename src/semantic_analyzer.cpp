@@ -48,8 +48,15 @@ struct SemanticAnalyzer::StatementVisitor {
         ASTExpression expression;
         if (copy_var_declare.value.has_value()) {
             expression = copy_var_declare.value.value();
-            expression.data_type =
+
+            DataType rhs_data_type =
                 std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+            // IN THE FUTURE: when there are more types, check for type compatibility
+            if (rhs_data_type > data_type) {
+                // type narrowing
+                rhs_data_type = data_type;
+            }
+            expression.data_type = rhs_data_type;
         } else {
             ASTIntLiteral zero_literal = {.value = "0"};
             expression = ASTExpression{

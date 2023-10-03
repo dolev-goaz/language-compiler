@@ -29,17 +29,29 @@ std::string Generator::generate_program() {
 }
 
 void Generator::push_stack_literal(const std::string& value, size_t size) {
-    // TODO: include size in the calculations instead of using QWORD immediately.
-    m_generated << "\tpush QWORD " << value << std::endl;
+    std::string size_keyword = size_bytes_to_size_keyword.at(size);
+    m_generated << "\tpush " << size_keyword << " " << value << std::endl;
     m_stack_size += size;
 }
 void Generator::push_stack_offset(int offset, size_t size) {
-    // TODO: take size into account(only push the bytes needed) instead of using QWORD.
-    m_generated << "\tpush QWORD [rsp + " << offset << "]" << std::endl;
+    std::string size_keyword = size_bytes_to_size_keyword.at(size);
+    if (size == 8) {
+        m_generated << "\tmov rax, [rsp + " << offset << "]" << std::endl;
+    } else {
+        m_generated << "\tmovsx rax, " << size_keyword << " [rsp + " << offset << "]" << std::endl;
+    }
+    m_generated << "\tpush rax" << std::endl;
     m_stack_size += size;
 }
 void Generator::pop_stack_register(const std::string& reg, size_t size) {
-    m_generated << "\tpop " << reg << std::endl;
+    if (size == 8) {
+        m_generated << "\tpop " << reg << std::endl;
+    } else {
+        std::string size_keyword = size_bytes_to_size_keyword.at(size);
+        m_generated << "\tmovsx " << reg << ", " << size_keyword << " "
+                    << "[rsp]" << std::endl;
+        m_generated << "\tadd rsp, " << size << std::endl;
+    }
     m_stack_size -= size;
 }
 
@@ -82,6 +94,7 @@ void Generator::generate_statement(const ASTStatement& statement) {
     std::visit(Generator::StatementVisitor{*this}, statement.statement);
 }
 void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) {
+    m_generated << ";\tExit Statement" << std::endl;
     generate_expression(exit_statement.status_code);
     m_generated << "\tmov rax, 60" << std::endl;
 
@@ -102,7 +115,7 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
         .stack_location_bytes = m_stack_size,
         .size_bytes = size_bytes,
     };
-    // TODO: need to refer to size_bytes when initializing(push only the required size)
+    m_generated << ";\tVariable Declaration " << var_statement.name << std::endl;
     generate_expression(var_statement.value.value());
 
     m_variables.insert({var_statement.name, var});  // variable is now set
