@@ -1,6 +1,18 @@
 #include "../header/generator.hpp"
 
 #include "../header/generator_visitor.hpp"
+
+std::map<DataType, size_t> data_type_size_bytes = {
+    {DataType::int_8, 1}, {DataType::int_16, 2}, {DataType::int_32, 4}, {DataType::int_64, 8}, {DataType::NONE, 0},
+};
+
+std::map<size_t, std::string> size_bytes_to_size_keyword = {
+    {1, "BYTE"},
+    {2, "WORD"},
+    {4, "DWORD"},
+    {8, "QWORD"},
+};
+
 std::string Generator::generate_program() {
     m_generated << "global main" << std::endl << "main:" << std::endl;
 
@@ -34,10 +46,15 @@ void Generator::pop_stack_register(const std::string& reg, size_t size) {
 // --------- expression generation
 
 void Generator::generate_expression(const ASTExpression& expression) {
-    std::visit(Generator::ExpressionVisitor{*this}, expression.expression);
+    bool type_provided = expression.data_type != DataType::NONE && data_type_size_bytes.count(expression.data_type) > 0;
+    assert(type_provided && "Expression found with no data type. expression index- " + expression.expression.index());
+
+    size_t size_bytes = data_type_size_bytes.at(expression.data_type);
+    std::visit(Generator::ExpressionVisitor{.generator = *this, .size = size_bytes}, expression.expression);
 }
 
-void Generator::generate_expression_identifier(const ASTIdentifier& identifier) {
+void Generator::generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes) {
+    (void)size_bytes;  // ignore unused
     if (m_variables.count(identifier.value) == 0) {
         std::cerr << "Variable '" << identifier.value << "' does not exist!" << std::endl;
         exit(EXIT_FAILURE);
@@ -55,9 +72,8 @@ void Generator::generate_expression_identifier(const ASTIdentifier& identifier) 
     push_stack_offset(offset, variable.size_bytes);
 }
 
-void Generator::generate_expression_int_literal(const ASTIntLiteral& literal) {
-    // TODO: are literals always 8 bytes?
-    push_stack_literal(literal.value, 8);
+void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes) {
+    push_stack_literal(literal.value, size_bytes);
 }
 
 // --------- statement generation
@@ -80,9 +96,11 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
         exit(EXIT_FAILURE);
     }
 
+    size_t size_bytes = data_type_size_bytes.at(var_statement.data_type);
+
     Generator::Variable var = {
         .stack_location_bytes = m_stack_size,
-        .size_bytes = 8,  // hard coded for now
+        .size_bytes = size_bytes,
     };
     // TODO: need to refer to size_bytes when initializing(push only the required size)
     generate_expression(var_statement.value.value());

@@ -10,8 +10,11 @@ struct Generator::StatementVisitor {
 
 struct Generator::ExpressionVisitor {
     Generator& generator;
+    size_t size;
 
-    void operator()(const ASTIdentifier& identifier) const { generator.generate_expression_identifier(identifier); }
+    void operator()(const ASTIdentifier& identifier) const {
+        generator.generate_expression_identifier(identifier, size);
+    }
 
-    void operator()(const ASTIntLiteral& literal) const { generator.generate_expression_int_literal(literal); }
+    void operator()(const ASTIntLiteral& literal) const { generator.generate_expression_int_literal(literal, size); }
 };
