@@ -85,13 +85,7 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
         .size_bytes = 8,  // hard coded for now
     };
     // TODO: need to refer to size_bytes when initializing(push only the required size)
-    if (var_statement.value.has_value()) {
-        generate_expression(var_statement.value.value());
-    } else {
-        // initialize with 0
-        ASTIntLiteral zero_literal = {.value = "0"};
-        generate_expression(ASTExpression{.data_type = DataType::int_64, .expression = zero_literal});
-    }
+    generate_expression(var_statement.value.value());
 
     m_variables.insert({var_statement.name, var});  // variable is now set
 }
