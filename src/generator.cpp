@@ -40,6 +40,10 @@ void Generator::push_stack_offset(int offset, size_t size) {
     } else {
         m_generated << "\tmovsx rax, " << size_keyword << " [rsp + " << offset << "]" << std::endl;
     }
+
+    if ((m_stack_size + offset) % 4 != 0) {
+        m_generated << "\tbswap rax" << std::endl;  // little endian shenanigans when reading inside a dword
+    }
     m_generated << "\tpush rax" << std::endl;
     m_stack_size += size;
 }

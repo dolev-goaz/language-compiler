@@ -11,7 +11,7 @@ extern std::map<DataType, size_t> data_type_size_bytes;
 
 class Generator {
    public:
-    Generator(ASTProgram program) : m_prog(program) {}
+    Generator(ASTProgram program) : m_prog(program), m_stack_size(0) {}
     std::string generate_program();
 
    private:
