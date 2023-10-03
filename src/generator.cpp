@@ -77,6 +77,7 @@ void Generator::generate_expression_identifier(const ASTIdentifier& identifier, 
         std::cerr << "Variable '" << identifier.value << "' does not exist!" << std::endl;
         exit(EXIT_FAILURE);
     }
+    m_generated << ";\tEvaluate Variable " << identifier.value << std::endl;
 
     // get variable metadata
     Generator::Variable variable = m_variables.at(identifier.value);
@@ -100,8 +101,8 @@ void Generator::generate_statement(const ASTStatement& statement) {
     std::visit(Generator::StatementVisitor{*this}, statement.statement);
 }
 void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) {
-    m_generated << ";\tExit Statement" << std::endl;
     generate_expression(exit_statement.status_code);
+    m_generated << ";\tExit Statement" << std::endl;
     m_generated << "\tmov rax, 60" << std::endl;
 
     pop_stack_register("rdi", 8);
