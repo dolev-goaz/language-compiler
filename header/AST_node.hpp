@@ -32,7 +32,8 @@ struct ASTStatementExit {
 };
 
 struct ASTStatementVar {
-    std::string data_type;
+    std::string data_type_str;
+    DataType data_type;
     std::string name;
     std::optional<ASTExpression> value;
 };

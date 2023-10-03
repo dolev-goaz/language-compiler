@@ -97,7 +97,8 @@ std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
     assert_consume(TokenType::semicol, "Expected ';' after variable delcaration");
 
     return ASTStatementVar{
-        .data_type = d_type_token.value.value(),
+        .data_type_str = d_type_token.value.value(),
+        .data_type = DataType::NONE,
         .name = identifier.value.value(),
         .value = value,
     };

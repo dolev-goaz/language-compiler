@@ -37,12 +37,13 @@ struct SemanticAnalyzer::StatementVisitor {
     }
     ASTStatement operator()(const ASTStatementVar& var_declare) const {
         auto copy_var_declare = var_declare;
-        if (datatype_mapping.count(copy_var_declare.data_type) == 0) {
-            std::cerr << "Unknown data type " << copy_var_declare.data_type << std::endl;
+        if (datatype_mapping.count(copy_var_declare.data_type_str) == 0) {
+            std::cerr << "Unknown data type " << copy_var_declare.data_type_str << std::endl;
             exit(EXIT_FAILURE);
         }
-        DataType data_type = datatype_mapping.at(copy_var_declare.data_type);
+        DataType data_type = datatype_mapping.at(copy_var_declare.data_type_str);
         analyzer->m_symbol_table.insert(copy_var_declare.name, SymbolTable::Variable{.data_type = data_type});
+        copy_var_declare.data_type = data_type;
 
         ASTExpression expression;
         if (copy_var_declare.value.has_value()) {
