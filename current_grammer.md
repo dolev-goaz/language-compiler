@@ -27,11 +27,8 @@ $$
 
 \text{d\_type} &\to
 \begin{cases}
- int\_8 \\
  int\_16 \\
- int\_32 \\
  int\_64 \\
- char \\
 \end{cases} \\
 
 \end{align}

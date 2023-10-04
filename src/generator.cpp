@@ -3,13 +3,13 @@
 #include "../header/generator_visitor.hpp"
 
 std::map<DataType, size_t> data_type_size_bytes = {
-    {DataType::int_8, 1}, {DataType::int_16, 2}, {DataType::int_32, 4}, {DataType::int_64, 8}, {DataType::NONE, 0},
+    {DataType::int_16, 2},
+    {DataType::int_64, 8},
+    {DataType::NONE, 0},
 };
 
 std::map<size_t, std::string> size_bytes_to_size_keyword = {
-    {1, "BYTE"},
     {2, "WORD"},
-    {4, "DWORD"},
     {8, "QWORD"},
 };
 
@@ -30,8 +30,6 @@ std::string Generator::generate_program() {
 
 void Generator::push_stack_literal(const std::string& value, size_t size) {
     std::string size_keyword = size_bytes_to_size_keyword.at(size);
-    // TODO: using "push BYTE", "push DWORD" does nothing, both are translated to "push" as in "push QWORD"
-    // maybe solve it, maybe remove int_8 and int_32, idk lol
     m_generated << "\tpush " << size_keyword << " " << value << std::endl;
     m_stack_size += size;
 }
@@ -44,7 +42,7 @@ void Generator::push_stack_offset(int offset, size_t size) {
     }
 
     if ((m_stack_size + offset) % 2 != 0) {
-        m_generated << "\tbswap rax" << std::endl;  // little endian shenanigans when reading inside a dword
+        m_generated << "\tbswap rax" << std::endl;  // little endian shenanigans when reading inside a word
     }
     m_generated << "\tpush rax" << std::endl;
     m_stack_size += size;
