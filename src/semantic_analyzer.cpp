@@ -92,11 +92,15 @@ void SymbolTable::exitScope() {
 
 bool SymbolTable::insert(const std::string& identifier, Variable value) {
     // throw error if no existing scope
-    if (!scope_stack.empty()) {
-        scope_stack.top()[identifier] = value;
-        return true;
+    if (scope_stack.empty()) return false;
+
+    SymbolTable::scope current_scope = scope_stack.top();
+    if (current_scope.count(identifier) > 0) {
+        // variable already exists
+        return false;
     }
-    return false;
+    scope_stack.top()[identifier] = value;
+    return true;
 }
 
 bool SymbolTable::lookup(const std::string& identifier, Variable& value) const {
