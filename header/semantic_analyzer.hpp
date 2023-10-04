@@ -4,6 +4,7 @@
 #include <stack>
 #include <string>
 
+#include "./error/sem_analyze_error.hpp"
 #include "AST_node.hpp"
 
 extern std::map<std::string, DataType> datatype_mapping;
@@ -15,7 +16,7 @@ class SymbolTable {
     };
     void enterScope();
     void exitScope();
-    bool insert(const std::string& identifier, Variable variable_data);
+    void insert(const std::string& identifier, Variable variable_data);
     bool lookup(const std::string& identifier, Variable& variable_data) const;
 
    private:

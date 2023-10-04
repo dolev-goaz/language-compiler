@@ -90,17 +90,20 @@ void SymbolTable::exitScope() {
     }
 }
 
-bool SymbolTable::insert(const std::string& identifier, Variable value) {
-    // throw error if no existing scope
-    if (scope_stack.empty()) return false;
+void SymbolTable::insert(const std::string& identifier, Variable value) {
+    if (scope_stack.empty()) {
+        std::stringstream err_stream;
+        err_stream << "Variable '" << identifier << "' cannot be declared outside of a scope.";
+        throw SemanticAnalyzerException(err_stream.str());
+    }
 
     SymbolTable::scope current_scope = scope_stack.top();
     if (current_scope.count(identifier) > 0) {
-        // variable already exists
-        return false;
+        std::stringstream err_stream;
+        err_stream << "Variable '" << identifier << "' already exists in the current scope.";
+        throw SemanticAnalyzerException(err_stream.str());
     }
     scope_stack.top()[identifier] = value;
-    return true;
 }
 
 bool SymbolTable::lookup(const std::string& identifier, Variable& value) const {

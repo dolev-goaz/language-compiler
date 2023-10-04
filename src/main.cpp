@@ -48,7 +48,12 @@ void handle_compile(std::string path) {
     }
 
     SemanticAnalyzer analyzer = SemanticAnalyzer(program);
-    program = analyzer.analyze();
+    try {
+        program = analyzer.analyze();
+    } catch (const SemanticAnalyzerException& e) {
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     Generator generator(program);
     std::string res = generator.generate_program();
