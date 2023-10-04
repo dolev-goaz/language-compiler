@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -6,9 +7,11 @@
 
 #include "AST_node.hpp"
 
+extern std::map<DataType, size_t> data_type_size_bytes;
+
 class Generator {
    public:
-    Generator(ASTProgram program) : m_prog(program) {}
+    Generator(ASTProgram program) : m_prog(program), m_stack_size(0) {}
     std::string generate_program();
 
    private:
@@ -18,8 +21,8 @@ class Generator {
     // Pushes the result expression onto the stack
     void generate_expression(const ASTExpression& expression);
 
-    void generate_expression_identifier(const ASTIdentifier& identifier);
-    void generate_expression_int_literal(const ASTIntLiteral& literal);
+    void generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes);
+    void generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes);
 
     void generate_statement_exit(const ASTStatementExit& exit_statement);
     void generate_statement_var_declare(const ASTStatementVar& var_statement);

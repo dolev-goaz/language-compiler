@@ -6,8 +6,8 @@ $$
 \text{statement} &\to
 \begin {cases}
     exit([expression]) \\
-    var\space[identifier]; \\
-    var\space[identifier] = [expression];
+    [d\_type]\space[identifier]; \\
+    [d\_type]\space[identifier] = [expression];
 \end {cases} \\
 
 \text{expression} &\to
@@ -24,6 +24,12 @@ $$
 \end {cases} \\
 
 \text{identifier} &\to [a-zA-Z][\text{a-zA-Z0-9\_}]^* \\
+
+\text{d\_type} &\to
+\begin{cases}
+ int\_16 \\
+ int\_64 \\
+\end{cases} \\
 
 \end{align}
 $$

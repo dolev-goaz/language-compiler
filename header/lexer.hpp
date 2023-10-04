@@ -11,7 +11,6 @@ enum class TokenType {
     none = 0,
     semicol,
     exit,
-    var,
     int_lit,
     identifier,
     open_paren,

@@ -27,19 +27,27 @@ Token Parser::assert_consume(TokenType type, const std::string& msg) {
     throw ParserException(msg);
 }
 
-bool Parser::test_peek(TokenType type) { return peek().has_value() && peek().value().type == type; }
+bool Parser::test_peek(TokenType type, int offset) {
+    return peek(offset).has_value() && peek(offset).value().type == type;
+}
 
 std::optional<ASTExpression> Parser::parse_expression() {
     if (test_peek(TokenType::int_lit)) {
         Token token = consume().value();
         ASTIntLiteral literal{.value = token.value.value()};
 
-        return ASTExpression{.expression = literal};
+        return ASTExpression{
+            .data_type = DataType::NONE,
+            .expression = literal,
+        };
     }
     if (test_peek(TokenType::identifier)) {
         Token token = consume().value();
         ASTIdentifier identifier{.value = token.value.value()};
-        return ASTExpression{.expression = identifier};
+        return ASTExpression{
+            .data_type = DataType::NONE,
+            .expression = identifier,
+        };
     }
 
     return std::nullopt;
@@ -63,12 +71,12 @@ std::optional<ASTStatementExit> Parser::parse_statement_exit() {
 }
 
 std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
-    // var [identifier];
-    // var [identifier] = [expression];
-    if (!test_peek(TokenType::var)) return std::nullopt;
-    Token statement_begin = consume().value();  // consume 'var' token
+    // [d_type] [identifier];
+    // [d_type] [identifier] = [expression];
+    if (!(test_peek(TokenType::identifier, 0) && test_peek(TokenType::identifier, 1))) return std::nullopt;
+    Token d_type_token = consume().value();  // consume data type
 
-    Token identifier = assert_consume(TokenType::identifier, "Expected Identifier for variable name");
+    Token identifier = consume().value();  // consume identifier
     std::optional<ASTExpression> value = std::nullopt;
 
     if (test_peek(TokenType::eq)) {
@@ -77,10 +85,11 @@ std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
         if (!expression.has_value()) {
             std::stringstream error_stream;
             error_stream << "Invalid initialize value for variable '" << identifier.value.value() << "'";
-            throw ParserException(error_stream.str(), statement_begin.meta.line_num, statement_begin.meta.line_pos);
+            throw ParserException(error_stream.str(), d_type_token.meta.line_num, d_type_token.meta.line_pos);
         }
 
         value = ASTExpression{
+            .data_type = DataType::NONE,
             .expression = expression.value().expression,
         };
     }
@@ -88,6 +97,8 @@ std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
     assert_consume(TokenType::semicol, "Expected ';' after variable delcaration");
 
     return ASTStatementVar{
+        .data_type_str = d_type_token.value.value(),
+        .data_type = DataType::NONE,
         .name = identifier.value.value(),
         .value = value,
     };
