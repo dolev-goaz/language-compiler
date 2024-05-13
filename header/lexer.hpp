@@ -16,6 +16,12 @@ enum class TokenType {
     open_paren,
     close_paren,
     eq,
+
+    // mathematical operations
+    plus,
+    minus,
+    star,
+    fslash
 };
 
 extern std::map<std::string, TokenType> tokenMappingsKeywords;

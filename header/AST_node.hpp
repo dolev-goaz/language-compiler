@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <optional>
 #include <string>
 #include <variant>
@@ -12,6 +13,16 @@ enum class DataType {
     int_64,
 };
 
+enum class BinOperation {
+    NONE = 0,
+    add,
+    subtract,
+    multiply,
+    divide,
+};
+
+struct ASTExpression;
+
 struct ASTIntLiteral {
     // literal value- 0x1f, 15, 0b1001..
     std::string value;
@@ -22,9 +33,15 @@ struct ASTIdentifier {
     std::string value;
 };
 
+struct ASTBinExpression {
+    BinOperation operation;
+    std::unique_ptr<ASTExpression> lhs;
+    std::unique_ptr<ASTExpression> rhs;
+};
+
 struct ASTExpression {
     DataType data_type;
-    std::variant<ASTIdentifier, ASTIntLiteral> expression;
+    std::variant<ASTIdentifier, ASTIntLiteral, ASTBinExpression> expression;
 };
 
 struct ASTStatementExit {

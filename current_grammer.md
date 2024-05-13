@@ -14,6 +14,15 @@ $$
 \begin {cases}
     [int\_literal] \\
     [identifier] \\
+    [binary\_expression] \\
+\end {cases} \\
+
+\text{binary\_expression} &\to
+\begin {cases}
+    [expression] + [expression] \\
+    [expression] - [expression] \\
+    [expression] * [expression] \\
+    [expression] / [expression] \\
 \end {cases} \\
 
 \text{int\_literal} &\to

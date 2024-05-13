@@ -13,6 +13,7 @@ class Parser {
     ASTProgram parse_program();
 
    private:
+    static std::map<TokenType, BinOperation> s_binOperationMapping;
     std::vector<Token> m_tokens;
     size_t m_token_index = 0;
 
@@ -22,6 +23,7 @@ class Parser {
     std::optional<ASTStatementVar> parse_statement_var_declare();
 
     std::optional<ASTExpression> parse_expression();
+    std::optional<ASTBinExpression> try_parse_bin_expression();
 
     std::optional<Token> consume();
     std::optional<Token> peek(int offset = 0);
