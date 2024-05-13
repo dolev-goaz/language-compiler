@@ -31,56 +31,56 @@ bool Parser::test_peek(TokenType type, int offset) {
     return peek(offset).has_value() && peek(offset).value().type == type;
 }
 
-std::optional<ASTBinExpression> Parser::try_parse_bin_expression() {
-    if (!(test_peek(TokenType::int_lit) || test_peek(TokenType::identifier))) {
-        // expression somehow doesn't start with wither variable or constant
-        return std::nullopt;
+std::optional<ASTAtomicExpression> Parser::try_parse_atomic() {
+    if (test_peek(TokenType::int_lit)) {
+        Token token = consume().value();
+        return ASTAtomicExpression{.value = ASTIntLiteral{.value = token.value.value()}};
     }
-    auto binOperator = peek(1);
+    if (test_peek(TokenType::identifier)) {
+        Token token = consume().value();
+        return ASTAtomicExpression{.value = ASTIdentifier{.value = token.value.value()}};
+    }
+
+    return std::nullopt;
+}
+
+std::optional<ASTBinExpression> Parser::try_parse_bin_expression(const ASTAtomicExpression& lhs) {
+    auto binOperator = peek();
     if (!binOperator.has_value() || s_binOperationMapping.count(binOperator.value().type) == 0) {
         // no binary operator after lhs
         return std::nullopt;
     }
-    auto lhs = consume().value();
     auto binOperation = consume().value();
     auto rhs = parse_expression();
     if (!rhs.has_value()) {
+        // TODO: raise exception
+        return std::nullopt;
     }
 
     return ASTBinExpression{
-        // .lhs = lhs, // TODO: should be an atomic expression here
+        .lhs = lhs,
         .operation = s_binOperationMapping.at(binOperation.type),
         .rhs = std::make_unique<ASTExpression>(rhs.value()),
     };
 }
 
 std::optional<ASTExpression> Parser::parse_expression() {
-    std::optional<ASTBinExpression> binExpressionOptional = try_parse_bin_expression();
-    if (binExpressionOptional.has_value()) {
-        return ASTExpression{
-            .data_type = DataType::NONE,
-            // .expression = binExpressionOptional.value(), // TODO: figure out why this doesnt work
-        };
+    auto atomic = try_parse_atomic();
+    if (!atomic.has_value()) {
+        return std::nullopt;
     }
-    if (test_peek(TokenType::int_lit)) {
-        Token token = consume().value();
-        ASTIntLiteral literal{.value = token.value.value()};
+    auto binExpr = try_parse_bin_expression(atomic.value());
 
+    if (binExpr.has_value()) {
         return ASTExpression{
             .data_type = DataType::NONE,
-            .expression = literal,
+            .expression = binExpr.value(),
         };
     }
-    if (test_peek(TokenType::identifier)) {
-        Token token = consume().value();
-        ASTIdentifier identifier{.value = token.value.value()};
-        return ASTExpression{
-            .data_type = DataType::NONE,
-            .expression = identifier,
-        };
-    }
-
-    return std::nullopt;
+    return ASTExpression{
+        .data_type = DataType::NONE,
+        .expression = atomic.value(),
+    };
 }
 
 std::optional<ASTStatementExit> Parser::parse_statement_exit() {

@@ -33,6 +33,10 @@ struct ASTIdentifier {
     std::string value;
 };
 
+struct ASTAtomicExpression {
+    std::variant<ASTIntLiteral, ASTIdentifier> value;
+};
+
 struct ASTBinExpression {
     BinOperation operation;
     std::unique_ptr<ASTExpression> lhs;
@@ -41,7 +45,7 @@ struct ASTBinExpression {
 
 struct ASTExpression {
     DataType data_type;
-    std::variant<ASTIdentifier, ASTIntLiteral, ASTBinExpression> expression;
+    std::variant<ASTAtomicExpression, ASTBinExpression> expression;
 };
 
 struct ASTStatementExit {

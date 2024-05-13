@@ -23,7 +23,8 @@ class Parser {
     std::optional<ASTStatementVar> parse_statement_var_declare();
 
     std::optional<ASTExpression> parse_expression();
-    std::optional<ASTBinExpression> try_parse_bin_expression();
+    std::optional<ASTAtomicExpression> try_parse_atomic();
+    std::optional<ASTBinExpression> try_parse_bin_expression(const ASTAtomicExpression& lhs);
 
     std::optional<Token> consume();
     std::optional<Token> peek(int offset = 0);
