@@ -16,19 +16,18 @@ struct Generator::ExpressionVisitor {
     Generator& generator;
     size_t size;
 
-    // void operator()(const ASTIdentifier& identifier) const {
-    //     generator.generate_expression_identifier(identifier, size);
-    // }
+    void operator()(const ASTIdentifier& identifier) const {
+        generator.generate_expression_identifier(identifier, size);
+    }
 
-    // void operator()(const ASTIntLiteral& literal) const { generator.generate_expression_int_literal(literal, size); }
+    void operator()(const ASTIntLiteral& literal) const { generator.generate_expression_int_literal(literal, size); }
 
     void operator()(const std::shared_ptr<ASTBinExpression>& binary) const {
+        std::cerr << "TODO: Generator Visitor Binary Expression" << std::endl;
         (void)binary;
-        std::cout << "Binary" << std::endl;
     }
 
     void operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
-        (void)atomic;
-        std::cout << "Atomic" << std::endl;
+        std::visit(Generator::ExpressionVisitor{.generator = generator, .size = size}, atomic.get()->value);
     }
 };

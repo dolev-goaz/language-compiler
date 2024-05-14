@@ -20,18 +20,16 @@ struct SemanticAnalyzer::ExpressionVisitor {
     }
 
     DataType operator()(ASTIntLiteral& ignored) const {
-        std::cout << "Literal" << std::endl;
         (void)ignored;  // suppress unused
         return DataType::int_64;
     }
 
     DataType operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
-        std::cout << "Atomic" << std::endl;
         return std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, atomic.get()->value);
     }
 
     DataType operator()(const std::shared_ptr<ASTBinExpression>& ignored) const {
-        std::cout << "Binary" << std::endl;
+        std::cout << "TODO: Semantic Analyzer Visitor Binary Expression" << std::endl;
         (void)ignored;  // suppress unused
         return DataType::int_64;
     }
@@ -50,6 +48,7 @@ struct SemanticAnalyzer::StatementVisitor {
             exit(EXIT_FAILURE);
         }
         DataType data_type = datatype_mapping.at(var_declare.get()->data_type_str);
+        var_declare.get()->data_type = data_type;
         analyzer->m_symbol_table.insert(var_declare.get()->name, SymbolTable::Variable{.data_type = data_type});
 
         if (var_declare.get()->value.has_value()) {
