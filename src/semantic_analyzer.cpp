@@ -10,7 +10,6 @@ std::map<std::string, DataType> datatype_mapping = {
 struct SemanticAnalyzer::ExpressionVisitor {
     SymbolTable& symbol_table;
     DataType operator()(ASTIdentifier& identifier) const {
-        std::cout << "Identifier" << std::endl;
         SymbolTable::Variable literal_data;
         if (!symbol_table.lookup(identifier.value, literal_data)) {
             std::cerr << "Unknown identifier " << identifier.value << std::endl;
