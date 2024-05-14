@@ -10,6 +10,7 @@ std::map<std::string, DataType> datatype_mapping = {
 struct SemanticAnalyzer::ExpressionVisitor {
     SymbolTable& symbol_table;
     DataType operator()(ASTIdentifier& identifier) const {
+        std::cout << "Identifier" << std::endl;
         SymbolTable::Variable literal_data;
         if (!symbol_table.lookup(identifier.value, literal_data)) {
             std::cerr << "Unknown identifier " << identifier.value << std::endl;
@@ -19,16 +20,18 @@ struct SemanticAnalyzer::ExpressionVisitor {
     }
 
     DataType operator()(ASTIntLiteral& ignored) const {
+        std::cout << "Literal" << std::endl;
         (void)ignored;  // suppress unused
         return DataType::int_64;
     }
 
-    DataType operator()(const std::shared_ptr<ASTAtomicExpression>& ignored) const {
-        (void)ignored;  // suppress unused
-        return DataType::int_64;
+    DataType operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
+        std::cout << "Atomic" << std::endl;
+        return std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, atomic.get()->value);
     }
 
     DataType operator()(const std::shared_ptr<ASTBinExpression>& ignored) const {
+        std::cout << "Binary" << std::endl;
         (void)ignored;  // suppress unused
         return DataType::int_64;
     }
@@ -50,7 +53,7 @@ struct SemanticAnalyzer::StatementVisitor {
         analyzer->m_symbol_table.insert(var_declare.get()->name, SymbolTable::Variable{.data_type = data_type});
 
         if (var_declare.get()->value.has_value()) {
-            ASTExpression expression = var_declare.get()->value.value();
+            auto& expression = var_declare.get()->value.value();
 
             DataType rhs_data_type =
                 std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
@@ -65,7 +68,7 @@ struct SemanticAnalyzer::StatementVisitor {
                 .value = ASTIntLiteral{.value = "0"},
             };
             var_declare.get()->value = std::make_optional(ASTExpression{
-                .data_type = DataType::NONE, .expression = std::make_shared<ASTAtomicExpression>(zero_literal)});
+                .data_type = DataType::int_64, .expression = std::make_shared<ASTAtomicExpression>(zero_literal)});
         }
     }
 };
