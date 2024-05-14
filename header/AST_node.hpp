@@ -19,6 +19,7 @@ enum class BinOperation {
     subtract,
     multiply,
     divide,
+    operationCount,  // used for assertions
 };
 
 struct ASTExpression;

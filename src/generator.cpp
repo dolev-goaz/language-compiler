@@ -99,16 +99,35 @@ void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, si
 }
 
 void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes) {
-    m_generated << ";\tAddition Statement" << std::endl;
+    m_generated << ";\tBinary Statement" << std::endl;
+    static_assert((int)BinOperation::operationCount == 5, "Binary Operations enum changed without changing generator");
     auto& lhsExp = *binary.get()->lhs.get();
     auto& rhsExp = *binary.get()->rhs.get();
-    generate_expression(lhsExp);
     generate_expression(rhsExp);
-    pop_stack_register("rax", size_bytes);
-    pop_stack_register("rbx", size_bytes);
+    generate_expression(lhsExp);
     // TODO: make sure size_bytes is ok as parameter for all those
-    // TODO: implement subtraction, division, multiplication
-    m_generated << "\tadd rax, rbx" << std::endl;  // rax = rax + rbx
+    pop_stack_register("rax", size_bytes);  // rax = lhs
+    pop_stack_register("rbx", size_bytes);  // rbx = rhs
+    switch (binary.get()->operation) {
+        case BinOperation::add:
+            m_generated << "\tadd rax, rbx" << std::endl;  // rax = rax + rbx
+            break;
+        case BinOperation::subtract:
+            m_generated << "\tsub rax, rbx" << std::endl;  // rax = rax - rbx
+            break;
+        case BinOperation::multiply:
+            m_generated << "\tmul rbx" << std::endl;  // rax = rax * rbx
+            break;
+        case BinOperation::divide:
+            m_generated << "\tdiv rbx" << std::endl;  // rax = rax / rbx
+            break;
+        case BinOperation::NONE:
+        case BinOperation::operationCount:
+        default:
+            // should never reach here. this is to remove warnings
+            std::cerr << "Generation: unknown binary operation" << std::endl;
+            exit(EXIT_FAILURE);
+    }
     push_stack_register("rax", size_bytes);
 }
 
