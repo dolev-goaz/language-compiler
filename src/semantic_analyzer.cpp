@@ -27,10 +27,13 @@ struct SemanticAnalyzer::ExpressionVisitor {
         return std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, atomic.get()->value);
     }
 
-    DataType operator()(const std::shared_ptr<ASTBinExpression>& ignored) const {
-        std::cout << "TODO: Semantic Analyzer Visitor Binary Expression" << std::endl;
-        (void)ignored;  // suppress unused
-        return DataType::int_64;
+    DataType operator()(const std::shared_ptr<ASTBinExpression>& binExpr) const {
+        auto& lhs = *binExpr.get()->lhs.get();
+        auto& rhs = *binExpr.get()->rhs.get();
+        lhs.data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, lhs.expression);
+        rhs.data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, rhs.expression);
+        // type widening
+        return std::max(lhs.data_type, rhs.data_type);
     }
 };
 

@@ -48,6 +48,11 @@ void Generator::push_stack_offset(int offset, size_t size) {
     m_generated << "\tpush rax" << std::endl;
     m_stack_size += size;
 }
+
+void Generator::push_stack_register(const std::string& reg, size_t size) {
+    m_generated << "\tpush " << reg << std::endl;
+    m_stack_size += size;
+}
 void Generator::pop_stack_register(const std::string& reg, size_t size) {
     if (size == 8) {
         m_generated << "\tpop " << reg << std::endl;
@@ -91,6 +96,20 @@ void Generator::generate_expression_identifier(const ASTIdentifier& identifier, 
 
 void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes) {
     push_stack_literal(literal.value, size_bytes);
+}
+
+void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes) {
+    m_generated << ";\tAddition Statement" << std::endl;
+    auto& lhsExp = *binary.get()->lhs.get();
+    auto& rhsExp = *binary.get()->rhs.get();
+    generate_expression(lhsExp);
+    generate_expression(rhsExp);
+    pop_stack_register("rax", size_bytes);
+    pop_stack_register("rbx", size_bytes);
+    // TODO: make sure size_bytes is ok as parameter for all those
+    // TODO: implement subtraction, division, multiplication
+    m_generated << "\tadd rax, rbx" << std::endl;  // rax = rax + rbx
+    push_stack_register("rax", size_bytes);
 }
 
 // --------- statement generation

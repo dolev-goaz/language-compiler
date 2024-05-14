@@ -23,6 +23,7 @@ class Generator {
 
     void generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes);
     void generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes);
+    void generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes);
 
     void generate_statement_exit(const ASTStatementExit& exit_statement);
     void generate_statement_var_declare(const ASTStatementVar& var_statement);
@@ -33,7 +34,8 @@ class Generator {
     // push a literal value to the stack
     void push_stack_literal(const std::string& value, size_t size);
 
-    // TODO: might need push_stack_register
+    // push a register to the stack
+    void push_stack_register(const std::string& reg, size_t size);
 
     // pop from the stack into a register
     void pop_stack_register(const std::string& reg, size_t size);

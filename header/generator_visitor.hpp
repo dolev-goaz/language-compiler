@@ -23,8 +23,7 @@ struct Generator::ExpressionVisitor {
     void operator()(const ASTIntLiteral& literal) const { generator.generate_expression_int_literal(literal, size); }
 
     void operator()(const std::shared_ptr<ASTBinExpression>& binary) const {
-        std::cerr << "TODO: Generator Visitor Binary Expression" << std::endl;
-        (void)binary;
+        generator.generate_expression_binary(binary, size);
     }
 
     void operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
