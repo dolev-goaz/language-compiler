@@ -16,8 +16,9 @@ std::map<size_t, std::string> size_bytes_to_size_keyword = {
 std::string Generator::generate_program() {
     m_generated << "global main" << std::endl << "main:" << std::endl;
 
-    for (auto statement : m_prog.statements) {
-        generate_statement(statement);
+    for (size_t i = 0; i < m_prog.statements.size(); ++i) {
+        auto current = m_prog.statements[i].get();
+        generate_statement(*current);
     }
 
     // default exit statement
@@ -52,8 +53,7 @@ void Generator::pop_stack_register(const std::string& reg, size_t size) {
         m_generated << "\tpop " << reg << std::endl;
     } else {
         std::string size_keyword = size_bytes_to_size_keyword.at(size);
-        m_generated << "\tmovsx " << reg << ", " << size_keyword << " "
-                    << "[rsp]" << std::endl;
+        m_generated << "\tmovsx " << reg << ", " << size_keyword << " " << "[rsp]" << std::endl;
         m_generated << "\tadd rsp, " << size << std::endl;
     }
     m_stack_size -= size;

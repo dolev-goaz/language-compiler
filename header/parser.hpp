@@ -6,6 +6,7 @@
 #include "./error/parser_error.hpp"
 #include "./lexer.hpp"
 
+extern std::map<TokenType, BinOperation> binOperationMapping;
 class Parser {
    public:
     Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0) {}
@@ -13,18 +14,17 @@ class Parser {
     ASTProgram parse_program();
 
    private:
-    static std::map<TokenType, BinOperation> s_binOperationMapping;
     std::vector<Token> m_tokens;
     size_t m_token_index = 0;
 
-    std::optional<ASTStatement> parse_statement();
+    std::shared_ptr<ASTStatement> parse_statement();
 
-    std::optional<ASTStatementExit> parse_statement_exit();
-    std::optional<ASTStatementVar> parse_statement_var_declare();
+    std::shared_ptr<ASTStatementExit> parse_statement_exit();
+    std::shared_ptr<ASTStatementVar> parse_statement_var_declare();
 
     std::optional<ASTExpression> parse_expression();
-    std::optional<ASTAtomicExpression> try_parse_atomic();
-    std::optional<ASTBinExpression> try_parse_bin_expression(const ASTAtomicExpression& lhs);
+    std::shared_ptr<ASTAtomicExpression> try_parse_atomic();
+    std::shared_ptr<ASTBinExpression> try_parse_bin_expression(const ASTAtomicExpression& lhs);
 
     std::optional<Token> consume();
     std::optional<Token> peek(int offset = 0);

@@ -39,13 +39,13 @@ struct ASTAtomicExpression {
 
 struct ASTBinExpression {
     BinOperation operation;
-    std::unique_ptr<ASTExpression> lhs;
-    std::unique_ptr<ASTExpression> rhs;
+    std::shared_ptr<ASTExpression> lhs;
+    std::shared_ptr<ASTExpression> rhs;
 };
 
 struct ASTExpression {
     DataType data_type;
-    std::variant<ASTAtomicExpression, ASTBinExpression> expression;
+    std::variant<std::shared_ptr<ASTAtomicExpression>, std::shared_ptr<ASTBinExpression>> expression;
 };
 
 struct ASTStatementExit {
@@ -60,9 +60,9 @@ struct ASTStatementVar {
 };
 
 struct ASTStatement {
-    std::variant<ASTStatementExit, ASTStatementVar> statement;
+    std::variant<std::shared_ptr<ASTStatementExit>, std::shared_ptr<ASTStatementVar>> statement;
 };
 
 struct ASTProgram {
-    std::vector<ASTStatement> statements;
+    std::vector<std::shared_ptr<ASTStatement>> statements;
 };

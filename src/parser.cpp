@@ -1,5 +1,12 @@
 #include "../header/parser.hpp"
 
+std::map<TokenType, BinOperation> binOperationMapping = {
+    {TokenType::plus, BinOperation::add},
+    {TokenType::minus, BinOperation::subtract},
+    {TokenType::star, BinOperation::multiply},
+    {TokenType::fslash, BinOperation::divide},
+};
+
 std::optional<Token> Parser::consume() {
     if (m_token_index >= m_tokens.size()) {
         return std::nullopt;
@@ -31,61 +38,66 @@ bool Parser::test_peek(TokenType type, int offset) {
     return peek(offset).has_value() && peek(offset).value().type == type;
 }
 
-std::optional<ASTAtomicExpression> Parser::try_parse_atomic() {
+std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
     if (test_peek(TokenType::int_lit)) {
         Token token = consume().value();
-        return ASTAtomicExpression{.value = ASTIntLiteral{.value = token.value.value()}};
+        return std::make_shared<ASTAtomicExpression>(
+            ASTAtomicExpression{.value = ASTIntLiteral{.value = token.value.value()}});
     }
     if (test_peek(TokenType::identifier)) {
         Token token = consume().value();
-        return ASTAtomicExpression{.value = ASTIdentifier{.value = token.value.value()}};
+        return std::make_shared<ASTAtomicExpression>(
+            ASTAtomicExpression{.value = ASTIdentifier{.value = token.value.value()}});
     }
 
-    return std::nullopt;
+    return nullptr;
 }
 
-std::optional<ASTBinExpression> Parser::try_parse_bin_expression(const ASTAtomicExpression& lhs) {
+std::shared_ptr<ASTBinExpression> Parser::try_parse_bin_expression(const ASTAtomicExpression& lhs) {
     auto binOperator = peek();
-    if (!binOperator.has_value() || s_binOperationMapping.count(binOperator.value().type) == 0) {
+    if (!binOperator.has_value() || binOperationMapping.count(binOperator.value().type) == 0) {
         // no binary operator after lhs
-        return std::nullopt;
+        return nullptr;
     }
     auto binOperation = consume().value();
     auto rhs = parse_expression();
     if (!rhs.has_value()) {
         // TODO: raise exception
-        return std::nullopt;
+        return nullptr;
     }
 
-    return ASTBinExpression{
-        .lhs = lhs,
-        .operation = s_binOperationMapping.at(binOperation.type),
-        .rhs = std::make_unique<ASTExpression>(rhs.value()),
-    };
+    return std::make_shared<ASTBinExpression>(ASTBinExpression{
+        .operation = binOperationMapping.at(binOperation.type),
+        .lhs = std::make_shared<ASTExpression>(ASTExpression{
+            .data_type = DataType::NONE,
+            .expression = std::make_shared<ASTAtomicExpression>(lhs),
+        }),
+        .rhs = std::make_shared<ASTExpression>(rhs.value()),
+    });
 }
 
 std::optional<ASTExpression> Parser::parse_expression() {
     auto atomic = try_parse_atomic();
-    if (!atomic.has_value()) {
+    if (atomic == nullptr) {
         return std::nullopt;
     }
-    auto binExpr = try_parse_bin_expression(atomic.value());
+    auto binExpr = try_parse_bin_expression(*atomic.get());
 
-    if (binExpr.has_value()) {
+    if (binExpr != nullptr) {
         return ASTExpression{
             .data_type = DataType::NONE,
-            .expression = binExpr.value(),
+            .expression = std::move(binExpr),
         };
     }
     return ASTExpression{
         .data_type = DataType::NONE,
-        .expression = atomic.value(),
+        .expression = std::move(atomic),
     };
 }
 
-std::optional<ASTStatementExit> Parser::parse_statement_exit() {
+std::shared_ptr<ASTStatementExit> Parser::parse_statement_exit() {
     // exit([expression]);
-    if (!test_peek(TokenType::exit)) return std::nullopt;
+    if (!test_peek(TokenType::exit)) return nullptr;
 
     Token statement_begin = consume().value();  // consume 'exit' token
     assert_consume(TokenType::open_paren, "Expected '(' after function 'exit'");
@@ -97,13 +109,13 @@ std::optional<ASTStatementExit> Parser::parse_statement_exit() {
     assert_consume(TokenType::close_paren, "Expected ')' after expression");
     assert_consume(TokenType::semicol, "Expected ';' after function call");
 
-    return ASTStatementExit{.status_code = expression.value()};
+    return std::make_shared<ASTStatementExit>(ASTStatementExit{.status_code = std::move(expression.value())});
 }
 
-std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
+std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
     // [d_type] [identifier];
     // [d_type] [identifier] = [expression];
-    if (!(test_peek(TokenType::identifier, 0) && test_peek(TokenType::identifier, 1))) return std::nullopt;
+    if (!(test_peek(TokenType::identifier, 0) && test_peek(TokenType::identifier, 1))) return nullptr;
     Token d_type_token = consume().value();  // consume data type
 
     Token identifier = consume().value();  // consume identifier
@@ -120,33 +132,33 @@ std::optional<ASTStatementVar> Parser::parse_statement_var_declare() {
 
         value = ASTExpression{
             .data_type = DataType::NONE,
-            .expression = expression.value().expression,
+            .expression = std::move(expression.value().expression),
         };
     }
 
     assert_consume(TokenType::semicol, "Expected ';' after variable delcaration");
 
-    return ASTStatementVar{
+    return std::make_shared<ASTStatementVar>(ASTStatementVar{
         .data_type_str = d_type_token.value.value(),
         .data_type = DataType::NONE,
         .name = identifier.value.value(),
-        .value = value,
-    };
+        .value = std::move(value),
+    });
 }
 
-std::optional<ASTStatement> Parser::parse_statement() {
+std::shared_ptr<ASTStatement> Parser::parse_statement() {
     // check for exit statement
-    if (auto exit_statement = parse_statement_exit(); exit_statement.has_value()) {
-        return ASTStatement{.statement = exit_statement.value()};
+    if (auto exit_statement = parse_statement_exit(); exit_statement != nullptr) {
+        return std::make_shared<ASTStatement>(ASTStatement{.statement = std::move(exit_statement)});
     }
 
     // check for variable declaration statement
-    if (auto var_declare_statement = parse_statement_var_declare(); var_declare_statement.has_value()) {
-        return ASTStatement{.statement = var_declare_statement.value()};
+    if (auto var_declare_statement = parse_statement_var_declare(); var_declare_statement != nullptr) {
+        return std::make_shared<ASTStatement>(ASTStatement{.statement = std::move(var_declare_statement)});
     }
 
     // fallback- no matching statement found
-    return std::nullopt;
+    return nullptr;
 }
 
 ASTProgram Parser::parse_program() {
@@ -154,12 +166,12 @@ ASTProgram Parser::parse_program() {
 
     while (peek().has_value()) {
         auto statement = parse_statement();
-        if (!statement.has_value()) {
+        if (statement == nullptr) {
             Token token = peek().value();
             throw ParserException("Invalid statement", token.meta.line_num, token.meta.line_pos);
         }
 
-        result.statements.push_back(statement.value());
+        result.statements.push_back(std::move(statement));
     }
 
     return result;
