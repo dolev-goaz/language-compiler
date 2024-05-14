@@ -38,6 +38,19 @@ bool Parser::test_peek(TokenType type, int offset) {
     return peek(offset).has_value() && peek(offset).value().type == type;
 }
 
+std::optional<int> Parser::binary_operator_precedence(const BinOperation& operation) {
+    switch (operation) {
+        case BinOperation::add:
+        case BinOperation::subtract:
+            return 0;
+        case BinOperation::multiply:
+        case BinOperation::divide:
+            return 1;
+        default:
+            return std::nullopt;
+    }
+}
+
 std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
     if (test_peek(TokenType::int_lit)) {
         Token token = consume().value();
@@ -53,46 +66,43 @@ std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
     return nullptr;
 }
 
-std::shared_ptr<ASTBinExpression> Parser::try_parse_bin_expression(const ASTAtomicExpression& lhs) {
-    auto binOperator = peek();
-    if (!binOperator.has_value() || binOperationMapping.count(binOperator.value().type) == 0) {
-        // no binary operator after lhs
-        return nullptr;
-    }
-    auto binOperation = consume().value();
-    auto rhs = parse_expression();
-    if (!rhs.has_value()) {
-        // TODO: raise exception
-        return nullptr;
-    }
-
-    return std::make_shared<ASTBinExpression>(ASTBinExpression{
-        .operation = binOperationMapping.at(binOperation.type),
-        .lhs = std::make_shared<ASTExpression>(ASTExpression{
-            .data_type = DataType::NONE,
-            .expression = std::make_shared<ASTAtomicExpression>(lhs),
-        }),
-        .rhs = std::make_shared<ASTExpression>(rhs.value()),
-    });
-}
-
-std::optional<ASTExpression> Parser::parse_expression() {
+std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
     auto atomic = try_parse_atomic();
     if (atomic == nullptr) {
         return std::nullopt;
     }
-    auto binExpr = try_parse_bin_expression(*atomic.get());
-
-    if (binExpr != nullptr) {
-        return ASTExpression{
-            .data_type = DataType::NONE,
-            .expression = std::move(binExpr),
-        };
-    }
-    return ASTExpression{
+    auto expr_lhs = ASTExpression{
         .data_type = DataType::NONE,
-        .expression = std::move(atomic),
+        .expression = atomic,
     };
+    while (true) {
+        auto binOperator = peek();
+        if (!binOperator.has_value() || binOperationMapping.count(binOperator.value().type) == 0) {
+            // no binary operator after lhs
+            break;
+        }
+        auto binOperation = binOperationMapping.at(binOperator.value().type);
+        std::optional<int> currentPrecedence = binary_operator_precedence(binOperation);
+        if (!currentPrecedence.has_value() || currentPrecedence.value() < min_prec) {
+            break;
+        }
+        consume();  // consume the token now that we know it's a binary operator
+        auto rhs = parse_expression(currentPrecedence.value() + 1);
+        if (!rhs.has_value()) {
+            // TODO: raise exception
+            std::cerr << "EXPECTED RHS EXPRESSION" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        auto new_expr_lhs = std::make_shared<ASTExpression>(ASTExpression{
+            .data_type = DataType::NONE,
+            .expression = expr_lhs.expression,
+        });
+        auto new_expr_rhs = std::make_shared<ASTExpression>(rhs.value());
+        expr_lhs.expression = std::make_shared<ASTBinExpression>(
+            ASTBinExpression{.operation = binOperation, .lhs = new_expr_lhs, .rhs = new_expr_rhs});
+    }
+
+    return expr_lhs;
 }
 
 std::shared_ptr<ASTStatementExit> Parser::parse_statement_exit() {
