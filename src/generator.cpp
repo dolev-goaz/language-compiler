@@ -24,8 +24,8 @@ std::string Generator::generate_program() {
     // default exit statement
     m_generated << std::endl << "; default program end" << std::endl;
     m_generated << "\tmov rax, 60" << std::endl;
-    m_generated << "\tmov rdi, 0" << std::endl;
-    m_generated << "\tsyscall" << std::endl;
+    m_generated << "\tmov rdi, 0; status code 0- OK" << std::endl;
+    m_generated << "\tsyscall";
     return m_generated.str();
 }
 
@@ -99,36 +99,54 @@ void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, si
 }
 
 void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes) {
-    m_generated << ";\tBinary Statement" << std::endl;
     static_assert((int)BinOperation::operationCount == 5, "Binary Operations enum changed without changing generator");
-    auto& lhsExp = *binary.get()->lhs.get();
-    auto& rhsExp = *binary.get()->rhs.get();
-    generate_expression(rhsExp);
-    generate_expression(lhsExp);
-    // TODO: make sure size_bytes is ok as parameter for all those
-    pop_stack_register("rax", size_bytes);  // rax = lhs
-    pop_stack_register("rbx", size_bytes);  // rbx = rhs
+    std::string operation;
     switch (binary.get()->operation) {
         case BinOperation::add:
-            m_generated << "\tadd rax, rbx" << std::endl;  // rax = rax + rbx
+            operation = "Addition";
             break;
         case BinOperation::subtract:
-            m_generated << "\tsub rax, rbx" << std::endl;  // rax = rax - rbx
+            operation = "Subtraction";
             break;
         case BinOperation::multiply:
-            m_generated << "\tmul rbx" << std::endl;  // rax = rax * rbx
+            operation = "Multiplication";
             break;
         case BinOperation::divide:
-            m_generated << "\tdiv rbx" << std::endl;  // rax = rax / rbx
+            operation = "Division";
             break;
-        case BinOperation::NONE:
-        case BinOperation::operationCount:
+        default:
+            // should never reach here. this is to remove warnings
+            std::cerr << "Generation: unknown binary operation" << std::endl;
+            exit(EXIT_FAILURE);
+    }
+    m_generated << ";\t" << operation << " Evaluation BEGIN" << std::endl;
+    auto& lhsExp = *binary.get()->lhs.get();
+    auto& rhsExp = *binary.get()->rhs.get();
+    generate_expression(lhsExp);
+    generate_expression(rhsExp);
+    // TODO: make sure size_bytes is ok as parameter for all those
+    pop_stack_register("rbx", size_bytes);  // rbx = rhs
+    pop_stack_register("rax", size_bytes);  // rax = lhs
+    switch (binary.get()->operation) {
+        case BinOperation::add:
+            m_generated << "\tadd rax, rbx; rax += rbx" << std::endl;  // rax = rax + rbx
+            break;
+        case BinOperation::subtract:
+            m_generated << "\tsub rax, rbx; rax -= rbx" << std::endl;  // rax = rax - rbx
+            break;
+        case BinOperation::multiply:
+            m_generated << "\tmul rbx; rax *= rbx" << std::endl;  // rax = rax * rbx
+            break;
+        case BinOperation::divide:
+            m_generated << "\tdiv rbx; rax /= rbx" << std::endl;  // rax = rax / rbx
+            break;
         default:
             // should never reach here. this is to remove warnings
             std::cerr << "Generation: unknown binary operation" << std::endl;
             exit(EXIT_FAILURE);
     }
     push_stack_register("rax", size_bytes);
+    m_generated << ";\t" << operation << " Evaluation END" << std::endl << std::endl;
 }
 
 // --------- statement generation
@@ -158,8 +176,9 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
         .stack_location_bytes = m_stack_size,
         .size_bytes = size_bytes,
     };
-    m_generated << ";\tVariable Declaration " << var_statement.name << std::endl;
+    m_generated << ";\tVariable Declaration " << var_statement.name << " BEGIN" << std::endl;
     generate_expression(var_statement.value.value());
 
     m_variables.insert({var_statement.name, var});  // variable is now set
+    m_generated << ";\tVariable Declaration " << var_statement.name << " END" << std::endl << std::endl;
 }
