@@ -42,11 +42,12 @@ struct Token {
 // Lexical analysis unit
 class Lexer {
    public:
-    Lexer(std::string src) : m_src(src) {}
+    Lexer(const std::string& file_path, const std::string& src) : m_src(src), m_file_path(file_path) {}
     std::vector<Token> tokenize();
 
    private:
-    const std::string m_src;
+    const std::string& m_src;
+    const std::string& m_file_path;
     size_t m_line;
     size_t m_col;
     size_t m_char_ind;

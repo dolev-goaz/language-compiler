@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
 void handle_compile(std::string path) {
     std::string file_contents = read_file(path);
 
-    Lexer lexer = Lexer(file_contents);
+    Lexer lexer = Lexer(path, file_contents);
     std::vector<Token> tokens;
     try {
         tokens = lexer.tokenize();
@@ -38,7 +38,7 @@ void handle_compile(std::string path) {
         exit(EXIT_FAILURE);
     }
 
-    Parser parser = Parser(tokens);
+    Parser parser = Parser(path, tokens);
     ASTProgram program;
     try {
         program = parser.parse_program();
