@@ -1,10 +1,9 @@
 #include "../header/parser.hpp"
 
 std::map<TokenType, BinOperation> binOperationMapping = {
-    {TokenType::plus, BinOperation::add},
-    {TokenType::minus, BinOperation::subtract},
-    {TokenType::star, BinOperation::multiply},
-    {TokenType::fslash, BinOperation::divide},
+    {TokenType::plus, BinOperation::add},       {TokenType::minus, BinOperation::subtract},
+    {TokenType::star, BinOperation::multiply},  {TokenType::fslash, BinOperation::divide},
+    {TokenType::percent, BinOperation::modulo},
 };
 
 std::optional<Token> Parser::consume() {
@@ -39,14 +38,18 @@ bool Parser::test_peek(TokenType type, int offset) {
 }
 
 std::optional<int> Parser::binary_operator_precedence(const BinOperation& operation) {
+    static_assert((int)BinOperation::operationCount - 1 == 5,
+                  "Binary Operations enum changed without changing precendence mapping");
     switch (operation) {
         case BinOperation::add:
         case BinOperation::subtract:
             return 0;
         case BinOperation::multiply:
         case BinOperation::divide:
+        case BinOperation::modulo:
             return 1;
         default:
+            // TODO: could raise exception here
             return std::nullopt;
     }
 }

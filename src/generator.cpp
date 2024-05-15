@@ -99,7 +99,8 @@ void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, si
 }
 
 void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes) {
-    static_assert((int)BinOperation::operationCount == 5, "Binary Operations enum changed without changing generator");
+    static_assert((int)BinOperation::operationCount - 1 == 5,
+                  "Binary Operations enum changed without changing generator");
     std::string operation;
     switch (binary.get()->operation) {
         case BinOperation::add:
@@ -113,6 +114,9 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
             break;
         case BinOperation::divide:
             operation = "Division";
+            break;
+        case BinOperation::modulo:
+            operation = "Modulo";
             break;
         default:
             // should never reach here. this is to remove warnings
@@ -138,7 +142,14 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
             m_generated << "\tmul rbx; rax *= rbx" << std::endl;  // rax = rax * rbx
             break;
         case BinOperation::divide:
-            m_generated << "\tdiv rbx; rax /= rbx" << std::endl;  // rax = rax / rbx
+            m_generated << "\txor rdx, rdx; clear rdx" << std::endl;       // clear rdx(division is rdx:rax / rbx)
+            m_generated << "\tdiv rbx; rax = rdx:rax / rbx" << std::endl;  // rax = rax / rbx
+            break;
+        case BinOperation::modulo:
+            // TODO: doesn't work well with 16bit
+            m_generated << "\txor rdx, rdx; clear rdx" << std::endl;       // clear rdx(division is rdx:rax / rbx)
+            m_generated << "\tdiv rbx; rdx = rdx:rax % rbx" << std::endl;  // rdx stores the remainder
+            m_generated << "\tmov rax, rdx; rdx stores the remainder" << std::endl;
             break;
         default:
             // should never reach here. this is to remove warnings
