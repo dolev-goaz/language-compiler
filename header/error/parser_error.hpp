@@ -5,17 +5,16 @@
 
 class ParserException : public std::exception {
    public:
-    ParserException(const std::string& message, size_t line, size_t col)
-        : m_message(message), m_line(line), m_col(col) {}
-    ParserException(const std::string& message) : m_message(message), m_line(0), m_col(0) {}
+    ParserException(const std::string& message, const std::string& file_path, size_t line, size_t col)
+        : m_message(message), m_file_path(file_path), m_line(line), m_col(col) {}
+    // TODO: find a way to get rid of 'empty' constructor
+    ParserException(const std::string& message, const std::string& file_path)
+        : m_message(message), m_file_path(file_path), m_line(1), m_col(1) {}
 
     const char* what() const noexcept override {
         std::stringstream stream;
-        stream << "Parser Exception:" << std::endl << m_message << std::endl;
-
-        if (m_line && m_col) {
-            stream << "Line: " << m_line << ", Column: " << m_col;
-        }
+        stream << "PARSER EXCEPTION at " << m_file_path << ":" << m_line << ":" << m_col << ":" << std::endl
+               << m_message;
 
         m_formatted_message = stream.str();
 
@@ -24,8 +23,9 @@ class ParserException : public std::exception {
 
    private:
     std::string m_message;
-    size_t m_line;
-    size_t m_col;
+    const std::string& m_file_path;
+    const size_t m_line;
+    const size_t m_col;
 
     mutable std::string m_formatted_message;
 };
