@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <optional>
 #include <string>
 #include <variant>
@@ -12,6 +13,17 @@ enum class DataType {
     int_64,
 };
 
+enum class BinOperation {
+    NONE = 0,
+    add,
+    subtract,
+    multiply,
+    divide,
+    operationCount,  // used for assertions
+};
+
+struct ASTExpression;
+
 struct ASTIntLiteral {
     // literal value- 0x1f, 15, 0b1001..
     std::string value;
@@ -22,9 +34,19 @@ struct ASTIdentifier {
     std::string value;
 };
 
+struct ASTAtomicExpression {
+    std::variant<ASTIntLiteral, ASTIdentifier> value;
+};
+
+struct ASTBinExpression {
+    BinOperation operation;
+    std::shared_ptr<ASTExpression> lhs;
+    std::shared_ptr<ASTExpression> rhs;
+};
+
 struct ASTExpression {
     DataType data_type;
-    std::variant<ASTIdentifier, ASTIntLiteral> expression;
+    std::variant<std::shared_ptr<ASTAtomicExpression>, std::shared_ptr<ASTBinExpression>> expression;
 };
 
 struct ASTStatementExit {
@@ -39,9 +61,9 @@ struct ASTStatementVar {
 };
 
 struct ASTStatement {
-    std::variant<ASTStatementExit, ASTStatementVar> statement;
+    std::variant<std::shared_ptr<ASTStatementExit>, std::shared_ptr<ASTStatementVar>> statement;
 };
 
 struct ASTProgram {
-    std::vector<ASTStatement> statements;
+    std::vector<std::shared_ptr<ASTStatement>> statements;
 };

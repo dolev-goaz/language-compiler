@@ -16,15 +16,16 @@ std::map<size_t, std::string> size_bytes_to_size_keyword = {
 std::string Generator::generate_program() {
     m_generated << "global main" << std::endl << "main:" << std::endl;
 
-    for (auto statement : m_prog.statements) {
-        generate_statement(statement);
+    for (size_t i = 0; i < m_prog.statements.size(); ++i) {
+        auto current = m_prog.statements[i].get();
+        generate_statement(*current);
     }
 
     // default exit statement
     m_generated << std::endl << "; default program end" << std::endl;
     m_generated << "\tmov rax, 60" << std::endl;
-    m_generated << "\tmov rdi, 0" << std::endl;
-    m_generated << "\tsyscall" << std::endl;
+    m_generated << "\tmov rdi, 0; status code 0- OK" << std::endl;
+    m_generated << "\tsyscall";
     return m_generated.str();
 }
 
@@ -47,13 +48,17 @@ void Generator::push_stack_offset(int offset, size_t size) {
     m_generated << "\tpush rax" << std::endl;
     m_stack_size += size;
 }
+
+void Generator::push_stack_register(const std::string& reg, size_t size) {
+    m_generated << "\tpush " << reg << std::endl;
+    m_stack_size += size;
+}
 void Generator::pop_stack_register(const std::string& reg, size_t size) {
     if (size == 8) {
         m_generated << "\tpop " << reg << std::endl;
     } else {
         std::string size_keyword = size_bytes_to_size_keyword.at(size);
-        m_generated << "\tmovsx " << reg << ", " << size_keyword << " "
-                    << "[rsp]" << std::endl;
+        m_generated << "\tmovsx " << reg << ", " << size_keyword << " " << "[rsp]" << std::endl;
         m_generated << "\tadd rsp, " << size << std::endl;
     }
     m_stack_size -= size;
@@ -93,6 +98,57 @@ void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, si
     push_stack_literal(literal.value, size_bytes);
 }
 
+void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes) {
+    static_assert((int)BinOperation::operationCount == 5, "Binary Operations enum changed without changing generator");
+    std::string operation;
+    switch (binary.get()->operation) {
+        case BinOperation::add:
+            operation = "Addition";
+            break;
+        case BinOperation::subtract:
+            operation = "Subtraction";
+            break;
+        case BinOperation::multiply:
+            operation = "Multiplication";
+            break;
+        case BinOperation::divide:
+            operation = "Division";
+            break;
+        default:
+            // should never reach here. this is to remove warnings
+            std::cerr << "Generation: unknown binary operation" << std::endl;
+            exit(EXIT_FAILURE);
+    }
+    m_generated << ";\t" << operation << " Evaluation BEGIN" << std::endl;
+    auto& lhsExp = *binary.get()->lhs.get();
+    auto& rhsExp = *binary.get()->rhs.get();
+    generate_expression(lhsExp);
+    generate_expression(rhsExp);
+    // TODO: make sure size_bytes is ok as parameter for all those
+    pop_stack_register("rbx", size_bytes);  // rbx = rhs
+    pop_stack_register("rax", size_bytes);  // rax = lhs
+    switch (binary.get()->operation) {
+        case BinOperation::add:
+            m_generated << "\tadd rax, rbx; rax += rbx" << std::endl;  // rax = rax + rbx
+            break;
+        case BinOperation::subtract:
+            m_generated << "\tsub rax, rbx; rax -= rbx" << std::endl;  // rax = rax - rbx
+            break;
+        case BinOperation::multiply:
+            m_generated << "\tmul rbx; rax *= rbx" << std::endl;  // rax = rax * rbx
+            break;
+        case BinOperation::divide:
+            m_generated << "\tdiv rbx; rax /= rbx" << std::endl;  // rax = rax / rbx
+            break;
+        default:
+            // should never reach here. this is to remove warnings
+            std::cerr << "Generation: unknown binary operation" << std::endl;
+            exit(EXIT_FAILURE);
+    }
+    push_stack_register("rax", size_bytes);
+    m_generated << ";\t" << operation << " Evaluation END" << std::endl << std::endl;
+}
+
 // --------- statement generation
 
 void Generator::generate_statement(const ASTStatement& statement) {
@@ -120,8 +176,9 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
         .stack_location_bytes = m_stack_size,
         .size_bytes = size_bytes,
     };
-    m_generated << ";\tVariable Declaration " << var_statement.name << std::endl;
+    m_generated << ";\tVariable Declaration " << var_statement.name << " BEGIN" << std::endl;
     generate_expression(var_statement.value.value());
 
     m_variables.insert({var_statement.name, var});  // variable is now set
+    m_generated << ";\tVariable Declaration " << var_statement.name << " END" << std::endl << std::endl;
 }

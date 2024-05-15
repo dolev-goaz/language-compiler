@@ -6,6 +6,7 @@
 #include "./error/parser_error.hpp"
 #include "./lexer.hpp"
 
+extern std::map<TokenType, BinOperation> binOperationMapping;
 class Parser {
    public:
     Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0) {}
@@ -16,12 +17,16 @@ class Parser {
     std::vector<Token> m_tokens;
     size_t m_token_index = 0;
 
-    std::optional<ASTStatement> parse_statement();
+    std::shared_ptr<ASTStatement> parse_statement();
 
-    std::optional<ASTStatementExit> parse_statement_exit();
-    std::optional<ASTStatementVar> parse_statement_var_declare();
+    std::shared_ptr<ASTStatementExit> parse_statement_exit();
+    std::shared_ptr<ASTStatementVar> parse_statement_var_declare();
 
-    std::optional<ASTExpression> parse_expression();
+    // uses predence climbing, described here-
+    // https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
+    std::optional<ASTExpression> parse_expression(const int min_prec = 0);
+    std::shared_ptr<ASTAtomicExpression> try_parse_atomic();
+    std::optional<int> binary_operator_precedence(const BinOperation& operation);
 
     std::optional<Token> consume();
     std::optional<Token> peek(int offset = 0);

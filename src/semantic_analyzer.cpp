@@ -22,32 +22,39 @@ struct SemanticAnalyzer::ExpressionVisitor {
         (void)ignored;  // suppress unused
         return DataType::int_64;
     }
+
+    DataType operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
+        return std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, atomic.get()->value);
+    }
+
+    DataType operator()(const std::shared_ptr<ASTBinExpression>& binExpr) const {
+        auto& lhs = *binExpr.get()->lhs.get();
+        auto& rhs = *binExpr.get()->rhs.get();
+        lhs.data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, lhs.expression);
+        rhs.data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, rhs.expression);
+        // type widening
+        return std::max(lhs.data_type, rhs.data_type);
+    }
 };
 
 struct SemanticAnalyzer::StatementVisitor {
     SemanticAnalyzer* analyzer;
-    ASTStatement operator()(const ASTStatementExit& exit) const {
-        auto copy_exit = exit;
-        ASTExpression expression = copy_exit.status_code;
+    void operator()(const std::shared_ptr<ASTStatementExit>& exit) const {
+        auto& expression = exit.get()->status_code;
         expression.data_type =
             std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
-        copy_exit.status_code = expression;
-
-        return ASTStatement{.statement = copy_exit};
     }
-    ASTStatement operator()(const ASTStatementVar& var_declare) const {
-        auto copy_var_declare = var_declare;
-        if (datatype_mapping.count(copy_var_declare.data_type_str) == 0) {
-            std::cerr << "Unknown data type " << copy_var_declare.data_type_str << std::endl;
+    void operator()(const std::shared_ptr<ASTStatementVar>& var_declare) const {
+        if (datatype_mapping.count(var_declare.get()->data_type_str) == 0) {
+            std::cerr << "Unknown data type " << var_declare.get()->data_type_str << std::endl;
             exit(EXIT_FAILURE);
         }
-        DataType data_type = datatype_mapping.at(copy_var_declare.data_type_str);
-        analyzer->m_symbol_table.insert(copy_var_declare.name, SymbolTable::Variable{.data_type = data_type});
-        copy_var_declare.data_type = data_type;
+        DataType data_type = datatype_mapping.at(var_declare.get()->data_type_str);
+        var_declare.get()->data_type = data_type;
+        analyzer->m_symbol_table.insert(var_declare.get()->name, SymbolTable::Variable{.data_type = data_type});
 
-        ASTExpression expression;
-        if (copy_var_declare.value.has_value()) {
-            expression = copy_var_declare.value.value();
+        if (var_declare.get()->value.has_value()) {
+            auto& expression = var_declare.get()->value.value();
 
             DataType rhs_data_type =
                 std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
@@ -58,27 +65,20 @@ struct SemanticAnalyzer::StatementVisitor {
             }
             expression.data_type = rhs_data_type;
         } else {
-            ASTIntLiteral zero_literal = {.value = "0"};
-            expression = ASTExpression{
-                .data_type = data_type,
-                .expression = zero_literal,
+            ASTAtomicExpression zero_literal = ASTAtomicExpression{
+                .value = ASTIntLiteral{.value = "0"},
             };
+            var_declare.get()->value = std::make_optional(ASTExpression{
+                .data_type = DataType::int_64, .expression = std::make_shared<ASTAtomicExpression>(zero_literal)});
         }
-        copy_var_declare.value = std::make_optional(expression);
-        return ASTStatement{.statement = copy_var_declare};
     }
 };
-ASTProgram SemanticAnalyzer::analyze() {
-    std::vector<ASTStatement> modified_statements;
+void SemanticAnalyzer::analyze() {
     this->m_symbol_table.enterScope();
     for (auto& statement : m_prog.statements) {
-        auto updated = std::visit(SemanticAnalyzer::StatementVisitor{this}, statement.statement);
-        modified_statements.push_back(updated);
+        std::visit(SemanticAnalyzer::StatementVisitor{this}, statement.get()->statement);
     }
-    m_prog.statements = modified_statements;
     this->m_symbol_table.exitScope();
-
-    return m_prog;
 }
 
 void SymbolTable::enterScope() { scope_stack.push(std::map<std::string, SymbolTable::Variable>()); }

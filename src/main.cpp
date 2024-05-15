@@ -49,7 +49,7 @@ void handle_compile(std::string path) {
 
     SemanticAnalyzer analyzer = SemanticAnalyzer(program);
     try {
-        program = analyzer.analyze();
+        analyzer.analyze();
     } catch (const SemanticAnalyzerException& e) {
         std::cerr << e.what() << std::endl;
         exit(EXIT_FAILURE);

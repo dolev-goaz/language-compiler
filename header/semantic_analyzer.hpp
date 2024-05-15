@@ -27,7 +27,7 @@ class SymbolTable {
 class SemanticAnalyzer {
    public:
     SemanticAnalyzer(ASTProgram program) : m_prog(program) {}
-    ASTProgram analyze();
+    void analyze();
 
    private:
     ASTProgram m_prog;
