@@ -35,10 +35,12 @@ void Generator::push_stack_literal(const std::string& value, size_t size) {
     m_stack_size += size;
 }
 void Generator::push_stack_offset(int offset, size_t size) {
-    std::string size_keyword = size_bytes_to_size_keyword.at(size);
+    // reading a value from the an arbitrary point in the stack, then pushing that value
+    // to the top of the stack.
     if (size == 8) {
         m_generated << "\tmov rax, [rsp + " << offset << "]" << std::endl;
     } else {
+        std::string size_keyword = size_bytes_to_size_keyword.at(size);
         m_generated << "\tmovsx rax, " << size_keyword << " [rsp + " << offset << "]" << std::endl;
     }
 
@@ -58,6 +60,8 @@ void Generator::pop_stack_register(const std::string& reg, size_t size) {
         m_generated << "\tpop " << reg << std::endl;
     } else {
         std::string size_keyword = size_bytes_to_size_keyword.at(size);
+        // popping non-qword from the stack. so we read from the stack(0-filled)
+        // and then update the stack pointer, effectively manually popping from the stack
         m_generated << "\tmovsx " << reg << ", " << size_keyword << " " << "[rsp]" << std::endl;
         m_generated << "\tadd rsp, " << size << std::endl;
     }
