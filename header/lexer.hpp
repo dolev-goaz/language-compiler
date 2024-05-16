@@ -16,6 +16,8 @@ enum class TokenType {
     open_paren,
     close_paren,
     eq,
+    open_curly,
+    close_curly,
 
     // mathematical operations
     plus,

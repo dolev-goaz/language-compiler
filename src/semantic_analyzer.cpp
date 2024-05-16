@@ -79,6 +79,10 @@ struct SemanticAnalyzer::StatementVisitor {
                                                  .expression = std::make_shared<ASTAtomicExpression>(zero_literal)});
         }
     }
+    void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
+        (void)scope;
+        std::cerr << "Not implemented semantic analyzer for scopes" << std::endl;
+    }
 };
 void SemanticAnalyzer::analyze() {
     this->m_symbol_table.enterScope();

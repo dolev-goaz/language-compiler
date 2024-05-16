@@ -13,9 +13,10 @@ std::map<std::string, TokenType> tokenMappingsKeywords = {
     {"exit", TokenType::exit},
 };
 std::map<char, TokenType> tokenMappingsSymbols = {
-    {';', TokenType::semicol}, {'(', TokenType::open_paren}, {')', TokenType::close_paren},
-    {'=', TokenType::eq},      {'+', TokenType::plus},       {'-', TokenType::minus},
-    {'*', TokenType::star},    {'/', TokenType::fslash},     {'%', TokenType::percent}};
+    {';', TokenType::semicol},     {'(', TokenType::open_paren}, {')', TokenType::close_paren},
+    {'{', TokenType::close_curly}, {'}', TokenType::open_curly}, {'=', TokenType::eq},
+    {'+', TokenType::plus},        {'-', TokenType::minus},      {'*', TokenType::star},
+    {'/', TokenType::fslash},      {'%', TokenType::percent}};
 
 char Lexer::consume() {
     char current = m_src.at(m_char_ind++);

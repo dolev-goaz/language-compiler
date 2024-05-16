@@ -10,6 +10,10 @@ struct Generator::StatementVisitor {
     void operator()(const std::shared_ptr<ASTStatementVar>& var_declare) const {
         generator.generate_statement_var_declare(*var_declare.get());
     }
+    void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
+        (void)scope;
+        assert(false && "Unimplemented");
+    }
 };
 
 struct Generator::ExpressionVisitor {

@@ -121,6 +121,22 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
     return expr_lhs;
 }
 
+std::shared_ptr<ASTStatementScope> Parser::parse_statement_scope() {
+    if (!test_peek(TokenType::open_curly)) return nullptr;
+    const TokenMeta statement_begin_meta = consume().value().meta;
+    std::vector<std::shared_ptr<ASTStatement>> statements;
+    while (peek().has_value() && !test_peek(TokenType::close_curly)) {
+        auto statement = parse_statement();
+        if (statement == nullptr) {
+            throw ParserException("Invalid statement", peek().value().meta);
+        }
+        statements.push_back(statement);
+    }
+    assert_consume(TokenType::close_curly, "Expe");
+    return std::make_shared<ASTStatementScope>(
+        ASTStatementScope{.start_token_meta = statement_begin_meta, .statements = statements});
+}
+
 std::shared_ptr<ASTStatementExit> Parser::parse_statement_exit() {
     // exit([expression]);
     if (!test_peek(TokenType::exit)) return nullptr;
@@ -192,7 +208,13 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
             ASTStatement{.start_token_meta = meta, .statement = std::move(var_declare_statement)});
     }
 
+    if (auto scope_statement = parse_statement_scope(); scope_statement != nullptr) {
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(scope_statement)});
+    }
+
     // fallback- no matching statement found
+    // TODO: raise exception
     return nullptr;
 }
 
