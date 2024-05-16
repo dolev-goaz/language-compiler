@@ -197,3 +197,11 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
     m_variables.insert({var_statement.name, var});  // variable is now set
     m_generated << ";\tVariable Declaration " << var_statement.name << " END" << std::endl << std::endl;
 }
+
+void Generator::generate_statement_scope(const ASTStatementScope& scope_statement) {
+    // TODO: handle begin of scope(setup)
+    for (auto& statement : scope_statement.statements) {
+        this->generate_statement(*statement.get());
+    }
+    // TODO: handle end of scope(cleanup)
+}

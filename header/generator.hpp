@@ -27,6 +27,7 @@ class Generator {
 
     void generate_statement_exit(const ASTStatementExit& exit_statement);
     void generate_statement_var_declare(const ASTStatementVar& var_statement);
+    void generate_statement_scope(const ASTStatementScope& scope_statement);
 
     // push a value from the stack to the stack
     void push_stack_offset(int offset, size_t size);

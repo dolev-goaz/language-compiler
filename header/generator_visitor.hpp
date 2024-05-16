@@ -11,8 +11,7 @@ struct Generator::StatementVisitor {
         generator.generate_statement_var_declare(*var_declare.get());
     }
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
-        (void)scope;
-        assert(false && "Unimplemented");
+        generator.generate_statement_scope(*scope.get());
     }
 };
 
