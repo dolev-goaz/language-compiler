@@ -15,17 +15,22 @@ class ScopeStack {
         }
     }
     void insert(const std::string& identifier, T variable_data) {
+        // TODO: errors thrown here should be converted to generic Scope error
         if (scope_stack.empty()) {
-            std::stringstream err_stream;
-            err_stream << "Variable '" << identifier << "' cannot be declared outside of a scope.";
-            throw SemanticAnalyzerException(err_stream.str(), variable_data.start_token_meta);
+            // std::stringstream err_stream;
+            // err_stream << "Variable '" << identifier << "' cannot be declared outside of a scope.";
+            // throw SemanticAnalyzerException(err_stream.str(), variable_data.start_token_meta);
+            std::cerr << "Variable '" << identifier << "' cannot be declared outside of a scope." << std::endl;
+            exit(EXIT_FAILURE);
         }
 
         scope& current_scope = scope_stack.top();
         if (current_scope.count(identifier) > 0) {
-            std::stringstream err_stream;
-            err_stream << "Variable '" << identifier << "' already exists in the current scope.";
-            throw SemanticAnalyzerException(err_stream.str(), variable_data.start_token_meta);
+            // std::stringstream err_stream;
+            // err_stream << "Variable '" << identifier << "' already exists in the current scope.";
+            // throw SemanticAnalyzerException(err_stream.str(), variable_data.start_token_meta);
+            std::cerr << "Variable '" << identifier << "' already exists in the current scope." << std::endl;
+            exit(EXIT_FAILURE);
         }
         scope_stack.top()[identifier] = variable_data;
     }
