@@ -27,7 +27,7 @@ Token Parser::assert_consume(TokenType type, const std::string& msg) {
         return consumed.value();
     }
     if (auto token = peek(); token.has_value()) {
-        throw ParserException(msg, m_file_path, token.value().meta.line_num, token.value().meta.line_pos);
+        throw ParserException(msg, m_file_path, token.value().meta);
     }
 
     // no next token to peek- EOF
@@ -100,8 +100,7 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
             // TODO: raise exception
             auto nextToken = peek();
             if (nextToken.has_value()) {
-                throw ParserException("Expected RHS expression", m_file_path, nextToken.value().meta.line_num,
-                                      nextToken.value().meta.line_pos);
+                throw ParserException("Expected RHS expression", m_file_path, nextToken.value().meta);
             } else {
                 throw ParserException("Expected RHS expression", m_file_path);
             }
@@ -130,8 +129,7 @@ std::shared_ptr<ASTStatementExit> Parser::parse_statement_exit() {
     assert_consume(TokenType::open_paren, "Expected '(' after function 'exit'");
     auto expression = parse_expression();
     if (!expression.has_value()) {
-        throw ParserException("Invalid expression parameter", m_file_path, statement_begin.meta.line_num,
-                              statement_begin.meta.line_pos);
+        throw ParserException("Invalid expression parameter", m_file_path, statement_begin.meta);
     }
     assert_consume(TokenType::close_paren, "Expected ')' after expression");
     assert_consume(TokenType::semicol, "Expected ';' after function call");
@@ -155,8 +153,7 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
         if (!expression.has_value()) {
             std::stringstream error_stream;
             error_stream << "Invalid initialize value for variable '" << identifier.value.value() << "'";
-            throw ParserException(error_stream.str(), m_file_path, d_type_token.meta.line_num,
-                                  d_type_token.meta.line_pos);
+            throw ParserException(error_stream.str(), m_file_path, d_type_token.meta);
         }
 
         value = ASTExpression{
@@ -206,7 +203,7 @@ ASTProgram Parser::parse_program() {
         auto statement = parse_statement();
         if (statement == nullptr) {
             Token token = peek().value();
-            throw ParserException("Invalid statement", m_file_path, token.meta.line_num, token.meta.line_pos);
+            throw ParserException("Invalid statement", m_file_path, token.meta);
         }
 
         result.statements.push_back(std::move(statement));

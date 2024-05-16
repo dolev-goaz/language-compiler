@@ -5,8 +5,9 @@
 
 class ParserException : public std::exception {
    public:
-    ParserException(const std::string& message, const std::string& file_path, size_t line, size_t col)
-        : m_message(message), m_file_path(file_path), m_line(line), m_col(col) {}
+    ParserException(const std::string& message, const std::string& file_path, const TokenMeta& meta)
+        : m_message(message), m_file_path(file_path), m_line(meta.line_num), m_col(meta.line_pos) {}
+
     ParserException(const std::string& message, const std::string& file_path)
         : m_message(message), m_file_path(file_path), m_line(0), m_col(0) {}
 
