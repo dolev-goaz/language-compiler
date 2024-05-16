@@ -1,6 +1,7 @@
-.vscode
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
 obj
 compiler
-code_test.dlv
 output
 out.asm

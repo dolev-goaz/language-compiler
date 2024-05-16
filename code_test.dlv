@@ -1,0 +1,9 @@
+int_64 s = 5;
+{ 
+    int_16 w = 2;
+    {
+        int_64 w = 7;
+    }
+    exit(w);
+}
+exit(s);

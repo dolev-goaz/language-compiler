@@ -4,7 +4,7 @@
 CC = g++
 
 # Compiler flags
-CCFLAGS = -Wall -Wextra -std=c++17
+CCFLAGS = -Wall -Wextra -std=c++17 -g
 
 # Target executable (outside the folders)
 TARGET = compiler
