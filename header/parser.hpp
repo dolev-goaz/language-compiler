@@ -9,14 +9,12 @@
 extern std::map<TokenType, BinOperation> binOperationMapping;
 class Parser {
    public:
-    Parser(const std::string& file_path, std::vector<Token> tokens)
-        : m_tokens(tokens), m_file_path(file_path), m_token_index(0) {}
+    Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0) {}
 
     ASTProgram parse_program();
 
    private:
     std::vector<Token> m_tokens;
-    const std::string& m_file_path;
     size_t m_token_index = 0;
 
     std::shared_ptr<ASTStatement> parse_statement();

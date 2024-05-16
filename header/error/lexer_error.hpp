@@ -3,14 +3,17 @@
 #include <sstream>
 #include <string>
 
+#include "globals.hpp"
+
 class LexerException : public std::exception {
    public:
-    LexerException(const std::string& message, const std::string& file_path, size_t line, size_t col)
-        : m_message(message), m_file_path(file_path), m_line(line), m_col(col) {}
+    LexerException(const std::string& message, size_t line, size_t col)
+        : m_message(message), m_line(line), m_col(col) {}
 
     const char* what() const noexcept override {
         std::stringstream stream;
-        stream << "TOKEN EXCEPTION at " << m_file_path << ":" << m_line << ":" << m_col << ":" << std::endl
+        stream << "TOKEN EXCEPTION at " << Globals::getInstance().getCurrentFilePath() << ":" << m_line << ":" << m_col
+               << ":" << std::endl
                << m_message;
 
         m_formatted_message = stream.str();
@@ -20,7 +23,6 @@ class LexerException : public std::exception {
 
    private:
     const std::string m_message;
-    const std::string& m_file_path;
     const size_t m_line;
     const size_t m_col;
 

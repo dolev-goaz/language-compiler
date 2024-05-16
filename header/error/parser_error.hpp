@@ -3,17 +3,18 @@
 #include <sstream>
 #include <string>
 
+#include "globals.hpp"
+
 class ParserException : public std::exception {
    public:
-    ParserException(const std::string& message, const std::string& file_path, const TokenMeta& meta)
-        : m_message(message), m_file_path(file_path), m_line(meta.line_num), m_col(meta.line_pos) {}
+    ParserException(const std::string& message, const TokenMeta& meta)
+        : m_message(message), m_line(meta.line_num), m_col(meta.line_pos) {}
 
-    ParserException(const std::string& message, const std::string& file_path)
-        : m_message(message), m_file_path(file_path), m_line(0), m_col(0) {}
+    ParserException(const std::string& message) : m_message(message), m_line(0), m_col(0) {}
 
     const char* what() const noexcept override {
         std::stringstream stream;
-        stream << "PARSER EXCEPTION at " << m_file_path;
+        stream << "PARSER EXCEPTION at " << Globals::getInstance().getCurrentFilePath();
         if (m_line && m_col) {
             stream << ":" << m_line << ":" << m_col << ":";
         } else {
@@ -28,7 +29,6 @@ class ParserException : public std::exception {
 
    private:
     std::string m_message;
-    const std::string& m_file_path;
     const size_t m_line;
     const size_t m_col;
 

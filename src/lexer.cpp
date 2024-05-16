@@ -110,7 +110,7 @@ void Lexer::consume_number() {
     if (!number_verify(buffer)) {
         std::stringstream error_stream;
         error_stream << "Invalid Number Literal " << buffer;
-        throw LexerException(error_stream.str(), m_file_path, line, col);
+        throw LexerException(error_stream.str(), line, col);
     }
 
     TokenMeta meta = {.line_num = line, .line_pos = col};
@@ -156,7 +156,7 @@ std::vector<Token> Lexer::tokenize() {
         if (!found) {
             std::stringstream err_message;
             err_message << "Unexpected Token '" << current << "', Character Code: " << (int)current;
-            throw LexerException(err_message.str(), m_file_path, m_line, m_col);
+            throw LexerException(err_message.str(), m_line, m_col);
         }
     }
 

@@ -2,6 +2,7 @@
 
 #include "../header/file_util.hpp"
 #include "../header/generator.hpp"
+#include "../header/globals.hpp"
 #include "../header/lexer.hpp"
 #include "../header/parser.hpp"
 #include "../header/semantic_analyzer.hpp"
@@ -20,6 +21,7 @@ int main(int argc, char** argv) {
 
     if (strcmp(command, "compile") == 0) {
         std::string path = argv[2];
+        Globals::getInstance().setCurrentFilePath(path);
         handle_compile(path);
         exit(EXIT_SUCCESS);
     }
@@ -29,7 +31,7 @@ int main(int argc, char** argv) {
 void handle_compile(std::string path) {
     std::string file_contents = read_file(path);
 
-    Lexer lexer = Lexer(path, file_contents);
+    Lexer lexer = Lexer(file_contents);
     std::vector<Token> tokens;
     try {
         tokens = lexer.tokenize();
@@ -38,7 +40,7 @@ void handle_compile(std::string path) {
         exit(EXIT_FAILURE);
     }
 
-    Parser parser = Parser(path, tokens);
+    Parser parser = Parser(tokens);
     ASTProgram program;
     try {
         program = parser.parse_program();
