@@ -31,6 +31,8 @@ class SemanticAnalyzer {
     void analyze();
 
    private:
+    void analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements);
+
     ASTProgram m_prog;
     SymbolTable m_symbol_table;
     struct ExpressionVisitor;

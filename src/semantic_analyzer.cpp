@@ -80,16 +80,22 @@ struct SemanticAnalyzer::StatementVisitor {
         }
     }
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
-        (void)scope;
-        std::cerr << "Not implemented semantic analyzer for scopes" << std::endl;
+        analyzer->analyze_scope(scope.get()->statements);
     }
 };
-void SemanticAnalyzer::analyze() {
+
+void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements) {
     this->m_symbol_table.enterScope();
-    for (auto& statement : m_prog.statements) {
+    for (auto& statement : statements) {
         std::visit(SemanticAnalyzer::StatementVisitor{this}, statement.get()->statement);
     }
     this->m_symbol_table.exitScope();
+}
+
+void SemanticAnalyzer::analyze() {
+    // basically, the entire program is wrapped in a scope, allowing declarations outside of a scope- creating the
+    // global scope.
+    analyze_scope(m_prog.statements);
 }
 
 void SymbolTable::enterScope() { scope_stack.push(std::map<std::string, SymbolTable::Variable>()); }
