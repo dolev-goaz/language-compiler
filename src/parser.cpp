@@ -1,10 +1,9 @@
 #include "../header/parser.hpp"
 
 std::map<TokenType, BinOperation> binOperationMapping = {
-    {TokenType::plus, BinOperation::add},
-    {TokenType::minus, BinOperation::subtract},
-    {TokenType::star, BinOperation::multiply},
-    {TokenType::fslash, BinOperation::divide},
+    {TokenType::plus, BinOperation::add},       {TokenType::minus, BinOperation::subtract},
+    {TokenType::star, BinOperation::multiply},  {TokenType::fslash, BinOperation::divide},
+    {TokenType::percent, BinOperation::modulo},
 };
 
 std::optional<Token> Parser::consume() {
@@ -28,10 +27,10 @@ Token Parser::assert_consume(TokenType type, const std::string& msg) {
         return consumed.value();
     }
     if (auto token = peek(); token.has_value()) {
-        throw ParserException(msg, token.value().meta.line_num, token.value().meta.line_pos);
+        throw ParserException(msg, m_file_path, token.value().meta.line_num, token.value().meta.line_pos);
     }
 
-    throw ParserException(msg);
+    throw ParserException(msg, m_file_path);
 }
 
 bool Parser::test_peek(TokenType type, int offset) {
@@ -39,14 +38,18 @@ bool Parser::test_peek(TokenType type, int offset) {
 }
 
 std::optional<int> Parser::binary_operator_precedence(const BinOperation& operation) {
+    static_assert((int)BinOperation::operationCount - 1 == 5,
+                  "Binary Operations enum changed without changing precendence mapping");
     switch (operation) {
         case BinOperation::add:
         case BinOperation::subtract:
             return 0;
         case BinOperation::multiply:
         case BinOperation::divide:
+        case BinOperation::modulo:
             return 1;
         default:
+            // TODO: could raise exception here
             return std::nullopt;
     }
 }
@@ -113,7 +116,7 @@ std::shared_ptr<ASTStatementExit> Parser::parse_statement_exit() {
     assert_consume(TokenType::open_paren, "Expected '(' after function 'exit'");
     auto expression = parse_expression();
     if (!expression.has_value()) {
-        throw ParserException("Invalid expression parameter", statement_begin.meta.line_num,
+        throw ParserException("Invalid expression parameter", m_file_path, statement_begin.meta.line_num,
                               statement_begin.meta.line_pos);
     }
     assert_consume(TokenType::close_paren, "Expected ')' after expression");
@@ -137,7 +140,8 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
         if (!expression.has_value()) {
             std::stringstream error_stream;
             error_stream << "Invalid initialize value for variable '" << identifier.value.value() << "'";
-            throw ParserException(error_stream.str(), d_type_token.meta.line_num, d_type_token.meta.line_pos);
+            throw ParserException(error_stream.str(), m_file_path, d_type_token.meta.line_num,
+                                  d_type_token.meta.line_pos);
         }
 
         value = ASTExpression{
@@ -178,7 +182,7 @@ ASTProgram Parser::parse_program() {
         auto statement = parse_statement();
         if (statement == nullptr) {
             Token token = peek().value();
-            throw ParserException("Invalid statement", token.meta.line_num, token.meta.line_pos);
+            throw ParserException("Invalid statement", m_file_path, token.meta.line_num, token.meta.line_pos);
         }
 
         result.statements.push_back(std::move(statement));

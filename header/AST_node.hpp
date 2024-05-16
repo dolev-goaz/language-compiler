@@ -19,6 +19,7 @@ enum class BinOperation {
     subtract,
     multiply,
     divide,
+    modulo,
     operationCount,  // used for assertions
 };
 
