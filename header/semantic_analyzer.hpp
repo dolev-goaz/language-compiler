@@ -6,24 +6,17 @@
 
 #include "./error/sem_analyze_error.hpp"
 #include "AST_node.hpp"
+#include "scope_stack.hpp"
 
 extern std::map<std::string, DataType> datatype_mapping;
 
-class SymbolTable {
-   public:
-    struct Variable {
-        TokenMeta start_token_meta;
-        DataType data_type;
-    };
-    void enterScope();
-    void exitScope();
-    void insert(const std::string& identifier, Variable variable_data);
-    bool lookup(const std::string& identifier, Variable& variable_data) const;
-
-   private:
-    typedef std::map<std::string, SymbolTable::Variable> scope;
-    std::stack<scope> scope_stack;
+namespace SymbolTable {
+struct Variable {
+    TokenMeta start_token_meta;
+    DataType data_type;
 };
+using SemanticScopeStack = ScopeStack<Variable>;
+};  // namespace SymbolTable
 
 class SemanticAnalyzer {
    public:
@@ -31,8 +24,10 @@ class SemanticAnalyzer {
     void analyze();
 
    private:
+    void analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements);
+
     ASTProgram m_prog;
-    SymbolTable m_symbol_table;
+    SymbolTable::SemanticScopeStack m_symbol_table;
     struct ExpressionVisitor;
     struct StatementVisitor;
 };

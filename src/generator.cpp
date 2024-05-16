@@ -16,10 +16,12 @@ std::map<size_t, std::string> size_bytes_to_size_keyword = {
 std::string Generator::generate_program() {
     m_generated << "global main" << std::endl << "main:" << std::endl;
 
+    m_stack.enterScope();
     for (size_t i = 0; i < m_prog.statements.size(); ++i) {
         auto current = m_prog.statements[i].get();
         generate_statement(*current);
     }
+    m_stack.exitScope();
 
     // default exit statement
     m_generated << std::endl << "; default program end" << std::endl;
@@ -80,22 +82,22 @@ void Generator::generate_expression(const ASTExpression& expression) {
 
 void Generator::generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes) {
     (void)size_bytes;  // ignore unused
-    if (m_variables.count(identifier.value) == 0) {
+    Generator::Variable variableData;
+    if (!m_stack.lookup(identifier.value, variableData)) {
         std::cerr << "Variable '" << identifier.value << "' does not exist!" << std::endl;
         exit(EXIT_FAILURE);
     }
     m_generated << ";\tEvaluate Variable " << identifier.value << std::endl;
 
     // get variable metadata
-    Generator::Variable variable = m_variables.at(identifier.value);
 
     // get variable position in the stack
-    int offset = m_stack_size - variable.stack_location_bytes;
+    int offset = m_stack_size - variableData.stack_location_bytes;
     // rsp was on the next FREE address, offset it back to the variable's position.
-    offset -= variable.size_bytes;
+    offset -= variableData.size_bytes;
 
     // push variable value into stack
-    push_stack_offset(offset, variable.size_bytes);
+    push_stack_offset(offset, variableData.size_bytes);
 }
 
 void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes) {
@@ -179,12 +181,7 @@ void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) 
 }
 
 void Generator::generate_statement_var_declare(const ASTStatementVar& var_statement) {
-    // check variable name already exists
-    if (m_variables.count(var_statement.name) > 0) {
-        std::cerr << "Variable '" << var_statement.name << "' already exists!" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
+    // no need to check for duplicate variable names, since it was checked in semantic analysis
     size_t size_bytes = data_type_size_bytes.at(var_statement.data_type);
 
     Generator::Variable var = {
@@ -194,6 +191,30 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
     m_generated << ";\tVariable Declaration " << var_statement.name << " BEGIN" << std::endl;
     generate_expression(var_statement.value.value());
 
-    m_variables.insert({var_statement.name, var});  // variable is now set
+    m_stack.insert(var_statement.name, var);
     m_generated << ";\tVariable Declaration " << var_statement.name << " END" << std::endl << std::endl;
+}
+
+void Generator::enter_scope() { m_stack.enterScope(); }
+void Generator::exit_scope() {
+    std::optional<std::map<std::string, Generator::Variable>> scope = m_stack.exitScope();
+    if (!scope.has_value()) {
+        // should never happen
+        std::cerr << "exited a non-existing scope" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    int totalStackSpace = 0;
+    for (auto& pair : scope.value()) {
+        totalStackSpace += pair.second.size_bytes;
+    }
+    m_stack_size -= totalStackSpace;
+    m_generated << "\tadd rsp, " << totalStackSpace << "; END OF SCOPE" << std::endl;
+}
+
+void Generator::generate_statement_scope(const ASTStatementScope& scope_statement) {
+    enter_scope();
+    for (auto& statement : scope_statement.statements) {
+        this->generate_statement(*statement.get());
+    }
+    exit_scope();
 }

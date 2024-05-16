@@ -6,6 +6,7 @@
 #include <string>
 
 #include "AST_node.hpp"
+#include "scope_stack.hpp"
 
 extern std::map<DataType, size_t> data_type_size_bytes;
 
@@ -27,6 +28,10 @@ class Generator {
 
     void generate_statement_exit(const ASTStatementExit& exit_statement);
     void generate_statement_var_declare(const ASTStatementVar& var_statement);
+    void generate_statement_scope(const ASTStatementScope& scope_statement);
+
+    void enter_scope();
+    void exit_scope();
 
     // push a value from the stack to the stack
     void push_stack_offset(int offset, size_t size);
@@ -44,7 +49,7 @@ class Generator {
     const ASTProgram m_prog;
 
     // map from variable name to variable details
-    std::map<std::string, Generator::Variable> m_variables;
+    ScopeStack<Generator::Variable> m_stack;
     size_t m_stack_size;
 
     struct StatementVisitor;

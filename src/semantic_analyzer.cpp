@@ -8,7 +8,7 @@ std::map<std::string, DataType> datatype_mapping = {
 };
 
 struct SemanticAnalyzer::ExpressionVisitor {
-    SymbolTable& symbol_table;
+    SymbolTable::SemanticScopeStack& symbol_table;
     DataType operator()(ASTIdentifier& identifier) const {
         SymbolTable::Variable literal_data;
         if (!symbol_table.lookup(identifier.value, literal_data)) {
@@ -57,69 +57,42 @@ struct SemanticAnalyzer::StatementVisitor {
             var_declare.get()->name,
             SymbolTable::Variable{.start_token_meta = var_declare.get()->start_token_meta, .data_type = data_type});
 
-        if (var_declare.get()->value.has_value()) {
-            auto& expression = var_declare.get()->value.value();
-
-            DataType rhs_data_type =
-                std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
-            // IN THE FUTURE: when there are more types, check for type compatibility
-            if (rhs_data_type > data_type) {
-                // type narrowing
-                rhs_data_type = data_type;
-            }
-            expression.data_type = rhs_data_type;
-        } else {
+        // initial 0 value if left uninitialized
+        if (!var_declare.get()->value.has_value()) {
             ASTAtomicExpression zero_literal = ASTAtomicExpression{
                 .start_token_meta = {0, 0},
                 .value = ASTIntLiteral{.start_token_meta = {0, 0}, .value = "0"},
             };
-            var_declare.get()->value =
-                std::make_optional(ASTExpression{.start_token_meta = {0, 0},
-                                                 .data_type = DataType::int_64,
-                                                 .expression = std::make_shared<ASTAtomicExpression>(zero_literal)});
+            var_declare.get()->value = ASTExpression{.start_token_meta = {0, 0},
+                                                     .data_type = DataType::int_64,
+                                                     .expression = std::make_shared<ASTAtomicExpression>(zero_literal)};
         }
+
+        auto& expression = var_declare.get()->value.value();
+        DataType rhs_data_type =
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+        // IN THE FUTURE: when there are more types, check for type compatibility
+        if (rhs_data_type > data_type) {
+            // type narrowing
+            rhs_data_type = data_type;
+        }
+        expression.data_type = rhs_data_type;
+    }
+    void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
+        analyzer->analyze_scope(scope.get()->statements);
     }
 };
-void SemanticAnalyzer::analyze() {
+
+void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements) {
     this->m_symbol_table.enterScope();
-    for (auto& statement : m_prog.statements) {
+    for (auto& statement : statements) {
         std::visit(SemanticAnalyzer::StatementVisitor{this}, statement.get()->statement);
     }
     this->m_symbol_table.exitScope();
 }
 
-void SymbolTable::enterScope() { scope_stack.push(std::map<std::string, SymbolTable::Variable>()); }
-
-void SymbolTable::exitScope() {
-    // throw error if no existing scope
-    if (!scope_stack.empty()) {
-        scope_stack.pop();
-    }
-}
-
-void SymbolTable::insert(const std::string& identifier, Variable value) {
-    if (scope_stack.empty()) {
-        std::stringstream err_stream;
-        err_stream << "Variable '" << identifier << "' cannot be declared outside of a scope.";
-        throw SemanticAnalyzerException(err_stream.str(), value.start_token_meta);
-    }
-
-    SymbolTable::scope current_scope = scope_stack.top();
-    if (current_scope.count(identifier) > 0) {
-        std::stringstream err_stream;
-        err_stream << "Variable '" << identifier << "' already exists in the current scope.";
-        throw SemanticAnalyzerException(err_stream.str(), value.start_token_meta);
-    }
-    scope_stack.top()[identifier] = value;
-}
-
-bool SymbolTable::lookup(const std::string& identifier, Variable& value) const {
-    // throw error if no existing scope
-    for (auto it = scope_stack.top().rbegin(); it != scope_stack.top().rend(); ++it) {
-        if (it->first == identifier) {
-            value = it->second;
-            return true;
-        }
-    }
-    return false;
+void SemanticAnalyzer::analyze() {
+    // basically, the entire program is wrapped in a scope, allowing declarations outside of a scope- creating the
+    // global scope.
+    analyze_scope(m_prog.statements);
 }

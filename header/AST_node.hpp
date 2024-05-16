@@ -26,6 +26,7 @@ enum class BinOperation {
 };
 
 struct ASTExpression;
+struct ASTStatement;
 
 struct ASTIntLiteral {
     TokenMeta start_token_meta;
@@ -70,9 +71,16 @@ struct ASTStatementVar {
     std::optional<ASTExpression> value;
 };
 
+struct ASTStatementScope {
+    TokenMeta start_token_meta;
+    std::vector<std::shared_ptr<ASTStatement>> statements;
+};
+
 struct ASTStatement {
     TokenMeta start_token_meta;
-    std::variant<std::shared_ptr<ASTStatementExit>, std::shared_ptr<ASTStatementVar>> statement;
+    std::variant<std::shared_ptr<ASTStatementExit>, std::shared_ptr<ASTStatementVar>,
+                 std::shared_ptr<ASTStatementScope>>
+        statement;
 };
 
 struct ASTProgram {
