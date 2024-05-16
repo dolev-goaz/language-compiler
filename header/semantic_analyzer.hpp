@@ -12,6 +12,7 @@ extern std::map<std::string, DataType> datatype_mapping;
 class SymbolTable {
    public:
     struct Variable {
+        TokenMeta start_token_meta;
         DataType data_type;
     };
     void enterScope();

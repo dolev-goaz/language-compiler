@@ -12,8 +12,9 @@ struct SemanticAnalyzer::ExpressionVisitor {
     DataType operator()(ASTIdentifier& identifier) const {
         SymbolTable::Variable literal_data;
         if (!symbol_table.lookup(identifier.value, literal_data)) {
-            std::cerr << "Unknown identifier " << identifier.value << std::endl;
-            exit(EXIT_FAILURE);
+            std::stringstream errorMessage;
+            errorMessage << "Unknown Identifier '" << identifier.value << "'";
+            throw SemanticAnalyzerException(errorMessage.str(), identifier.start_token_meta);
         }
         return literal_data.data_type;
     }
@@ -46,12 +47,15 @@ struct SemanticAnalyzer::StatementVisitor {
     }
     void operator()(const std::shared_ptr<ASTStatementVar>& var_declare) const {
         if (datatype_mapping.count(var_declare.get()->data_type_str) == 0) {
-            std::cerr << "Unknown data type " << var_declare.get()->data_type_str << std::endl;
-            exit(EXIT_FAILURE);
+            std::stringstream errorMessage;
+            errorMessage << "Unknown data type '" << var_declare.get()->data_type_str << "'";
+            throw SemanticAnalyzerException(errorMessage.str(), var_declare.get()->start_token_meta);
         }
         DataType data_type = datatype_mapping.at(var_declare.get()->data_type_str);
         var_declare.get()->data_type = data_type;
-        analyzer->m_symbol_table.insert(var_declare.get()->name, SymbolTable::Variable{.data_type = data_type});
+        analyzer->m_symbol_table.insert(
+            var_declare.get()->name,
+            SymbolTable::Variable{.start_token_meta = var_declare.get()->start_token_meta, .data_type = data_type});
 
         if (var_declare.get()->value.has_value()) {
             auto& expression = var_declare.get()->value.value();
@@ -97,14 +101,14 @@ void SymbolTable::insert(const std::string& identifier, Variable value) {
     if (scope_stack.empty()) {
         std::stringstream err_stream;
         err_stream << "Variable '" << identifier << "' cannot be declared outside of a scope.";
-        throw SemanticAnalyzerException(err_stream.str());
+        throw SemanticAnalyzerException(err_stream.str(), value.start_token_meta);
     }
 
     SymbolTable::scope current_scope = scope_stack.top();
     if (current_scope.count(identifier) > 0) {
         std::stringstream err_stream;
         err_stream << "Variable '" << identifier << "' already exists in the current scope.";
-        throw SemanticAnalyzerException(err_stream.str());
+        throw SemanticAnalyzerException(err_stream.str(), value.start_token_meta);
     }
     scope_stack.top()[identifier] = value;
 }
