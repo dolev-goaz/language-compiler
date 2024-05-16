@@ -30,6 +30,7 @@ Token Parser::assert_consume(TokenType type, const std::string& msg) {
         throw ParserException(msg, m_file_path, token.value().meta.line_num, token.value().meta.line_pos);
     }
 
+    // no next token to peek- EOF
     throw ParserException(msg, m_file_path);
 }
 

@@ -7,14 +7,18 @@ class ParserException : public std::exception {
    public:
     ParserException(const std::string& message, const std::string& file_path, size_t line, size_t col)
         : m_message(message), m_file_path(file_path), m_line(line), m_col(col) {}
-    // TODO: find a way to get rid of 'empty' constructor
     ParserException(const std::string& message, const std::string& file_path)
-        : m_message(message), m_file_path(file_path), m_line(1), m_col(1) {}
+        : m_message(message), m_file_path(file_path), m_line(0), m_col(0) {}
 
     const char* what() const noexcept override {
         std::stringstream stream;
-        stream << "PARSER EXCEPTION at " << m_file_path << ":" << m_line << ":" << m_col << ":" << std::endl
-               << m_message;
+        stream << "PARSER EXCEPTION at " << m_file_path;
+        if (m_line && m_col) {
+            stream << ":" << m_line << ":" << m_col << ":";
+        } else {
+            stream << ": Reached end of file unexpectedly.";
+        }
+        stream << std::endl << m_message;
 
         m_formatted_message = stream.str();
 
