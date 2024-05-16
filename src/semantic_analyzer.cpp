@@ -66,10 +66,13 @@ struct SemanticAnalyzer::StatementVisitor {
             expression.data_type = rhs_data_type;
         } else {
             ASTAtomicExpression zero_literal = ASTAtomicExpression{
-                .value = ASTIntLiteral{.value = "0"},
+                .start_token_meta = {0, 0},
+                .value = ASTIntLiteral{.start_token_meta = {0, 0}, .value = "0"},
             };
-            var_declare.get()->value = std::make_optional(ASTExpression{
-                .data_type = DataType::int_64, .expression = std::make_shared<ASTAtomicExpression>(zero_literal)});
+            var_declare.get()->value =
+                std::make_optional(ASTExpression{.start_token_meta = {0, 0},
+                                                 .data_type = DataType::int_64,
+                                                 .expression = std::make_shared<ASTAtomicExpression>(zero_literal)});
         }
     }
 };

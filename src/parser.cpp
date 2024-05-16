@@ -56,15 +56,18 @@ std::optional<int> Parser::binary_operator_precedence(const BinOperation& operat
 }
 
 std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
+    auto token = peek();
+    if (!token.has_value()) return nullptr;
+    auto meta = token.value().meta;
     if (test_peek(TokenType::int_lit)) {
         Token token = consume().value();
-        return std::make_shared<ASTAtomicExpression>(
-            ASTAtomicExpression{.value = ASTIntLiteral{.value = token.value.value()}});
+        return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression{
+            .start_token_meta = meta, .value = ASTIntLiteral{.start_token_meta = meta, .value = token.value.value()}});
     }
     if (test_peek(TokenType::identifier)) {
         Token token = consume().value();
-        return std::make_shared<ASTAtomicExpression>(
-            ASTAtomicExpression{.value = ASTIdentifier{.value = token.value.value()}});
+        return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression{
+            .start_token_meta = meta, .value = ASTIdentifier{.start_token_meta = meta, .value = token.value.value()}});
     }
 
     return nullptr;
@@ -76,6 +79,7 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
         return std::nullopt;
     }
     auto expr_lhs = ASTExpression{
+        .start_token_meta = atomic.get()->start_token_meta,
         .data_type = DataType::NONE,
         .expression = atomic,
     };
@@ -94,16 +98,25 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
         auto rhs = parse_expression(currentPrecedence.value() + 1);
         if (!rhs.has_value()) {
             // TODO: raise exception
-            std::cerr << "EXPECTED RHS EXPRESSION" << std::endl;
-            exit(EXIT_FAILURE);
+            auto nextToken = peek();
+            if (nextToken.has_value()) {
+                throw ParserException("Expected RHS expression", m_file_path, nextToken.value().meta.line_num,
+                                      nextToken.value().meta.line_pos);
+            } else {
+                throw ParserException("Expected RHS expression", m_file_path);
+            }
         }
         auto new_expr_lhs = std::make_shared<ASTExpression>(ASTExpression{
+            .start_token_meta = expr_lhs.start_token_meta,
             .data_type = DataType::NONE,
             .expression = expr_lhs.expression,
         });
         auto new_expr_rhs = std::make_shared<ASTExpression>(rhs.value());
         expr_lhs.expression = std::make_shared<ASTBinExpression>(
-            ASTBinExpression{.operation = binOperation, .lhs = new_expr_lhs, .rhs = new_expr_rhs});
+            ASTBinExpression{.start_token_meta = new_expr_lhs.get()->start_token_meta,
+                             .operation = binOperation,
+                             .lhs = new_expr_lhs,
+                             .rhs = new_expr_rhs});
     }
 
     return expr_lhs;
@@ -123,7 +136,8 @@ std::shared_ptr<ASTStatementExit> Parser::parse_statement_exit() {
     assert_consume(TokenType::close_paren, "Expected ')' after expression");
     assert_consume(TokenType::semicol, "Expected ';' after function call");
 
-    return std::make_shared<ASTStatementExit>(ASTStatementExit{.status_code = std::move(expression.value())});
+    return std::make_shared<ASTStatementExit>(
+        ASTStatementExit{.start_token_meta = statement_begin.meta, .status_code = std::move(expression.value())});
 }
 
 std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
@@ -146,6 +160,7 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
         }
 
         value = ASTExpression{
+            .start_token_meta = expression.value().start_token_meta,
             .data_type = DataType::NONE,
             .expression = std::move(expression.value().expression),
         };
@@ -154,6 +169,7 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
     assert_consume(TokenType::semicol, "Expected ';' after variable delcaration");
 
     return std::make_shared<ASTStatementVar>(ASTStatementVar{
+        .start_token_meta = d_type_token.meta,
         .data_type_str = d_type_token.value.value(),
         .data_type = DataType::NONE,
         .name = identifier.value.value(),
@@ -163,13 +179,20 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
 
 std::shared_ptr<ASTStatement> Parser::parse_statement() {
     // check for exit statement
+    auto nextToken = peek();
+    if (!nextToken.has_value()) {
+        return nullptr;
+    }
+    auto meta = nextToken.value().meta;
     if (auto exit_statement = parse_statement_exit(); exit_statement != nullptr) {
-        return std::make_shared<ASTStatement>(ASTStatement{.statement = std::move(exit_statement)});
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(exit_statement)});
     }
 
     // check for variable declaration statement
     if (auto var_declare_statement = parse_statement_var_declare(); var_declare_statement != nullptr) {
-        return std::make_shared<ASTStatement>(ASTStatement{.statement = std::move(var_declare_statement)});
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(var_declare_statement)});
     }
 
     // fallback- no matching statement found
