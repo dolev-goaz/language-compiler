@@ -7,12 +7,15 @@
 template <typename T>
 class ScopeStack {
    public:
+    typedef std::map<std::string, T> scope;
     void enterScope() { scope_stack.push(std::map<std::string, T>()); }
-    void exitScope() {
-        // throw error if no existing scope
+    std::optional<scope> exitScope() {
         if (!scope_stack.empty()) {
+            auto topScope = std::move(scope_stack.top());
             scope_stack.pop();
+            return topScope;
         }
+        return std::nullopt;
     }
     void insert(const std::string& identifier, T variable_data) {
         // TODO: errors thrown here should be converted to generic Scope error
@@ -46,6 +49,5 @@ class ScopeStack {
     }
 
    private:
-    typedef std::map<std::string, T> scope;
     std::stack<scope> scope_stack;
 };

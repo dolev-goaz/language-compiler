@@ -195,10 +195,26 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
     m_generated << ";\tVariable Declaration " << var_statement.name << " END" << std::endl << std::endl;
 }
 
+void Generator::enter_scope() { m_stack.enterScope(); }
+void Generator::exit_scope() {
+    std::optional<std::map<std::string, Generator::Variable>> scope = m_stack.exitScope();
+    if (!scope.has_value()) {
+        // should never happen
+        std::cerr << "exited a non-existing scope" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    int totalStackSpace = 0;
+    for (auto& pair : scope.value()) {
+        totalStackSpace += pair.second.size_bytes;
+    }
+    m_stack_size -= totalStackSpace;
+    m_generated << "\tadd rsp, " << totalStackSpace << "; END OF SCOPE" << std::endl;
+}
+
 void Generator::generate_statement_scope(const ASTStatementScope& scope_statement) {
-    // TODO: handle begin of scope(setup)
+    enter_scope();
     for (auto& statement : scope_statement.statements) {
         this->generate_statement(*statement.get());
     }
-    // TODO: handle end of scope(cleanup)
+    exit_scope();
 }

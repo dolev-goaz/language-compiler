@@ -30,6 +30,9 @@ class Generator {
     void generate_statement_var_declare(const ASTStatementVar& var_statement);
     void generate_statement_scope(const ASTStatementScope& scope_statement);
 
+    void enter_scope();
+    void exit_scope();
+
     // push a value from the stack to the stack
     void push_stack_offset(int offset, size_t size);
 
