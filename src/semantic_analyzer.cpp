@@ -57,27 +57,26 @@ struct SemanticAnalyzer::StatementVisitor {
             var_declare.get()->name,
             SymbolTable::Variable{.start_token_meta = var_declare.get()->start_token_meta, .data_type = data_type});
 
-        if (var_declare.get()->value.has_value()) {
-            auto& expression = var_declare.get()->value.value();
-
-            DataType rhs_data_type =
-                std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
-            // IN THE FUTURE: when there are more types, check for type compatibility
-            if (rhs_data_type > data_type) {
-                // type narrowing
-                rhs_data_type = data_type;
-            }
-            expression.data_type = rhs_data_type;
-        } else {
+        // initial 0 value if left uninitialized
+        if (!var_declare.get()->value.has_value()) {
             ASTAtomicExpression zero_literal = ASTAtomicExpression{
                 .start_token_meta = {0, 0},
                 .value = ASTIntLiteral{.start_token_meta = {0, 0}, .value = "0"},
             };
-            var_declare.get()->value =
-                std::make_optional(ASTExpression{.start_token_meta = {0, 0},
-                                                 .data_type = DataType::int_64,
-                                                 .expression = std::make_shared<ASTAtomicExpression>(zero_literal)});
+            var_declare.get()->value = ASTExpression{.start_token_meta = {0, 0},
+                                                     .data_type = DataType::int_64,
+                                                     .expression = std::make_shared<ASTAtomicExpression>(zero_literal)};
         }
+
+        auto& expression = var_declare.get()->value.value();
+        DataType rhs_data_type =
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+        // IN THE FUTURE: when there are more types, check for type compatibility
+        if (rhs_data_type > data_type) {
+            // type narrowing
+            rhs_data_type = data_type;
+        }
+        expression.data_type = rhs_data_type;
     }
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
         analyzer->analyze_scope(scope.get()->statements);
