@@ -8,7 +8,7 @@ std::map<std::string, DataType> datatype_mapping = {
 };
 
 struct SemanticAnalyzer::ExpressionVisitor {
-    SymbolTable& symbol_table;
+    SymbolTable::SemanticScopeStack& symbol_table;
     DataType operator()(ASTIdentifier& identifier) const {
         SymbolTable::Variable literal_data;
         if (!symbol_table.lookup(identifier.value, literal_data)) {
@@ -96,40 +96,4 @@ void SemanticAnalyzer::analyze() {
     // basically, the entire program is wrapped in a scope, allowing declarations outside of a scope- creating the
     // global scope.
     analyze_scope(m_prog.statements);
-}
-
-void SymbolTable::enterScope() { scope_stack.push(std::map<std::string, SymbolTable::Variable>()); }
-
-void SymbolTable::exitScope() {
-    // throw error if no existing scope
-    if (!scope_stack.empty()) {
-        scope_stack.pop();
-    }
-}
-
-void SymbolTable::insert(const std::string& identifier, Variable value) {
-    if (scope_stack.empty()) {
-        std::stringstream err_stream;
-        err_stream << "Variable '" << identifier << "' cannot be declared outside of a scope.";
-        throw SemanticAnalyzerException(err_stream.str(), value.start_token_meta);
-    }
-
-    SymbolTable::scope current_scope = scope_stack.top();
-    if (current_scope.count(identifier) > 0) {
-        std::stringstream err_stream;
-        err_stream << "Variable '" << identifier << "' already exists in the current scope.";
-        throw SemanticAnalyzerException(err_stream.str(), value.start_token_meta);
-    }
-    scope_stack.top()[identifier] = value;
-}
-
-bool SymbolTable::lookup(const std::string& identifier, Variable& value) const {
-    // throw error if no existing scope
-    for (auto it = scope_stack.top().rbegin(); it != scope_stack.top().rend(); ++it) {
-        if (it->first == identifier) {
-            value = it->second;
-            return true;
-        }
-    }
-    return false;
 }
