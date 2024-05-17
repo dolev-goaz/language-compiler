@@ -5,3 +5,4 @@ if (y - 8) {
 } else {
     exit(200);
 }
+exit(5);

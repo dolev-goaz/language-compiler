@@ -140,6 +140,7 @@ std::shared_ptr<ASTStatementIf> Parser::parse_statement_if() {
         .start_token_meta = statement_begin_meta,
         .expression = expression.value(),
         .success_statement = success_statement,
+        .fail_statement = nullptr,
     });
 
     if (test_peek(TokenType::_else)) {
