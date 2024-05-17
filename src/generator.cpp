@@ -140,7 +140,6 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
     auto& rhsExp = *binary.get()->rhs.get();
     generate_expression(lhsExp);
     generate_expression(rhsExp);
-    // TODO: make sure size_bytes is ok as parameter for all those
     pop_stack_register("rbx", size_bytes);  // rbx = rhs
     pop_stack_register("rax", size_bytes);  // rax = lhs
     switch (binary.get()->operation) {
