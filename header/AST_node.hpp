@@ -76,10 +76,16 @@ struct ASTStatementScope {
     std::vector<std::shared_ptr<ASTStatement>> statements;
 };
 
+struct ASTStatementIf {
+    TokenMeta start_token_meta;
+    ASTExpression expression;
+    std::shared_ptr<ASTStatement> success_statement;
+};
+
 struct ASTStatement {
     TokenMeta start_token_meta;
     std::variant<std::shared_ptr<ASTStatementExit>, std::shared_ptr<ASTStatementVar>,
-                 std::shared_ptr<ASTStatementScope>>
+                 std::shared_ptr<ASTStatementScope>, std::shared_ptr<ASTStatementIf>>
         statement;
 };
 

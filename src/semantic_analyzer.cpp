@@ -96,6 +96,10 @@ struct SemanticAnalyzer::StatementVisitor {
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
         analyzer->analyze_scope(scope.get()->statements);
     }
+    void operator()(const std::shared_ptr<ASTStatementIf>& _if) const {
+        (void)(_if);
+        assert(false && "'If' statement analysis not implemented");
+    }
 };
 
 void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements) {

@@ -119,6 +119,30 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
     return expr_lhs;
 }
 
+std::shared_ptr<ASTStatementIf> Parser::parse_statement_if() {
+    if (!test_peek(TokenType::_if)) return nullptr;
+    const auto& statement_begin_meta = consume().value().meta;
+
+    // NOTE: this is the same logic as in exit. could maybe refactor this?
+    assert_consume(TokenType::open_paren, "Expected '(' after 'if' statement");
+    auto expression = parse_expression();
+    if (!expression.has_value()) {
+        throw ParserException("Invalid expression parameter", statement_begin_meta);
+    }
+    assert_consume(TokenType::close_paren, "Expected ')' after expression");
+
+    auto success_statement = parse_statement();
+    if (success_statement == nullptr) {
+        throw ParserException("Expected statement after 'if' condition", statement_begin_meta);
+    }
+
+    return std::make_shared<ASTStatementIf>(ASTStatementIf{
+        .start_token_meta = statement_begin_meta,
+        .expression = expression.value(),
+        .success_statement = success_statement,
+    });
+}
+
 std::shared_ptr<ASTStatementScope> Parser::parse_statement_scope() {
     if (!test_peek(TokenType::open_curly)) return nullptr;
     const TokenMeta statement_begin_meta = consume().value().meta;
@@ -206,6 +230,11 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
     if (auto scope_statement = parse_statement_scope(); scope_statement != nullptr) {
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(scope_statement)});
+    }
+
+    if (auto if_statement = parse_statement_if(); if_statement != nullptr) {
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(if_statement)});
     }
 
     // fallback- no matching statement found

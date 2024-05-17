@@ -13,6 +13,10 @@ struct Generator::StatementVisitor {
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
         generator.generate_statement_scope(*scope.get());
     }
+    void operator()(const std::shared_ptr<ASTStatementIf>& _if) const {
+        (void)(_if);
+        assert(false && "If statement generation not yet implemented");
+    }
 };
 
 struct Generator::ExpressionVisitor {

@@ -24,7 +24,10 @@ enum class TokenType {
     minus,
     star,
     fslash,
-    percent
+    percent,
+
+    // keywords
+    _if,
 };
 
 extern std::map<std::string, TokenType> tokenMappingsKeywords;
