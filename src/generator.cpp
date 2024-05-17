@@ -3,14 +3,21 @@
 #include "../header/generator_visitor.hpp"
 
 std::map<DataType, size_t> data_type_size_bytes = {
-    {DataType::int_16, 2},
-    {DataType::int_64, 8},
     {DataType::NONE, 0},
+    {DataType::int_16, 2},
+    // {DataType::int_32, 4},
+    {DataType::int_64, 8},
 };
 
 std::map<size_t, std::string> size_bytes_to_size_keyword = {
     {2, "WORD"},
     {8, "QWORD"},
+};
+
+std::map<size_t, std::string> size_bytes_to_register = {
+    {2, "ax"},
+    // {4, "eax"},
+    {8, "rax"},
 };
 
 std::string Generator::generate_program() {
@@ -39,17 +46,14 @@ void Generator::push_stack_literal(const std::string& value, size_t size) {
 void Generator::push_stack_offset(int offset, size_t size) {
     // reading a value from the an arbitrary point in the stack, then pushing that value
     // to the top of the stack.
-    if (size == 8) {
-        m_generated << "\tmov rax, [rsp + " << offset << "]" << std::endl;
-    } else {
-        std::string size_keyword = size_bytes_to_size_keyword.at(size);
-        m_generated << "\tmovsx rax, " << size_keyword << " [rsp + " << offset << "]" << std::endl;
-    }
+    std::string size_keyword = size_bytes_to_size_keyword.at(size);
+    std::string reg = size_bytes_to_register.at(size);
 
-    if ((m_stack_size + offset) % 2 != 0) {
-        m_generated << "\tbswap rax" << std::endl;  // little endian shenanigans when reading inside a word
-    }
-    m_generated << "\tpush rax" << std::endl;
+    m_generated << "\tmov " << reg << ", " << size_keyword << " [rsp + " << offset << "]" << std::endl;
+
+    // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
+    // probably just don't support 8-bit variables, lol
+    m_generated << "\tpush " << reg << std::endl;
     m_stack_size += size;
 }
 
@@ -176,6 +180,7 @@ void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) 
     m_generated << ";\tExit Statement" << std::endl;
     m_generated << "\tmov rax, 60" << std::endl;
 
+    // TODO: this shouldn't always be 8. causes bugs when using smaller variables
     pop_stack_register("rdi", 8);
     m_generated << "\tsyscall" << std::endl;
 }
