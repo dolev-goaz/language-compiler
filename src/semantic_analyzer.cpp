@@ -102,6 +102,9 @@ struct SemanticAnalyzer::StatementVisitor {
         expression.data_type =
             std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
         std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
+        if (_if.get()->fail_statement != nullptr) {
+            std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, _if.get()->fail_statement.get()->statement);
+        }
     }
 };
 
