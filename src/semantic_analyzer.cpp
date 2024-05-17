@@ -97,8 +97,10 @@ struct SemanticAnalyzer::StatementVisitor {
         analyzer->analyze_scope(scope.get()->statements);
     }
     void operator()(const std::shared_ptr<ASTStatementIf>& _if) const {
-        (void)(_if);
-        assert(false && "'If' statement analysis not implemented");
+        auto& expression = _if.get()->expression;
+        auto& success_statement = _if.get()->success_statement;
+        std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+        std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
     }
 };
 
