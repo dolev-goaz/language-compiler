@@ -1,6 +1,12 @@
 int_16 x = 0;
 int_16 y = 8;
-if (y) {
+if (y - 8) {
     exit(100);
+}
+if (x) {
+    exit(200);
+}
+if (x + 1) {
+    exit(50);
 }
 exit(20);

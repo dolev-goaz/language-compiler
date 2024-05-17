@@ -228,3 +228,17 @@ void Generator::generate_statement_scope(const ASTStatementScope& scope_statemen
     }
     exit_scope();
 }
+
+void Generator::generate_statement_if(const ASTStatementIf& if_statement) {
+    std::stringstream label;
+    label << ".after_if_condition_" << m_condition_counter;
+    auto& expression = if_statement.expression;
+    auto& statement = if_statement.success_statement;
+    size_t size_bytes = data_type_size_bytes.at(expression.data_type);
+    generate_expression(expression);
+    pop_stack_register("rax", size_bytes);  // rax = lhs
+    m_generated << "\ttest rax, rax" << std::endl << "\tjz " << label.str() << std::endl;
+    generate_statement(*statement.get());
+    m_generated << label.str() << ":" << std::endl;
+    ++m_condition_counter;
+}
