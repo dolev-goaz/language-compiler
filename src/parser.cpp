@@ -126,7 +126,7 @@ std::shared_ptr<ASTStatementScope> Parser::parse_statement_scope() {
     while (peek().has_value() && !test_peek(TokenType::close_curly)) {
         statements.push_back(parse_statement());
     }
-    assert_consume(TokenType::close_curly, "Expe");
+    assert_consume(TokenType::close_curly, "Expected '}'");
     return std::make_shared<ASTStatementScope>(
         ASTStatementScope{.start_token_meta = statement_begin_meta, .statements = statements});
 }
