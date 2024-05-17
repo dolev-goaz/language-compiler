@@ -50,8 +50,7 @@ std::optional<int> Parser::binary_operator_precedence(const BinOperation& operat
         case BinOperation::modulo:
             return 1;
         default:
-            // TODO: could raise exception here
-            return std::nullopt;
+            assert(false && "Binary operation not implemented- " + (int)operation);
     }
 }
 
@@ -97,7 +96,6 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
         consume();  // consume the token now that we know it's a binary operator
         auto rhs = parse_expression(currentPrecedence.value() + 1);
         if (!rhs.has_value()) {
-            // TODO: raise exception
             auto nextToken = peek();
             if (nextToken.has_value()) {
                 throw ParserException("Expected RHS expression", nextToken.value().meta);
@@ -126,11 +124,7 @@ std::shared_ptr<ASTStatementScope> Parser::parse_statement_scope() {
     const TokenMeta statement_begin_meta = consume().value().meta;
     std::vector<std::shared_ptr<ASTStatement>> statements;
     while (peek().has_value() && !test_peek(TokenType::close_curly)) {
-        auto statement = parse_statement();
-        if (statement == nullptr) {
-            throw ParserException("Invalid statement", peek().value().meta);
-        }
-        statements.push_back(statement);
+        statements.push_back(parse_statement());
     }
     assert_consume(TokenType::close_curly, "Expe");
     return std::make_shared<ASTStatementScope>(
@@ -190,11 +184,12 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
     });
 }
 
+// throws ParserException if couldn't parse statement
 std::shared_ptr<ASTStatement> Parser::parse_statement() {
     // check for exit statement
     auto nextToken = peek();
     if (!nextToken.has_value()) {
-        return nullptr;
+        throw ParserException("Expected statement");
     }
     auto meta = nextToken.value().meta;
     if (auto exit_statement = parse_statement_exit(); exit_statement != nullptr) {
@@ -214,21 +209,14 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
     }
 
     // fallback- no matching statement found
-    // TODO: raise exception
-    return nullptr;
+    throw ParserException("Invalid statement", meta);
 }
 
 ASTProgram Parser::parse_program() {
     ASTProgram result;
 
     while (peek().has_value()) {
-        auto statement = parse_statement();
-        if (statement == nullptr) {
-            Token token = peek().value();
-            throw ParserException("Invalid statement", token.meta);
-        }
-
-        result.statements.push_back(std::move(statement));
+        result.statements.push_back(parse_statement());
     }
 
     return result;
