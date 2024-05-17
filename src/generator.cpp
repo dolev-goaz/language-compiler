@@ -158,7 +158,6 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
             m_generated << "\tdiv rbx; rax = rdx:rax / rbx" << std::endl;  // rax = rax / rbx
             break;
         case BinOperation::modulo:
-            // TODO: doesn't work well with 16bit
             m_generated << "\txor rdx, rdx; clear rdx" << std::endl;       // clear rdx(division is rdx:rax / rbx)
             m_generated << "\tdiv rbx; rdx = rdx:rax % rbx" << std::endl;  // rdx stores the remainder
             m_generated << "\tmov rax, rdx; rdx stores the remainder" << std::endl;
