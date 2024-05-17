@@ -64,9 +64,14 @@ bool is_valid_identifier_letter(char letter) { return isalnum(letter) || letter 
 
 bool Lexer::try_consume_word() {
     std::string buffer;
+    if (!this->peek().has_value()) {
+        return false;
+    }
     size_t line = m_line, col = m_col;
+    char letter = this->peek().value();
     // check first character is an alphabet char
-    if (!this->peek().has_value() || !is_valid_identifier_letter(this->peek().value())) {
+    bool isValidFirstCharacter = letter == '_' || std::isalpha(letter);
+    if (!isValidFirstCharacter) {
         return false;
     }
     // rest of the characters can be alphabet or numeric
