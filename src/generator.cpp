@@ -230,15 +230,31 @@ void Generator::generate_statement_scope(const ASTStatementScope& scope_statemen
 }
 
 void Generator::generate_statement_if(const ASTStatementIf& if_statement) {
-    std::stringstream label;
-    label << ".after_if_condition_" << m_condition_counter;
+    std::stringstream after_if_label;
+    after_if_label << ".after_if_statement_" << m_condition_counter;
+    std::stringstream after_else_label;
+    after_else_label << ".after_else_statement_" << m_condition_counter;
+    ++m_condition_counter;
+
     auto& expression = if_statement.expression;
-    auto& statement = if_statement.success_statement;
+    auto& success_statement = if_statement.success_statement;
+    auto& fail_statement = if_statement.fail_statement;
     size_t size_bytes = data_type_size_bytes.at(expression.data_type);
     generate_expression(expression);
     pop_stack_register("rax", size_bytes);  // rax = lhs
-    m_generated << "\ttest rax, rax" << std::endl << "\tjz " << label.str() << std::endl;
-    generate_statement(*statement.get());
-    m_generated << label.str() << ":" << std::endl;
-    ++m_condition_counter;
+    m_generated << "\ttest rax, rax" << std::endl
+                << "\tjz " << after_if_label.str() << "; if the expression is false-y, skip the 'if' block's statements"
+                << std::endl;
+    generate_statement(*success_statement.get());
+    if (!fail_statement) {
+        // no 'else' statement
+        m_generated << after_if_label.str() << ":" << std::endl;
+        return;
+    }
+    m_generated << "\tjmp " << after_else_label.str()
+                << "; after the truth-y block's statements, skip to after the else(false-y) block's statements"
+                << std::endl;  // skip else section
+    m_generated << after_if_label.str() << ":" << std::endl;
+    generate_statement(*fail_statement.get());
+    m_generated << after_else_label.str() << ":" << std::endl;
 }
