@@ -57,7 +57,7 @@ class Lexer {
     std::optional<char> peek(size_t offset = 0);
     char consume();
 
-    void consume_word();
-    void consume_number();
-    bool try_consume(char character);
+    bool try_consume_word();
+    bool try_consume_number();
+    bool try_consume_char(char character);
 };

@@ -44,7 +44,7 @@ std::optional<char> Lexer::peek(size_t offset) {
     return current;
 }
 
-bool Lexer::try_consume(char character) {
+bool Lexer::try_consume_char(char character) {
     if (!this->peek().has_value() || this->peek().value() != character) {
         return false;
     }
@@ -62,12 +62,12 @@ bool Lexer::try_consume(char character) {
 
 bool is_valid_identifier_letter(char letter) { return isalnum(letter) || letter == '_'; }
 
-void Lexer::consume_word() {
+bool Lexer::try_consume_word() {
     std::string buffer;
     size_t line = m_line, col = m_col;
     // check first character is an alphabet char
     if (!this->peek().has_value() || !is_valid_identifier_letter(this->peek().value())) {
-        return;
+        return false;
     }
     // rest of the characters can be alphabet or numeric
     while (this->peek().has_value() && is_valid_identifier_letter(this->peek().value())) {
@@ -94,14 +94,15 @@ void Lexer::consume_word() {
         .value = value,
     };
     this->tokens.push_back(token);
+    return true;
 }
 
-void Lexer::consume_number() {
+bool Lexer::try_consume_number() {
     std::string buffer;
     size_t line = m_line, col = m_col;
     // check first character is a number
     if (!this->peek().has_value() || !std::isdigit(this->peek().value())) {
-        return;
+        return false;
     }
     // rest of the characters can be alphabet or numeric(200, 0x1f, 0b011)
     while (this->peek().has_value() && std::isalnum(this->peek().value())) {
@@ -121,6 +122,7 @@ void Lexer::consume_number() {
         .value = buffer,
     };
     this->tokens.push_back(token);
+    return true;
 }
 
 std::vector<Token> Lexer::tokenize() {
@@ -135,12 +137,10 @@ std::vector<Token> Lexer::tokenize() {
             this->consume();
             continue;
         }
-        if (std::isalpha(current)) {
-            this->consume_word();
+        if (this->try_consume_word()) {
             continue;
         }
-        if (std::isdigit(current)) {
-            this->consume_number();
+        if (this->try_consume_number()) {
             continue;
         }
 
@@ -149,7 +149,7 @@ std::vector<Token> Lexer::tokenize() {
         bool found = false;
         for (auto& pair : tokenMappingsSymbols) {
             // first contains the key
-            if (this->try_consume(pair.first)) {
+            if (this->try_consume_char(pair.first)) {
                 found = true;
                 break;
             }
