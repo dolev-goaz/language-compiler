@@ -68,8 +68,10 @@ void Generator::pop_stack_register(const std::string& reg, size_t size) {
         std::string size_keyword = size_bytes_to_size_keyword.at(size);
         // popping non-qword from the stack. so we read from the stack(0-filled)
         // and then update the stack pointer, effectively manually popping from the stack
+        m_generated << ";\tManual POP BEGIN" << std::endl;
         m_generated << "\tmovsx " << reg << ", " << size_keyword << " " << "[rsp]" << std::endl;
         m_generated << "\tadd rsp, " << size << std::endl;
+        m_generated << ";\tManual POP END" << std::endl;
     }
     m_stack_size -= size;
 }
@@ -180,8 +182,8 @@ void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) 
     m_generated << ";\tExit Statement" << std::endl;
     m_generated << "\tmov rax, 60" << std::endl;
 
-    // TODO: this shouldn't always be 8. causes bugs when using smaller variables
-    pop_stack_register("rdi", 8);
+    size_t size = data_type_size_bytes.at(exit_statement.status_code.data_type);
+    pop_stack_register("rdi", size);
     m_generated << "\tsyscall" << std::endl;
 }
 
