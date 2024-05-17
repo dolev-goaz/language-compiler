@@ -1,4 +1,5 @@
 #pragma once
+#include <sstream>
 #include <string>
 
 class Globals {
@@ -20,6 +21,12 @@ class Globals {
 
     // Getter and setter for currentFilename
     std::string getCurrentFilePath() const { return currentFilePath; }
+
+    std::string getFilePosition(int row, int col) {
+        std::stringstream out;
+        out << getCurrentFilePath() << ":" << row << ":" << col;
+        return out.str();
+    }
 
     void setCurrentFilePath(const std::string& filePath) { currentFilePath = filePath; }
 };

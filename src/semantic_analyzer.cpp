@@ -29,12 +29,21 @@ struct SemanticAnalyzer::ExpressionVisitor {
     }
 
     DataType operator()(const std::shared_ptr<ASTBinExpression>& binExpr) const {
+        // IN THE FUTURE: when there are more types, check for type compatibility
         auto& lhs = *binExpr.get()->lhs.get();
         auto& rhs = *binExpr.get()->rhs.get();
-        lhs.data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, lhs.expression);
-        rhs.data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, rhs.expression);
-        // type widening
-        return std::max(lhs.data_type, rhs.data_type);
+        DataType lhs_data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, lhs.expression);
+        DataType rhs_data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, rhs.expression);
+        if (lhs_data_type != rhs_data_type) {
+            auto& meta = binExpr.get()->start_token_meta;
+            std::cout << "SEMANTIC WARNING AT " << Globals::getInstance().getFilePosition(meta.line_num, meta.line_pos)
+                      << ": Binary operation of different data types. Data will be narrowed." << std::endl;
+        }
+        // type narrowing
+        DataType data_type = std::min(lhs_data_type, rhs_data_type);
+        lhs.data_type = data_type;
+        rhs.data_type = data_type;
+        return data_type;
     }
 };
 

@@ -6,6 +6,7 @@
 
 #include "./error/sem_analyze_error.hpp"
 #include "AST_node.hpp"
+#include "globals.hpp"
 #include "scope_stack.hpp"
 
 extern std::map<std::string, DataType> datatype_mapping;
