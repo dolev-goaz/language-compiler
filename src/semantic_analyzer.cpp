@@ -36,7 +36,8 @@ struct SemanticAnalyzer::ExpressionVisitor {
         DataType rhs_data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, rhs.expression);
         if (lhs_data_type != rhs_data_type) {
             auto& meta = binExpr.get()->start_token_meta;
-            std::cout << "SEMANTIC WARNING AT " << Globals::getInstance().getFilePosition(meta.line_num, meta.line_pos)
+            std::cout << "SEMANTIC WARNING AT "
+                      << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
                       << ": Binary operation of different data types. Data will be narrowed." << std::endl;
         }
         // type narrowing

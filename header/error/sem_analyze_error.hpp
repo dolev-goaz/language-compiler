@@ -12,13 +12,9 @@ class SemanticAnalyzerException : public std::exception {
 
     const char* what() const noexcept override {
         std::stringstream stream;
-        stream << "SEMANTIC EXCEPTION at " << Globals::getInstance().getCurrentFilePath();
-        if (m_line && m_col) {
-            stream << ":" << m_line << ":" << m_col << ":";
-        } else {
-            stream << ": Reached end of file unexpectedly.";
-        }
-        stream << std::endl << m_message;
+        stream << "SEMANTIC EXCEPTION at " << Globals::getInstance().getCurrentFilePosition(m_line, m_col) << ":"
+               << std::endl
+               << m_message;
 
         m_formatted_message = stream.str();
 

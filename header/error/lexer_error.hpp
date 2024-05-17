@@ -12,8 +12,8 @@ class LexerException : public std::exception {
 
     const char* what() const noexcept override {
         std::stringstream stream;
-        stream << "TOKEN EXCEPTION at " << Globals::getInstance().getCurrentFilePath() << ":" << m_line << ":" << m_col
-               << ":" << std::endl
+        stream << "TOKEN EXCEPTION at " << Globals::getInstance().getCurrentFilePosition(m_line, m_col) << ":"
+               << std::endl
                << m_message;
 
         m_formatted_message = stream.str();

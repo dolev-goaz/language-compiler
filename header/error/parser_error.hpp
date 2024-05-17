@@ -14,11 +14,11 @@ class ParserException : public std::exception {
 
     const char* what() const noexcept override {
         std::stringstream stream;
-        stream << "PARSER EXCEPTION at " << Globals::getInstance().getCurrentFilePath();
+        stream << "PARSER EXCEPTION at ";
         if (m_line && m_col) {
-            stream << ":" << m_line << ":" << m_col << ":";
+            stream << Globals::getInstance().getCurrentFilePosition(m_line, m_col) << ":";
         } else {
-            stream << ": Reached end of file unexpectedly.";
+            stream << Globals::getInstance().getCurrentFilePath() << ": Reached end of file unexpectedly.";
         }
         stream << std::endl << m_message;
 

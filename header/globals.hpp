@@ -22,7 +22,7 @@ class Globals {
     // Getter and setter for currentFilename
     std::string getCurrentFilePath() const { return currentFilePath; }
 
-    std::string getFilePosition(int row, int col) {
+    std::string getCurrentFilePosition(int row, int col) {
         std::stringstream out;
         out << getCurrentFilePath() << ":" << row << ":" << col;
         return out.str();
