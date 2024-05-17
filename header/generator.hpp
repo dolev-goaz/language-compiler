@@ -12,7 +12,7 @@ extern std::map<DataType, size_t> data_type_size_bytes;
 
 class Generator {
    public:
-    Generator(ASTProgram program) : m_prog(program), m_stack_size(0) {}
+    Generator(ASTProgram program) : m_prog(program), m_stack_size(0), m_condition_counter(0) {}
     std::string generate_program();
 
    private:
@@ -29,6 +29,7 @@ class Generator {
     void generate_statement_exit(const ASTStatementExit& exit_statement);
     void generate_statement_var_declare(const ASTStatementVar& var_statement);
     void generate_statement_scope(const ASTStatementScope& scope_statement);
+    void generate_statement_if(const ASTStatementIf& if_statement);
 
     void enter_scope();
     void exit_scope();
@@ -53,6 +54,7 @@ class Generator {
     // map from variable name to variable details
     ScopeStack<Generator::Variable> m_stack;
     size_t m_stack_size;
+    size_t m_condition_counter;
 
     struct StatementVisitor;
     struct ExpressionVisitor;

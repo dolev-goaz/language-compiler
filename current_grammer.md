@@ -5,6 +5,8 @@ $$
 
 \text{statement} &\to
 \begin {cases}
+    \{ [statement]^* \} \\
+    if ([expression]) [statement] [else [expression]]^? \\
     exit([expression]) \\
     [d\_type]\space[identifier]; \\
     [d\_type]\space[identifier] = [expression];
@@ -23,6 +25,7 @@ $$
     [expression] - [expression] \\
     [expression] * [expression] \\
     [expression] / [expression] \\
+    [expression] \% [expression] \\
 \end {cases} \\
 
 \text{int\_literal} &\to
@@ -32,7 +35,7 @@ $$
     \text{0b[01]}^+
 \end {cases} \\
 
-\text{identifier} &\to [a-zA-Z][\text{a-zA-Z0-9\_}]^* \\
+\text{identifier} &\to [a-zA-Z\_][\text{a-zA-Z0-9\_}]^* \\
 
 \text{d\_type} &\to
 \begin{cases}

@@ -1,3 +1,8 @@
-int_16 w = 5;
-int_64 v = 39;
-exit(w + v);
+int_16 x = 0;
+int_16 y = 8;
+if (y - 8) {
+    exit(100);
+} else {
+    exit(200);
+}
+exit(5);

@@ -24,6 +24,7 @@ class Parser {
     std::shared_ptr<ASTStatementExit> parse_statement_exit();
     std::shared_ptr<ASTStatementVar> parse_statement_var_declare();
     std::shared_ptr<ASTStatementScope> parse_statement_scope();
+    std::shared_ptr<ASTStatementIf> parse_statement_if();
 
     // uses predence climbing, described here-
     // https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
