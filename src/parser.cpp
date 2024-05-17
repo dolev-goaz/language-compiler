@@ -136,11 +136,23 @@ std::shared_ptr<ASTStatementIf> Parser::parse_statement_if() {
         throw ParserException("Expected statement after 'if' condition", statement_begin_meta);
     }
 
-    return std::make_shared<ASTStatementIf>(ASTStatementIf{
+    auto if_statement = std::make_shared<ASTStatementIf>(ASTStatementIf{
         .start_token_meta = statement_begin_meta,
         .expression = expression.value(),
         .success_statement = success_statement,
     });
+
+    if (test_peek(TokenType::_else)) {
+        // consume else token
+        auto else_begin_meta = consume().value().meta;
+        auto fail_statement = parse_statement();
+        if (success_statement == nullptr) {
+            throw ParserException("Expected statement after 'else' keyword", else_begin_meta);
+        }
+        if_statement.get()->fail_statement = fail_statement;
+    }
+
+    return if_statement;
 }
 
 std::shared_ptr<ASTStatementScope> Parser::parse_statement_scope() {

@@ -80,6 +80,7 @@ struct ASTStatementIf {
     TokenMeta start_token_meta;
     ASTExpression expression;
     std::shared_ptr<ASTStatement> success_statement;
+    std::shared_ptr<ASTStatement> fail_statement;
 };
 
 struct ASTStatement {
