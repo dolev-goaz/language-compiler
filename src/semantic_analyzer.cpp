@@ -46,16 +46,21 @@ struct SemanticAnalyzer::StatementVisitor {
             std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
     }
     void operator()(const std::shared_ptr<ASTStatementVar>& var_declare) const {
+        auto& start_token_meta = var_declare.get()->start_token_meta;
         if (datatype_mapping.count(var_declare.get()->data_type_str) == 0) {
             std::stringstream errorMessage;
             errorMessage << "Unknown data type '" << var_declare.get()->data_type_str << "'";
-            throw SemanticAnalyzerException(errorMessage.str(), var_declare.get()->start_token_meta);
+            throw SemanticAnalyzerException(errorMessage.str(), start_token_meta);
         }
         DataType data_type = datatype_mapping.at(var_declare.get()->data_type_str);
         var_declare.get()->data_type = data_type;
-        analyzer->m_symbol_table.insert(
-            var_declare.get()->name,
-            SymbolTable::Variable{.start_token_meta = var_declare.get()->start_token_meta, .data_type = data_type});
+        try {
+            analyzer->m_symbol_table.insert(
+                var_declare.get()->name,
+                SymbolTable::Variable{.start_token_meta = start_token_meta, .data_type = data_type});
+        } catch (const ScopeStackException& e) {
+            throw SemanticAnalyzerException(e.what(), start_token_meta);
+        }
 
         // initial 0 value if left uninitialized
         if (!var_declare.get()->value.has_value()) {
