@@ -43,18 +43,24 @@ void Generator::push_stack_literal(const std::string& value, size_t size) {
     m_generated << "\tpush " << size_keyword << " " << value << std::endl;
     m_stack_size += size;
 }
-void Generator::push_stack_offset(int offset, size_t size) {
+void Generator::push_stack_offset(int offset, size_t data_size, size_t requested_size) {
     // reading a value from the an arbitrary point in the stack, then pushing that value
     // to the top of the stack.
-    std::string size_keyword = size_bytes_to_size_keyword.at(size);
-    std::string reg = size_bytes_to_register.at(size);
 
-    m_generated << "\tmov " << reg << ", " << size_keyword << " [rsp + " << offset << "]" << std::endl;
+    // NOTE: assumes that if theres type-changing, it is narrowing
+    // to handle type-widening, we need to first clear the entire a register before writing to it,
+    // and then zero/sign filling it with the data we read from the stack.
+    std::string original_size_keyword = size_bytes_to_size_keyword.at(data_size);
+    std::string original_data_reg = size_bytes_to_register.at(data_size);
+    std::string requested_data_reg = size_bytes_to_register.at(requested_size);
+
+    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rsp + " << offset << "]"
+                << std::endl;
 
     // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
     // probably just don't support 8-bit variables, lol
-    m_generated << "\tpush " << reg << std::endl;
-    m_stack_size += size;
+    m_generated << "\tpush " << requested_data_reg << std::endl;
+    m_stack_size += requested_size;
 }
 
 void Generator::push_stack_register(const std::string& reg, size_t size) {
@@ -87,7 +93,6 @@ void Generator::generate_expression(const ASTExpression& expression) {
 }
 
 void Generator::generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes) {
-    (void)size_bytes;  // ignore unused
     Generator::Variable variableData;
     if (!m_stack.lookup(identifier.value, variableData)) {
         std::cerr << "Variable '" << identifier.value << "' does not exist!" << std::endl;
@@ -103,7 +108,7 @@ void Generator::generate_expression_identifier(const ASTIdentifier& identifier, 
     offset -= variableData.size_bytes;
 
     // push variable value into stack
-    push_stack_offset(offset, variableData.size_bytes);
+    push_stack_offset(offset, variableData.size_bytes, size_bytes);
 }
 
 void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes) {

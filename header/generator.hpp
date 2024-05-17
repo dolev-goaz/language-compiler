@@ -34,7 +34,9 @@ class Generator {
     void exit_scope();
 
     // push a value from the stack to the stack
-    void push_stack_offset(int offset, size_t size);
+    // data_size - the size of the original data
+    // requested_size- the size of the data we want to store(type narrowing)
+    void push_stack_offset(int offset, size_t data_size, size_t requested_size);
 
     // push a literal value to the stack
     void push_stack_literal(const std::string& value, size_t size);
