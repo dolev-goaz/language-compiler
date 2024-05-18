@@ -1,5 +1,6 @@
 int_16 x = 0;
 int_16 y = 8;
+x = 8;
 if (y - 8) {
     exit(100);
 } else {

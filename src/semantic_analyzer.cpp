@@ -93,6 +93,10 @@ struct SemanticAnalyzer::StatementVisitor {
         }
         expression.data_type = rhs_data_type;
     }
+    void operator()(const std::shared_ptr<ASTStatementAssign>& var_assign) const {
+        (void)var_assign;
+        assert(false && "Not implemented var assignment analysis");
+    }
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
         analyzer->analyze_scope(scope.get()->statements);
     }

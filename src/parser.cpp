@@ -221,6 +221,28 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
     });
 }
 
+std::shared_ptr<ASTStatementAssign> Parser::parse_statement_var_assign() {
+    // only if its in the form [identifier] = ....
+    if (!test_peek(TokenType::identifier, 0) || !test_peek(TokenType::eq, 1)) {
+        return nullptr;
+    }
+
+    auto identifier = consume().value();
+    auto& statement_meta = identifier.meta;
+    consume();  // eq operator
+    auto expression = parse_expression();
+    if (!expression.has_value()) {
+        throw ParserException("Expected RHS expression", statement_meta);
+    }
+    assert_consume(TokenType::semicol, "Expected ';' after variable assignment");
+
+    return std::make_shared<ASTStatementAssign>(ASTStatementAssign{
+        .start_token_meta = statement_meta,
+        .name = identifier.value.value(),
+        .value = expression.value(),
+    });
+}
+
 // throws ParserException if couldn't parse statement
 std::shared_ptr<ASTStatement> Parser::parse_statement() {
     // check for exit statement
@@ -248,6 +270,11 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
     if (auto if_statement = parse_statement_if(); if_statement != nullptr) {
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(if_statement)});
+    }
+
+    if (auto assign_statement = parse_statement_var_assign(); assign_statement != nullptr) {
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(assign_statement)});
     }
 
     // fallback- no matching statement found

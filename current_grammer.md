@@ -9,7 +9,8 @@ $$
     if ([expression]) [statement] [else [expression]]^? \\
     exit([expression]) \\
     [d\_type]\space[identifier]; \\
-    [d\_type]\space[identifier] = [expression];
+    [d\_type]\space[identifier] = [expression]; \\
+    [identifier] = [expression]; \\
 \end {cases} \\
 
 \text{expression} &\to
