@@ -11,8 +11,7 @@ struct Generator::StatementVisitor {
         generator.generate_statement_var_declare(*var_declare.get());
     }
     void operator()(const std::shared_ptr<ASTStatementAssign>& var_assign) const {
-        (void)var_assign;
-        assert(false && "Not implpemented variable assignment generation");
+        generator.generate_statement_var_assignment(*var_assign.get());
     }
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
         generator.generate_statement_scope(*scope.get());

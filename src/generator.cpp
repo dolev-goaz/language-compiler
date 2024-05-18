@@ -190,6 +190,11 @@ void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) 
     m_generated << "\tsyscall" << std::endl;
 }
 
+void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_assign_statement) {
+    (void)var_assign_statement;
+    assert(false && "Not implpemented variable assignment generation");
+}
+
 void Generator::generate_statement_var_declare(const ASTStatementVar& var_statement) {
     // no need to check for duplicate variable names, since it was checked in semantic analysis
     size_t size_bytes = data_type_size_bytes.at(var_statement.data_type);

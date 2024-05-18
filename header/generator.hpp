@@ -28,6 +28,7 @@ class Generator {
 
     void generate_statement_exit(const ASTStatementExit& exit_statement);
     void generate_statement_var_declare(const ASTStatementVar& var_statement);
+    void generate_statement_var_assignment(const ASTStatementAssign& var_assign_statement);
     void generate_statement_scope(const ASTStatementScope& scope_statement);
     void generate_statement_if(const ASTStatementIf& if_statement);
 
