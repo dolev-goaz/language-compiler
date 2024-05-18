@@ -191,8 +191,27 @@ void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) 
 }
 
 void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_assign_statement) {
-    (void)var_assign_statement;
-    assert(false && "Not implpemented variable assignment generation");
+    Generator::Variable variableData;
+    // TODO: could refactor this code, alot of duplications with other methods
+    if (!m_stack.lookup(var_assign_statement.name, variableData)) {
+        std::cerr << "Variable '" << var_assign_statement.name << "' does not exist!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    // get variable position in the stack
+    int variable_stack_offset = m_stack_size - variableData.stack_location_bytes;
+    // rsp was on the next FREE address, offset it back to the variable's position.
+    variable_stack_offset -= variableData.size_bytes;
+
+    m_generated << ";\tVariable Assigment " << var_assign_statement.name << " BEGIN" << std::endl;
+
+    generate_expression(var_assign_statement.value);
+    auto& expression_size_bytes = data_type_size_bytes.at(var_assign_statement.value.data_type);
+
+    // NOTE: assumes 'size_bytes_to_register' holds registers rax, eax, ax, al
+    pop_stack_register("rax", expression_size_bytes);
+    std::string& temp_register = size_bytes_to_register.at(variableData.size_bytes);
+    m_generated << "\tmov [rsp + " << variable_stack_offset << "], " << temp_register << std::endl;
+    m_generated << ";\tVariable Assigment " << var_assign_statement.name << " END" << std::endl << std::endl;
 }
 
 void Generator::generate_statement_var_declare(const ASTStatementVar& var_statement) {
