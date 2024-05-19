@@ -35,6 +35,9 @@ class Generator {
     void enter_scope();
     void exit_scope();
 
+    int get_variable_stack_offset(Generator::Variable& variable_data);
+    Generator::Variable assert_get_variable_data(std::string variable_name);
+
     // push a value from the stack to the stack
     // data_size - the size of the original data
     // requested_size- the size of the data we want to store(type narrowing)

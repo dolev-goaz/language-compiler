@@ -93,19 +93,12 @@ void Generator::generate_expression(const ASTExpression& expression) {
 }
 
 void Generator::generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes) {
-    Generator::Variable variableData;
-    if (!m_stack.lookup(identifier.value, variableData)) {
-        std::cerr << "Variable '" << identifier.value << "' does not exist!" << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    Generator::Variable variableData = assert_get_variable_data(identifier.value);
     m_generated << ";\tEvaluate Variable " << identifier.value << std::endl;
 
     // get variable metadata
 
-    // get variable position in the stack
-    int offset = m_stack_size - variableData.stack_location_bytes;
-    // rsp was on the next FREE address, offset it back to the variable's position.
-    offset -= variableData.size_bytes;
+    int offset = get_variable_stack_offset(variableData);
 
     // push variable value into stack
     push_stack_offset(offset, variableData.size_bytes, size_bytes);
@@ -191,16 +184,8 @@ void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) 
 }
 
 void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_assign_statement) {
-    Generator::Variable variableData;
-    // TODO: could refactor this code, alot of duplications with other methods
-    if (!m_stack.lookup(var_assign_statement.name, variableData)) {
-        std::cerr << "Variable '" << var_assign_statement.name << "' does not exist!" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    // get variable position in the stack
-    int variable_stack_offset = m_stack_size - variableData.stack_location_bytes;
-    // rsp was on the next FREE address, offset it back to the variable's position.
-    variable_stack_offset -= variableData.size_bytes;
+    Generator::Variable variableData = assert_get_variable_data(var_assign_statement.name);
+    int variable_stack_offset = get_variable_stack_offset(variableData);
 
     m_generated << ";\tVariable Assigment " << var_assign_statement.name << " BEGIN" << std::endl;
 
@@ -208,6 +193,7 @@ void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_
     auto& expression_size_bytes = data_type_size_bytes.at(var_assign_statement.value.data_type);
 
     // NOTE: assumes 'size_bytes_to_register' holds registers rax, eax, ax, al
+    // popping to the largest register to allow data widening if necessary, up to 8 bytes
     pop_stack_register("rax", expression_size_bytes);
     std::string& temp_register = size_bytes_to_register.at(variableData.size_bytes);
     m_generated << "\tmov [rsp + " << variable_stack_offset << "], " << temp_register << std::endl;
@@ -281,4 +267,20 @@ void Generator::generate_statement_if(const ASTStatementIf& if_statement) {
     m_generated << after_if_label.str() << ":" << std::endl;
     generate_statement(*fail_statement.get());
     m_generated << after_else_label.str() << ":" << std::endl;
+}
+
+int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {
+    // get variable position in the stack
+    int variable_stack_offset = m_stack_size - variable_data.stack_location_bytes;
+    // rsp was on the next FREE address, offset it back to the variable's position.
+    variable_stack_offset -= variable_data.size_bytes;
+}
+
+Generator::Variable Generator::assert_get_variable_data(std::string variable_name) {
+    Generator::Variable variableData;
+    if (!m_stack.lookup(variable_name, variableData)) {
+        std::cerr << "Variable '" << variable_name << "' does not exist!" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    return variableData;
 }
