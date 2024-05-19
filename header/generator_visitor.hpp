@@ -20,8 +20,7 @@ struct Generator::StatementVisitor {
         generator.generate_statement_if(*if_statement.get());
     }
     void operator()(const std::shared_ptr<ASTStatementWhile>& while_statement) const {
-        (void)while_statement;
-        assert(false && "Not implemented generation for while loop");
+        generator.generate_statement_while(*while_statement.get());
     }
 };
 

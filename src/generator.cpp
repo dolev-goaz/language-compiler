@@ -269,6 +269,11 @@ void Generator::generate_statement_if(const ASTStatementIf& if_statement) {
     m_generated << after_else_label.str() << ":" << std::endl;
 }
 
+void Generator::generate_statement_while(const ASTStatementWhile& while_statement) {
+    (void)while_statement;
+    assert(false && "Not implemented generation for while loop");
+}
+
 int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {
     // get variable position in the stack
     int variable_stack_offset = m_stack_size - variable_data.stack_location_bytes;
