@@ -270,8 +270,26 @@ void Generator::generate_statement_if(const ASTStatementIf& if_statement) {
 }
 
 void Generator::generate_statement_while(const ASTStatementWhile& while_statement) {
-    (void)while_statement;
-    assert(false && "Not implemented generation for while loop");
+    std::stringstream before_while_label;
+    before_while_label << ".before_while_statement_" << m_condition_counter;
+    std::stringstream after_while_label;
+    after_while_label << ".after_while_statement_" << m_condition_counter;
+    ++m_condition_counter;
+
+    auto& expression = while_statement.expression;
+    auto& success_statement = while_statement.success_statement;
+    size_t size_bytes = data_type_size_bytes.at(expression.data_type);
+
+    m_generated << before_while_label.str() << ":" << std::endl;
+    generate_expression(expression);
+    pop_stack_register("rax", size_bytes);  // rax = lhs
+    m_generated << "\ttest rax, rax" << std::endl
+                << "\tjz " << after_while_label.str()
+                << "; if the expression is false-y, skip the 'while' block's statements" << std::endl;
+    generate_statement(*success_statement.get());
+    m_generated << "\tjmp " << before_while_label.str()
+                << "; after the 'while' block ends, jump back to the condition checking" << std::endl;
+    m_generated << after_while_label.str() << ":" << std::endl;
 }
 
 int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {
