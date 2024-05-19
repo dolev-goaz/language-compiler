@@ -48,6 +48,11 @@ struct SemanticAnalyzer::ExpressionVisitor {
         rhs.data_type = data_type;
         return data_type;
     }
+
+    DataType operator()(const ASTParenthesisExpression& paren_expr) const {
+        auto& inner_expression = *paren_expr.expression.get();
+        return std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, inner_expression.expression);
+    }
 };
 
 struct SemanticAnalyzer::StatementVisitor {

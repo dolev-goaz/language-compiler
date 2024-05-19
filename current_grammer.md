@@ -17,6 +17,7 @@ $$
 \begin {cases}
     [int\_literal] \\
     [identifier] \\
+    ([expression]) \\ % parenthesis
     [binary\_expression] \\
 \end {cases} \\
 

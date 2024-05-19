@@ -3,7 +3,7 @@ int_16 y = 8;
 x = 8;
 // if x is non-zero
 if (x) {
-    exit(100);
+    exit(5 * (10 + 2));
 } else {
     exit(200);
 }

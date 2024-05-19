@@ -40,9 +40,14 @@ struct ASTIdentifier {
     std::string value;
 };
 
+struct ASTParenthesisExpression {
+    TokenMeta start_token_meta;
+    std::shared_ptr<ASTExpression> expression;
+};
+
 struct ASTAtomicExpression {
     TokenMeta start_token_meta;
-    std::variant<ASTIntLiteral, ASTIdentifier> value;
+    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression> value;
 };
 
 struct ASTBinExpression {

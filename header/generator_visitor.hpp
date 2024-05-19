@@ -38,4 +38,9 @@ struct Generator::ExpressionVisitor {
     void operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
         std::visit(Generator::ExpressionVisitor{.generator = generator, .size = size}, atomic.get()->value);
     }
+
+    void operator()(const ASTParenthesisExpression& paren_expr) const {
+        auto& inner_expression = *paren_expr.expression.get();
+        std::visit(Generator::ExpressionVisitor{.generator = generator, .size = size}, inner_expression.expression);
+    }
 };

@@ -68,6 +68,27 @@ std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
         return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression{
             .start_token_meta = meta, .value = ASTIdentifier{.start_token_meta = meta, .value = token.value.value()}});
     }
+    if (test_peek(TokenType::open_paren)) {
+        consume();  // consume open paren '('
+        auto expression = parse_expression();
+        if (!expression.has_value()) {
+            auto nextToken = peek();
+            if (nextToken.has_value()) {
+                throw ParserException("Expected expression after opening parenthesis '('", nextToken.value().meta);
+            } else {
+                throw ParserException("Expected expression after opening parenthesis '('");
+            }
+        }
+        assert_consume(TokenType::close_paren, "Expected closing parenthesis ')' after open paranthesis.");
+        return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression{
+            .start_token_meta = meta,
+            .value =
+                ASTParenthesisExpression{
+                    .start_token_meta = meta,
+                    .expression = std::make_shared<ASTExpression>(expression.value()),
+                },
+        });
+    }
 
     return nullptr;
 }
