@@ -71,6 +71,12 @@ struct ASTStatementVar {
     std::optional<ASTExpression> value;
 };
 
+struct ASTStatementAssign {
+    TokenMeta start_token_meta;
+    std::string name;
+    ASTExpression value;
+};
+
 struct ASTStatementScope {
     TokenMeta start_token_meta;
     std::vector<std::shared_ptr<ASTStatement>> statements;
@@ -86,7 +92,8 @@ struct ASTStatementIf {
 struct ASTStatement {
     TokenMeta start_token_meta;
     std::variant<std::shared_ptr<ASTStatementExit>, std::shared_ptr<ASTStatementVar>,
-                 std::shared_ptr<ASTStatementScope>, std::shared_ptr<ASTStatementIf>>
+                 std::shared_ptr<ASTStatementScope>, std::shared_ptr<ASTStatementIf>,
+                 std::shared_ptr<ASTStatementAssign>>
         statement;
 };
 

@@ -10,6 +10,9 @@ struct Generator::StatementVisitor {
     void operator()(const std::shared_ptr<ASTStatementVar>& var_declare) const {
         generator.generate_statement_var_declare(*var_declare.get());
     }
+    void operator()(const std::shared_ptr<ASTStatementAssign>& var_assign) const {
+        generator.generate_statement_var_assignment(*var_assign.get());
+    }
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
         generator.generate_statement_scope(*scope.get());
     }

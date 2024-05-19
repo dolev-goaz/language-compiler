@@ -28,11 +28,15 @@ class Generator {
 
     void generate_statement_exit(const ASTStatementExit& exit_statement);
     void generate_statement_var_declare(const ASTStatementVar& var_statement);
+    void generate_statement_var_assignment(const ASTStatementAssign& var_assign_statement);
     void generate_statement_scope(const ASTStatementScope& scope_statement);
     void generate_statement_if(const ASTStatementIf& if_statement);
 
     void enter_scope();
     void exit_scope();
+
+    int get_variable_stack_offset(Generator::Variable& variable_data);
+    Generator::Variable assert_get_variable_data(std::string variable_name);
 
     // push a value from the stack to the stack
     // data_size - the size of the original data

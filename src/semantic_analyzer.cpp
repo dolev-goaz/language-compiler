@@ -7,6 +7,8 @@ std::map<std::string, DataType> datatype_mapping = {
     {"int_64", DataType::int_64},
 };
 
+// TODO: ensure type widening/narrowing works properly
+
 struct SemanticAnalyzer::ExpressionVisitor {
     SymbolTable::SemanticScopeStack& symbol_table;
     DataType operator()(ASTIdentifier& identifier) const {
@@ -92,6 +94,25 @@ struct SemanticAnalyzer::StatementVisitor {
             rhs_data_type = data_type;
         }
         expression.data_type = rhs_data_type;
+    }
+    void operator()(const std::shared_ptr<ASTStatementAssign>& var_assign) const {
+        auto& meta = var_assign.get()->start_token_meta;
+        auto& name = var_assign.get()->name;
+        auto& expression = var_assign.get()->value;
+        SymbolTable::Variable variableData;
+        if (!analyzer->m_symbol_table.lookup(name, variableData)) {
+            std::stringstream error;
+            error << "Assignment of variable '" << name << "' which does not exist in current scope";
+            throw SemanticAnalyzerException(error.str(), meta);
+        }
+        expression.data_type =
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+        if (expression.data_type != variableData.data_type) {
+            std::cout << "SEMANTIC WARNING AT "
+                      << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
+                      << ": Assignment operation of different data types. Data will be narrowed/widened." << std::endl;
+            expression.data_type = variableData.data_type;
+        }
     }
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
         analyzer->analyze_scope(scope.get()->statements);
