@@ -18,6 +18,7 @@ enum class TokenType {
     eq,
     open_curly,
     close_curly,
+    comment,
 
     // mathematical operations
     plus,
@@ -59,9 +60,11 @@ class Lexer {
     std::vector<Token> tokens;
 
     std::optional<char> peek(size_t offset = 0);
+    bool test_peek(char character, size_t offset = 0);
     char consume();
 
     bool try_consume_word();
     bool try_consume_number();
     bool try_consume_char(char character);
+    bool try_consume_comment();
 };

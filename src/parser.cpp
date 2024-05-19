@@ -285,6 +285,11 @@ ASTProgram Parser::parse_program() {
     ASTProgram result;
 
     while (peek().has_value()) {
+        // skip through comments
+        if (peek().value().type == TokenType::comment) {
+            consume();
+            continue;
+        }
         result.statements.push_back(parse_statement());
     }
 

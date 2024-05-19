@@ -47,8 +47,13 @@ std::optional<char> Lexer::peek(size_t offset) {
     return current;
 }
 
+bool Lexer::test_peek(char character, size_t offset) {
+    auto peek_char = peek(offset);
+    return peek_char.has_value() && peek_char.value() == character;
+}
+
 bool Lexer::try_consume_char(char character) {
-    if (!this->peek().has_value() || this->peek().value() != character) {
+    if (!this->test_peek(character)) {
         return false;
     }
     TokenMeta meta = {.line_num = m_line, .line_pos = m_col};
@@ -133,6 +138,47 @@ bool Lexer::try_consume_number() {
     return true;
 }
 
+bool Lexer::try_consume_comment() {
+    std::string buffer;
+    size_t line = m_line, col = m_col;
+    if (!this->test_peek('/', 0)) {
+        return false;
+    }
+    if (!test_peek('/', 1) && !test_peek('*', 1)) {
+        return false;
+    }
+    if (this->test_peek('/', 1)) {
+        // consume comment begin
+        consume();
+        consume();
+        while (peek().has_value() && peek().value() != '\n') {
+            buffer.push_back(consume());
+        }
+    } else if (this->test_peek('*', 1)) {
+        // consume comment begin
+        consume();
+        consume();
+        while (peek().has_value()) {
+            if (test_peek('*', 0) && test_peek('/', 1)) {
+                // consume comment end
+                consume();
+                consume();
+                break;
+            }
+            buffer.push_back(consume());
+        }
+    }
+
+    TokenMeta meta = {.line_num = line, .line_pos = col};
+    Token token = {
+        .meta = meta,
+        .type = TokenType::comment,
+        .value = buffer,
+    };
+    this->tokens.push_back(token);
+    return true;
+}
+
 std::vector<Token> Lexer::tokenize() {
     // initialize m_line to the first line, m_col to the first column
     m_line = 1, m_col = 1;
@@ -149,6 +195,9 @@ std::vector<Token> Lexer::tokenize() {
             continue;
         }
         if (this->try_consume_number()) {
+            continue;
+        }
+        if (this->try_consume_comment()) {
             continue;
         }
 
