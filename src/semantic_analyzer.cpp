@@ -133,8 +133,12 @@ struct SemanticAnalyzer::StatementVisitor {
         }
     }
     void operator()(const std::shared_ptr<ASTStatementWhile>& while_statement) const {
-        (void)while_statement;
-        assert(false && "Not implemented analysis for while loop");
+        // NOTE: identical to analysis of if statements
+        auto& expression = while_statement.get()->expression;
+        auto& success_statement = while_statement.get()->success_statement;
+        expression.data_type =
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+        std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
     }
 };
 
