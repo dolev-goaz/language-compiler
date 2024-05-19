@@ -274,6 +274,8 @@ int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {
     int variable_stack_offset = m_stack_size - variable_data.stack_location_bytes;
     // rsp was on the next FREE address, offset it back to the variable's position.
     variable_stack_offset -= variable_data.size_bytes;
+
+    return variable_stack_offset;
 }
 
 Generator::Variable Generator::assert_get_variable_data(std::string variable_name) {
