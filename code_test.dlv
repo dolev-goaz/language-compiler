@@ -2,6 +2,9 @@ int_16 x = 0;
 int_16 y = 8;
 x = 8;
 // if x is non-zero
+while (x) {
+    
+}
 if (x) {
     exit(5 * (10 + 2));
 } else {

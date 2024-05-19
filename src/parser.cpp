@@ -318,6 +318,11 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
             ASTStatement{.start_token_meta = meta, .statement = std::move(if_statement)});
     }
 
+    if (auto while_statement = parse_statement_while(); while_statement != nullptr) {
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(while_statement)});
+    }
+
     if (auto assign_statement = parse_statement_var_assign(); assign_statement != nullptr) {
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(assign_statement)});

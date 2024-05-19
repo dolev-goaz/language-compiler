@@ -19,6 +19,10 @@ struct Generator::StatementVisitor {
     void operator()(const std::shared_ptr<ASTStatementIf>& if_statement) const {
         generator.generate_statement_if(*if_statement.get());
     }
+    void operator()(const std::shared_ptr<ASTStatementWhile>& while_statement) const {
+        (void)while_statement;
+        assert(false && "Not implemented generation for while loop");
+    }
 };
 
 struct Generator::ExpressionVisitor {

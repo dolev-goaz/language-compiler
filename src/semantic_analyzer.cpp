@@ -132,6 +132,10 @@ struct SemanticAnalyzer::StatementVisitor {
             std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, _if.get()->fail_statement.get()->statement);
         }
     }
+    void operator()(const std::shared_ptr<ASTStatementWhile>& while_statement) const {
+        (void)while_statement;
+        assert(false && "Not implemented analysis for while loop");
+    }
 };
 
 void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements) {
