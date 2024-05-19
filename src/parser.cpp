@@ -189,6 +189,31 @@ std::shared_ptr<ASTStatementScope> Parser::parse_statement_scope() {
         ASTStatementScope{.start_token_meta = statement_begin_meta, .statements = statements});
 }
 
+std::shared_ptr<ASTStatementWhile> Parser::parse_statement_while() {
+    // NOTE: pretty much identical to parse_statement_if
+    if (!test_peek(TokenType::_while)) return nullptr;
+    const auto& statement_begin_meta = consume().value().meta;
+
+    // NOTE: this is the same logic as in exit. could maybe refactor this?
+    assert_consume(TokenType::open_paren, "Expected '(' after 'while' statement");
+    auto expression = parse_expression();
+    if (!expression.has_value()) {
+        throw ParserException("Invalid expression parameter", statement_begin_meta);
+    }
+    assert_consume(TokenType::close_paren, "Expected ')' after expression");
+
+    auto success_statement = parse_statement();
+    if (success_statement == nullptr) {
+        throw ParserException("Expected statement after 'while' condition", statement_begin_meta);
+    }
+
+    return std::make_shared<ASTStatementWhile>(ASTStatementWhile{
+        .start_token_meta = statement_begin_meta,
+        .expression = expression.value(),
+        .success_statement = success_statement,
+    });
+}
+
 std::shared_ptr<ASTStatementExit> Parser::parse_statement_exit() {
     // exit([expression]);
     if (!test_peek(TokenType::exit)) return nullptr;
