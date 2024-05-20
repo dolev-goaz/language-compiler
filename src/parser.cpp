@@ -289,6 +289,8 @@ std::shared_ptr<ASTStatementAssign> Parser::parse_statement_var_assign() {
     });
 }
 
+std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() { return nullptr; }
+
 // throws ParserException if couldn't parse statement
 std::shared_ptr<ASTStatement> Parser::parse_statement() {
     // check for exit statement
@@ -326,6 +328,11 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
     if (auto assign_statement = parse_statement_var_assign(); assign_statement != nullptr) {
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(assign_statement)});
+    }
+
+    if (auto func_statement = parse_statement_function(); func_statement != nullptr) {
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(func_statement)});
     }
 
     // fallback- no matching statement found

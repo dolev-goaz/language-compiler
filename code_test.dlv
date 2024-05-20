@@ -1,9 +1,7 @@
-int_16 loop_count = 10;
+int_64 h = 50;
 
-int_16 exit_code = 0;
-
-while (loop_count) {
-    exit_code = exit_code + 2;
-    loop_count = loop_count - 1;
+func custom_exit(int_16 x) {
+    exit(x + 5);
 }
-exit(exit_code);
+
+custom_exit(h);

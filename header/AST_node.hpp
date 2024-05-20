@@ -100,11 +100,28 @@ struct ASTStatementWhile {
     std::shared_ptr<ASTStatement> success_statement;
 };
 
+// NOTE: same as ASTStatementVar
+struct ASTFunctionParam {
+    TokenMeta start_token_meta;
+    std::string data_type_str;
+    DataType data_type;
+    std::string name;
+    std::optional<ASTExpression> initial_value;
+};
+
+struct ASTStatementFunction {
+    TokenMeta start_token_meta;
+    std::string name;
+    std::vector<ASTFunctionParam> parameters;
+    std::shared_ptr<ASTStatement> statement;
+};
+
 struct ASTStatement {
     TokenMeta start_token_meta;
     std::variant<std::shared_ptr<ASTStatementExit>, std::shared_ptr<ASTStatementVar>,
                  std::shared_ptr<ASTStatementScope>, std::shared_ptr<ASTStatementIf>,
-                 std::shared_ptr<ASTStatementAssign>, std::shared_ptr<ASTStatementWhile>>
+                 std::shared_ptr<ASTStatementAssign>, std::shared_ptr<ASTStatementWhile>,
+                 std::shared_ptr<ASTStatementFunction>>
         statement;
 };
 

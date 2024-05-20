@@ -140,6 +140,10 @@ struct SemanticAnalyzer::StatementVisitor {
             std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
         std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
     }
+    void operator()(const std::shared_ptr<ASTStatementFunction>& function_statement) const {
+        (void)function_statement;
+        assert(false && "Not implemented analysis of function");
+    }
 };
 
 void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements) {
