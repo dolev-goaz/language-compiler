@@ -119,6 +119,7 @@ struct ASTStatementFunction {
 // TODO: when adding return values, this should be an expression
 struct ASTStatementFunctionCall {
     TokenMeta start_token_meta;
+    std::vector<ASTExpression> parameters;
     std::string function_name;
 };
 

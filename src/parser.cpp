@@ -338,12 +338,36 @@ std::shared_ptr<ASTStatementFunctionCall> Parser::parse_statement_function_call(
     }
     auto func_name_token = consume().value();
     consume();  // consume '('
+    auto params = parse_statement_function_call_params();
     assert_consume(TokenType::close_paren, "Expected closing parenthesis ')'");
     assert_consume(TokenType::semicol, "Expected semicolon ';'");
     return std::make_shared<ASTStatementFunctionCall>(ASTStatementFunctionCall{
         .start_token_meta = func_name_token.meta,
+        .parameters = params,
         .function_name = func_name_token.value.value(),
     });
+}
+
+std::vector<ASTExpression> Parser::parse_statement_function_call_params() {
+    std::vector<ASTExpression> parameters;
+    while (peek().has_value() && peek().value().type != TokenType::close_paren) {
+        if (parameters.size() > 0) {
+            assert_consume(TokenType::comma, "Expected comma after parameter and before closing paren ')'");
+        }
+        auto expression = parse_expression();
+        if (!expression.has_value()) {
+            auto nextToken = peek();
+            if (nextToken.has_value()) {
+                throw ParserException("Expected parameter expression", nextToken.value().meta);
+            } else {
+                throw ParserException("Expected expression after opening parenthesis '('");
+            }
+        }
+        // TODO: check for initial value
+        parameters.push_back(expression.value());
+    }
+
+    return parameters;
 }
 
 // throws ParserException if couldn't parse statement

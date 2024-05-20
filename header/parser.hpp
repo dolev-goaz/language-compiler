@@ -31,6 +31,7 @@ class Parser {
     std::shared_ptr<ASTStatementFunction> parse_statement_function();
     std::vector<ASTFunctionParam> parse_function_params();
     std::shared_ptr<ASTStatementFunctionCall> parse_statement_function_call();
+    std::vector<ASTExpression> parse_statement_function_call_params();
 
     // uses predence climbing, described here-
     // https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
