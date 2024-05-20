@@ -155,8 +155,13 @@ struct SemanticAnalyzer::StatementVisitor {
         analyzer->m_symbol_table.exitScope();
     }
     void operator()(const std::shared_ptr<ASTStatementFunctionCall>& function_call_statement) const {
-        // NOTE: for now, nothing to do here
-        (void)function_call_statement;
+        // TODO: after creating a function table, add checks for data types
+        // TODO: after creating a function table, check the amount of parameters is ok
+        auto& params = function_call_statement.get()->parameters;
+
+        for (auto& param : params) {
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, param.expression);
+        }
     }
 };
 
