@@ -65,9 +65,9 @@ void handle_compile(std::string path) {
 
 void create_executable(std::string asm_code, std::string filename) {
     write_file("out.asm", asm_code);
-    system("nasm -f elf64 out.asm");
+    system("nasm -f elf64 -g out.asm");
 
-    std::string command = "gcc -o " + filename + " out.o -e main";
+    std::string command = "gcc -g -o " + filename + " out.o -e main";
     std::cout << command << std::endl;
     system(command.c_str());
 

@@ -164,7 +164,8 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
             std::cerr << "Generation: unknown binary operation" << std::endl;
             exit(EXIT_FAILURE);
     }
-    push_stack_register("rax", size_bytes);
+    auto& reg = size_bytes_to_register.at(size_bytes);
+    push_stack_register(reg, size_bytes);
     m_generated << ";\t" << operation << " Evaluation END" << std::endl << std::endl;
 }
 
