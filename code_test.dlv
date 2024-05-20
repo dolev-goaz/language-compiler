@@ -1,8 +1,8 @@
 int_64 h = 20;
 
 custom_exit();
-exit(20);
+exit(10);
 
 func custom_exit() {
-    exit(40);
+    exit(h + 15);
 }

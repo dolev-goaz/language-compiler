@@ -297,17 +297,18 @@ void Generator::generate_statement_while(const ASTStatementWhile& while_statemen
 void Generator::generate_statement_function(const ASTStatementFunction& function_statement) {
     // TODO: function statements should realistically all be at the end of the file, so the assembly code
     // won't call them
+    m_stack_size += 8;  // return address pushed by 'call'
     m_generated << std::endl << "; BEGIN OF FUNCTION '" << function_statement.name << "'" << std::endl;
     m_generated << function_statement.name << ":" << std::endl;
     generate_statement(*function_statement.statement.get());
     m_generated << "\tret" << std::endl;
     m_generated << "; END OF FUNCTION '" << function_statement.name << "'" << std::endl << std::endl;
+    m_stack_size -= 8;  // return address popped by 'ret'
 }
 
 void Generator::generate_statement_function_call(const ASTStatementFunctionCall& function_call_statement) {
-    // TODO: account for stack changes caused by 'call'
+    // TODO: might not want to allow access to 'global' variables from methods because of stack changes
     m_generated << "\tcall " << function_call_statement.function_name << std::endl;
-    // TODO: account for stack changes caused by 'ret'
 }
 
 int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {
