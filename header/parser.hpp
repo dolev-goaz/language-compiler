@@ -27,7 +27,9 @@ class Parser {
     std::shared_ptr<ASTStatementScope> parse_statement_scope();
     std::shared_ptr<ASTStatementIf> parse_statement_if();
     std::shared_ptr<ASTStatementWhile> parse_statement_while();
+
     std::shared_ptr<ASTStatementFunction> parse_statement_function();
+    std::vector<ASTFunctionParam> parse_function_params();
     std::shared_ptr<ASTStatementFunctionCall> parse_statement_function_call();
 
     // uses predence climbing, described here-
