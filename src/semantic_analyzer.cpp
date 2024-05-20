@@ -132,6 +132,14 @@ struct SemanticAnalyzer::StatementVisitor {
             std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, _if.get()->fail_statement.get()->statement);
         }
     }
+    void operator()(const std::shared_ptr<ASTStatementWhile>& while_statement) const {
+        // NOTE: identical to analysis of if statements
+        auto& expression = while_statement.get()->expression;
+        auto& success_statement = while_statement.get()->success_statement;
+        expression.data_type =
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+        std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
+    }
 };
 
 void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements) {

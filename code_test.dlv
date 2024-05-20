@@ -1,10 +1,23 @@
-int_16 x = 0;
-int_16 y = 8;
-x = 8;
-// if x is non-zero
-if (x) {
-    exit(5 * (10 + 2));
-} else {
-    exit(200);
+int_64 loop_count = 10;
+
+int_64 exit_code = 0;
+
+while (loop_count) {
+    exit_code = exit_code + 3;
+    loop_count = loop_count - 1;
 }
-exit(5);
+exit(exit_code);
+
+
+// TODO: figure out why with int_16 this causes segmentation faults
+/*
+int_16 loop_count = 10;
+
+int_16 exit_code = 0;
+
+while (loop_count) {
+    exit_code = exit_code + 2;
+    loop_count = loop_count - 1;
+}
+exit(exit_code);
+*/
