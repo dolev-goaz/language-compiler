@@ -151,6 +151,10 @@ struct SemanticAnalyzer::StatementVisitor {
         auto& func_statement_flat = *function_statement.get();
         std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, func_statement_flat.statement.get()->statement);
     }
+    void operator()(const std::shared_ptr<ASTStatementFunctionCall>& function_call_statement) const {
+        // NOTE: for now, nothing to do here
+        (void)function_call_statement;
+    }
 };
 
 void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements) {

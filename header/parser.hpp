@@ -28,6 +28,7 @@ class Parser {
     std::shared_ptr<ASTStatementIf> parse_statement_if();
     std::shared_ptr<ASTStatementWhile> parse_statement_while();
     std::shared_ptr<ASTStatementFunction> parse_statement_function();
+    std::shared_ptr<ASTStatementFunctionCall> parse_statement_function_call();
 
     // uses predence climbing, described here-
     // https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing

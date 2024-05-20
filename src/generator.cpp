@@ -304,6 +304,12 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
     m_generated << "; END OF FUNCTION '" << function_statement.name << "'" << std::endl << std::endl;
 }
 
+void Generator::generate_statement_function_call(const ASTStatementFunctionCall& function_call_statement) {
+    // TODO: account for stack changes caused by 'call'
+    m_generated << "\tcall " << function_call_statement.function_name << std::endl;
+    // TODO: account for stack changes caused by 'ret'
+}
+
 int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {
     // get variable position in the stack
     int variable_stack_offset = m_stack_size - variable_data.stack_location_bytes;

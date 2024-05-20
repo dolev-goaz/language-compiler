@@ -1,8 +1,8 @@
-int_64 h = 50;
+int_64 h = 20;
 
-// TODO: add function call here
-exit(h);
+custom_exit();
+exit(20);
 
 func custom_exit() {
-    exit(h + 5);
+    exit(40);
 }

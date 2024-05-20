@@ -25,6 +25,9 @@ struct Generator::StatementVisitor {
     void operator()(const std::shared_ptr<ASTStatementFunction>& function_statement) const {
         generator.generate_statement_function(*function_statement.get());
     }
+    void operator()(const std::shared_ptr<ASTStatementFunctionCall>& function_call_statement) const {
+        generator.generate_statement_function_call(*function_call_statement.get());
+    }
 };
 
 struct Generator::ExpressionVisitor {

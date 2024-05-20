@@ -326,6 +326,20 @@ std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
     });
 }
 
+std::shared_ptr<ASTStatementFunctionCall> Parser::parse_statement_function_call() {
+    if (!(test_peek(TokenType::identifier, 0) && test_peek(TokenType::open_paren, 1))) {
+        return nullptr;
+    }
+    auto func_name_token = consume().value();
+    consume();  // consume '('
+    assert_consume(TokenType::close_paren, "Expected closing parenthesis ')'");
+    assert_consume(TokenType::semicol, "Expected semicolon ';'");
+    return std::make_shared<ASTStatementFunctionCall>(ASTStatementFunctionCall{
+        .start_token_meta = func_name_token.meta,
+        .function_name = func_name_token.value.value(),
+    });
+}
+
 // throws ParserException if couldn't parse statement
 std::shared_ptr<ASTStatement> Parser::parse_statement() {
     // check for exit statement
@@ -368,6 +382,11 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
     if (auto func_statement = parse_statement_function(); func_statement != nullptr) {
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(func_statement)});
+    }
+
+    if (auto func_call_statement = parse_statement_function_call(); func_call_statement != nullptr) {
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(func_call_statement)});
     }
 
     // fallback- no matching statement found
