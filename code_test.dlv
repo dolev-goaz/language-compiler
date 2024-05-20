@@ -3,5 +3,5 @@ int_64 h = 50;
 func custom_exit(int_16 x) {
     exit(x + 5);
 }
-
-custom_exit(h);
+// TODO: add function call here
+exit(h);
