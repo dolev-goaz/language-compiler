@@ -289,7 +289,40 @@ std::shared_ptr<ASTStatementAssign> Parser::parse_statement_var_assign() {
     });
 }
 
-std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() { return nullptr; }
+std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
+    if (!test_peek(TokenType::_function)) {
+        return nullptr;
+    }
+    auto statement_begin_meta = consume().value().meta;
+    auto func_name = assert_consume(TokenType::identifier, "Expected function name");
+    assert_consume(TokenType::open_paren, "Expected '(' after function name");
+    std::vector<ASTFunctionParam> parameters;
+    while (peek().has_value() && peek().value().type != TokenType::close_paren) {
+        if (parameters.size() > 0) {
+            assert_consume(TokenType::comma, "Expected comma after parameter and before closing paren ')'");
+        }
+        auto datatype = assert_consume(TokenType::identifier, "Expected parameter datatype");
+        auto param_name = assert_consume(TokenType::identifier, "Expected parameter name");
+        // TODO: check for initial value
+        parameters.push_back(ASTFunctionParam{
+            .start_token_meta = datatype.meta,
+            .data_type_str = datatype.value.value(),
+            .name = param_name.value.value(),
+        });
+    }
+
+    assert_consume(TokenType::close_paren, "Expected ')' after function params");
+    auto statement = parse_statement();
+    if (statement == nullptr) {
+        throw ParserException("Invalid function statement after parenthesis", statement_begin_meta);
+    }
+
+    return std::make_shared<ASTStatementFunction>(ASTStatementFunction{
+        .start_token_meta = statement_begin_meta,
+        .name = func_name.value.value(),
+        .statement = statement,
+    });
+}
 
 // throws ParserException if couldn't parse statement
 std::shared_ptr<ASTStatement> Parser::parse_statement() {

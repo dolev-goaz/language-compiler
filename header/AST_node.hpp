@@ -106,7 +106,7 @@ struct ASTFunctionParam {
     std::string data_type_str;
     DataType data_type;
     std::string name;
-    std::optional<ASTExpression> initial_value;
+    // std::optional<ASTExpression> initial_value; // TODO: support initial value
 };
 
 struct ASTStatementFunction {

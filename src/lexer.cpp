@@ -17,7 +17,7 @@ std::map<char, TokenType> tokenMappingsSymbols = {
     {';', TokenType::semicol},    {'(', TokenType::open_paren},  {')', TokenType::close_paren},
     {'{', TokenType::open_curly}, {'}', TokenType::close_curly}, {'=', TokenType::eq},
     {'+', TokenType::plus},       {'-', TokenType::minus},       {'*', TokenType::star},
-    {'/', TokenType::fslash},     {'%', TokenType::percent},
+    {'/', TokenType::fslash},     {'%', TokenType::percent},     {',', TokenType::comma},
 };
 
 char Lexer::consume() {
