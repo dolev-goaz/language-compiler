@@ -160,7 +160,8 @@ struct SemanticAnalyzer::StatementVisitor {
         auto& params = function_call_statement.get()->parameters;
 
         for (auto& param : params) {
-            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, param.expression);
+            param.data_type =
+                std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, param.expression);
         }
     }
 };
