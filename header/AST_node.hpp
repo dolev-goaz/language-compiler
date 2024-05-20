@@ -112,7 +112,7 @@ struct ASTFunctionParam {
 struct ASTStatementFunction {
     TokenMeta start_token_meta;
     std::string name;
-    std::vector<ASTFunctionParam> parameters;
+    // std::vector<ASTFunctionParam> parameters; // TODO: temporarily commented, functions have no parameters
     std::shared_ptr<ASTStatement> statement;
 };
 

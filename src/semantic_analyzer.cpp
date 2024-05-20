@@ -141,8 +141,11 @@ struct SemanticAnalyzer::StatementVisitor {
         std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
     }
     void operator()(const std::shared_ptr<ASTStatementFunction>& function_statement) const {
+        // TODO: create a table for all functions
+        // will be relevant when adding function_call expressions
+
+        // TODO: add parameters to the function's scope
         (void)function_statement;
-        assert(false && "Not implemented analysis of function");
     }
 };
 

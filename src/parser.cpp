@@ -296,20 +296,22 @@ std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
     auto statement_begin_meta = consume().value().meta;
     auto func_name = assert_consume(TokenType::identifier, "Expected function name");
     assert_consume(TokenType::open_paren, "Expected '(' after function name");
-    std::vector<ASTFunctionParam> parameters;
-    while (peek().has_value() && peek().value().type != TokenType::close_paren) {
-        if (parameters.size() > 0) {
-            assert_consume(TokenType::comma, "Expected comma after parameter and before closing paren ')'");
-        }
-        auto datatype = assert_consume(TokenType::identifier, "Expected parameter datatype");
-        auto param_name = assert_consume(TokenType::identifier, "Expected parameter name");
-        // TODO: check for initial value
-        parameters.push_back(ASTFunctionParam{
-            .start_token_meta = datatype.meta,
-            .data_type_str = datatype.value.value(),
-            .name = param_name.value.value(),
-        });
-    }
+
+    // TODO: temporarily commented, functions have no parameters
+    // std::vector<ASTFunctionParam> parameters;
+    // while (peek().has_value() && peek().value().type != TokenType::close_paren) {
+    //     if (parameters.size() > 0) {
+    //         assert_consume(TokenType::comma, "Expected comma after parameter and before closing paren ')'");
+    //     }
+    //     auto datatype = assert_consume(TokenType::identifier, "Expected parameter datatype");
+    //     auto param_name = assert_consume(TokenType::identifier, "Expected parameter name");
+    //     // TODO: check for initial value
+    //     parameters.push_back(ASTFunctionParam{
+    //         .start_token_meta = datatype.meta,
+    //         .data_type_str = datatype.value.value(),
+    //         .name = param_name.value.value(),
+    //     });
+    // }
 
     assert_consume(TokenType::close_paren, "Expected ')' after function params");
     auto statement = parse_statement();
