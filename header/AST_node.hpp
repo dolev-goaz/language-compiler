@@ -134,4 +134,5 @@ struct ASTStatement {
 
 struct ASTProgram {
     std::vector<std::shared_ptr<ASTStatement>> statements;
+    std::vector<std::shared_ptr<ASTStatementFunction>> functions;
 };

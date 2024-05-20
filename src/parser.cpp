@@ -427,12 +427,20 @@ ASTProgram Parser::parse_program() {
     ASTProgram result;
 
     while (peek().has_value()) {
+        auto type = peek().value().type;
         // skip through comments
-        if (peek().value().type == TokenType::comment) {
+        if (type == TokenType::comment) {
             consume();
             continue;
         }
-        result.statements.push_back(parse_statement());
+        auto statement = parse_statement();
+        if (type == TokenType::_function) {
+            // NOTE: could probably figure out a better way to know the statement is a function statement
+            auto& func_statement = statement.get()->statement;
+            result.functions.push_back(std::get<std::shared_ptr<ASTStatementFunction>>(func_statement));
+            continue;
+        }
+        result.statements.push_back(statement);
     }
 
     return result;

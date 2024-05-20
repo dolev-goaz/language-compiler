@@ -1,6 +1,6 @@
 int_64 h = 20;
 
-custom_exit();
+custom_exit(h);
 exit(10);
 
 func custom_exit(int_64 x) {

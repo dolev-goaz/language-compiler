@@ -27,11 +27,14 @@ class SemanticAnalyzer {
     void analyze();
 
    private:
+    void analyze_function_header(ASTStatementFunction& func);
+    void analyze_function_body(ASTStatementFunction& func);
     void analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements);
     void analyze_function_param(ASTFunctionParam& param);
 
     ASTProgram m_prog;
     SymbolTable::SemanticScopeStack m_symbol_table;
+    std::map<std::string, std::vector<ASTFunctionParam>> m_function_table;
     struct ExpressionVisitor;
     struct StatementVisitor;
 };
