@@ -143,19 +143,39 @@ struct SemanticAnalyzer::StatementVisitor {
     void operator()(const std::shared_ptr<ASTStatementFunction>& function_statement) const {
         // TODO: create a table for all functions
         // will be relevant when adding function_call expressions
-
-        // TODO: add parameters to the function's scope
-
-        // NOTE: could wrap the function's statement inside another, hidden scope.
-        // the hidden scope will contain the variable declarations of the parameters
         auto& func_statement_flat = *function_statement.get();
+
+        analyzer->m_symbol_table.enterScope();
+        // add parameters to function scope
+        for (auto& param : function_statement.get()->parameters) {
+            analyzer->analyze_function_param(param);
+        }
+
         std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, func_statement_flat.statement.get()->statement);
+        analyzer->m_symbol_table.exitScope();
     }
     void operator()(const std::shared_ptr<ASTStatementFunctionCall>& function_call_statement) const {
         // NOTE: for now, nothing to do here
         (void)function_call_statement;
     }
 };
+
+void SemanticAnalyzer::analyze_function_param(ASTFunctionParam& param) {
+    auto& start_token_meta = param.start_token_meta;
+    if (datatype_mapping.count(param.data_type_str) == 0) {
+        std::stringstream errorMessage;
+        errorMessage << "Unknown data type '" << param.data_type_str << "'";
+        throw SemanticAnalyzerException(errorMessage.str(), start_token_meta);
+    }
+    DataType data_type = datatype_mapping.at(param.data_type_str);
+    param.data_type = data_type;
+    try {
+        m_symbol_table.insert(param.name,
+                              SymbolTable::Variable{.start_token_meta = start_token_meta, .data_type = data_type});
+    } catch (const ScopeStackException& e) {
+        throw SemanticAnalyzerException(e.what(), start_token_meta);
+    }
+}
 
 void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements) {
     this->m_symbol_table.enterScope();

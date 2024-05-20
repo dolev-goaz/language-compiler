@@ -28,6 +28,7 @@ class SemanticAnalyzer {
 
    private:
     void analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements);
+    void analyze_function_param(ASTFunctionParam& param);
 
     ASTProgram m_prog;
     SymbolTable::SemanticScopeStack m_symbol_table;

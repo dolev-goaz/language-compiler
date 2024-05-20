@@ -3,6 +3,6 @@ int_64 h = 20;
 custom_exit();
 exit(10);
 
-func custom_exit() {
-    exit(h + 15);
+func custom_exit(int_64 x) {
+    exit(x + 15);
 }
