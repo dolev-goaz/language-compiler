@@ -145,7 +145,11 @@ struct SemanticAnalyzer::StatementVisitor {
         // will be relevant when adding function_call expressions
 
         // TODO: add parameters to the function's scope
-        (void)function_statement;
+
+        // NOTE: could wrap the function's statement inside another, hidden scope.
+        // the hidden scope will contain the variable declarations of the parameters
+        auto& func_statement_flat = *function_statement.get();
+        std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, func_statement_flat.statement.get()->statement);
     }
 };
 

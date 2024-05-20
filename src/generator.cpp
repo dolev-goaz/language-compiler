@@ -75,7 +75,8 @@ void Generator::pop_stack_register(const std::string& reg, size_t size) {
         // popping non-qword from the stack. so we read from the stack(0-filled)
         // and then update the stack pointer, effectively manually popping from the stack
         m_generated << ";\tManual POP BEGIN" << std::endl;
-        m_generated << "\tmovsx " << reg << ", " << size_keyword << " " << "[rsp]" << std::endl;
+        m_generated << "\tmovsx " << reg << ", " << size_keyword << " "
+                    << "[rsp]" << std::endl;
         m_generated << "\tadd rsp, " << size << std::endl;
         m_generated << ";\tManual POP END" << std::endl;
     }
@@ -291,6 +292,16 @@ void Generator::generate_statement_while(const ASTStatementWhile& while_statemen
     m_generated << "\tjmp " << before_while_label.str()
                 << "; after the 'while' block ends, jump back to the condition checking" << std::endl;
     m_generated << after_while_label.str() << ":" << std::endl;
+}
+
+void Generator::generate_statement_function(const ASTStatementFunction& function_statement) {
+    // TODO: function statements should realistically all be at the end of the file, so the assembly code
+    // won't call them
+    m_generated << std::endl << "; BEGIN OF FUNCTION '" << function_statement.name << "'" << std::endl;
+    m_generated << function_statement.name << ":" << std::endl;
+    generate_statement(*function_statement.statement.get());
+    m_generated << "\tret" << std::endl;
+    m_generated << "; END OF FUNCTION '" << function_statement.name << "'" << std::endl << std::endl;
 }
 
 int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {

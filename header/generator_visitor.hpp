@@ -23,8 +23,7 @@ struct Generator::StatementVisitor {
         generator.generate_statement_while(*while_statement.get());
     }
     void operator()(const std::shared_ptr<ASTStatementFunction>& function_statement) const {
-        (void)function_statement;
-        assert(false && "Not implemented generation of function");
+        generator.generate_statement_function(*function_statement.get());
     }
 };
 

@@ -1,7 +1,8 @@
 int_64 h = 50;
 
+// TODO: add function call here
+exit(h);
+
 func custom_exit() {
     exit(h + 5);
 }
-// TODO: add function call here
-exit(h);

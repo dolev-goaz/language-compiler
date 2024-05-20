@@ -32,6 +32,7 @@ class Generator {
     void generate_statement_scope(const ASTStatementScope& scope_statement);
     void generate_statement_if(const ASTStatementIf& if_statement);
     void generate_statement_while(const ASTStatementWhile& while_statement);
+    void generate_statement_function(const ASTStatementFunction& function_statement);
 
     void enter_scope();
     void exit_scope();
