@@ -7,6 +7,7 @@ $$
 \begin {cases}
     \{ [statement]^* \} \\
     if ([expression]) [statement] [else [expression]]^? \\
+    while ([expression]) [statement] \\
     exit([expression]) \\
     [d\_type]\space[identifier]; \\
     [d\_type]\space[identifier] = [expression]; \\
