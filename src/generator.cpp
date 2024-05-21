@@ -336,6 +336,7 @@ void Generator::generate_statement_function_call(const ASTStatementFunctionCall&
 
     m_generated << "\tcall " << function_call_statement.function_name << std::endl;
     m_generated << "\tadd rsp, " << total_function_params_size << std::endl;  // clear stack params
+    m_stack_size -= total_function_params_size;
 }
 
 int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {
