@@ -19,6 +19,7 @@ struct Variable {
     DataType data_type;
 };
 using SemanticScopeStack = ScopeStack<Variable>;
+using SemanticFunctionTable = std::map<std::string, std::vector<ASTFunctionParam>>;
 };  // namespace SymbolTable
 
 class SemanticAnalyzer {
@@ -34,7 +35,7 @@ class SemanticAnalyzer {
 
     ASTProgram m_prog;
     SymbolTable::SemanticScopeStack m_symbol_table;
-    std::map<std::string, std::vector<ASTFunctionParam>> m_function_table;
+    SymbolTable::SemanticFunctionTable m_function_table;
     struct ExpressionVisitor;
     struct StatementVisitor;
 };

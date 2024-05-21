@@ -11,6 +11,7 @@ std::map<std::string, DataType> datatype_mapping = {
 
 struct SemanticAnalyzer::ExpressionVisitor {
     SymbolTable::SemanticScopeStack& symbol_table;
+    SymbolTable::SemanticFunctionTable& function_table;
     DataType operator()(ASTIdentifier& identifier) const {
         SymbolTable::Variable literal_data;
         if (!symbol_table.lookup(identifier.value, literal_data)) {
@@ -27,15 +28,17 @@ struct SemanticAnalyzer::ExpressionVisitor {
     }
 
     DataType operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
-        return std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, atomic.get()->value);
+        return std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table, function_table}, atomic.get()->value);
     }
 
     DataType operator()(const std::shared_ptr<ASTBinExpression>& binExpr) const {
         // IN THE FUTURE: when there are more types, check for type compatibility
         auto& lhs = *binExpr.get()->lhs.get();
         auto& rhs = *binExpr.get()->rhs.get();
-        DataType lhs_data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, lhs.expression);
-        DataType rhs_data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, rhs.expression);
+        DataType lhs_data_type =
+            std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table, function_table}, lhs.expression);
+        DataType rhs_data_type =
+            std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table, function_table}, rhs.expression);
         if (lhs_data_type != rhs_data_type) {
             auto& meta = binExpr.get()->start_token_meta;
             std::cout << "SEMANTIC WARNING AT "
@@ -51,19 +54,20 @@ struct SemanticAnalyzer::ExpressionVisitor {
 
     DataType operator()(const ASTParenthesisExpression& paren_expr) const {
         auto& inner_expression = *paren_expr.expression.get();
-        return std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, inner_expression.expression);
+        return std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table, function_table},
+                          inner_expression.expression);
     }
 
-    DataType operator()(const ASTFunctionCallExpression& function_call_expr) const {
+    DataType operator()(ASTFunctionCallExpression& function_call_expr) const {
         auto& func_name = function_call_expr.function_name;
         auto& start_token_meta = function_call_expr.start_token_meta;
-        if (analyzer->m_function_table.count(func_name) == 0) {
+        if (function_table.count(func_name) == 0) {
             std::stringstream error;
             error << "Unknown function " << func_name << ".";
             throw SemanticAnalyzerException(error.str(), start_token_meta);
         }
-        auto& function_expected_params = analyzer->m_function_table.at(function_call_expr.get()->function_name);
-        auto& provided_params = function_call_expr.get()->parameters;
+        auto& function_expected_params = function_table.at(function_call_expr.function_name);
+        std::vector<ASTExpression>& provided_params = function_call_expr.parameters;
         if (provided_params.size() != function_expected_params.size()) {
             std::stringstream error;
             error << "Function " << func_name << " expected " << function_expected_params.size()
@@ -71,7 +75,7 @@ struct SemanticAnalyzer::ExpressionVisitor {
             throw SemanticAnalyzerException(error.str(), start_token_meta);
         }
         for (size_t i = 0; i < provided_params.size(); ++i) {
-            provided_params[i].data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table},
+            provided_params[i].data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table, function_table},
                                                       provided_params[i].expression);
             if (provided_params[i].data_type == function_expected_params[i].data_type) {
                 // no type issues
@@ -83,6 +87,8 @@ struct SemanticAnalyzer::ExpressionVisitor {
                       << ": Provided parameter of different data type. Data will be narrowed/widened." << std::endl;
             provided_params[i].data_type = function_expected_params[i].data_type;
         }
+
+        return DataType::NONE;  // TODO: add datatype here
     }
 };
 
@@ -91,7 +97,8 @@ struct SemanticAnalyzer::StatementVisitor {
     void operator()(const std::shared_ptr<ASTStatementExit>& exit) const {
         auto& expression = exit.get()->status_code;
         expression.data_type =
-            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table, analyzer->m_function_table},
+                       expression.expression);
     }
     void operator()(const std::shared_ptr<ASTStatementVar>& var_declare) const {
         auto& start_token_meta = var_declare.get()->start_token_meta;
@@ -123,7 +130,8 @@ struct SemanticAnalyzer::StatementVisitor {
 
         auto& expression = var_declare.get()->value.value();
         DataType rhs_data_type =
-            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table, analyzer->m_function_table},
+                       expression.expression);
         // IN THE FUTURE: when there are more types, check for type compatibility
         if (rhs_data_type > data_type) {
             // type narrowing
@@ -142,7 +150,8 @@ struct SemanticAnalyzer::StatementVisitor {
             throw SemanticAnalyzerException(error.str(), meta);
         }
         expression.data_type =
-            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table, analyzer->m_function_table},
+                       expression.expression);
         if (expression.data_type != variableData.data_type) {
             std::cout << "SEMANTIC WARNING AT "
                       << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
@@ -157,7 +166,8 @@ struct SemanticAnalyzer::StatementVisitor {
         auto& expression = _if.get()->expression;
         auto& success_statement = _if.get()->success_statement;
         expression.data_type =
-            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table, analyzer->m_function_table},
+                       expression.expression);
         std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
         if (_if.get()->fail_statement != nullptr) {
             std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, _if.get()->fail_statement.get()->statement);
@@ -168,7 +178,8 @@ struct SemanticAnalyzer::StatementVisitor {
         auto& expression = while_statement.get()->expression;
         auto& success_statement = while_statement.get()->success_statement;
         expression.data_type =
-            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table}, expression.expression);
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table, analyzer->m_function_table},
+                       expression.expression);
         std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
     }
     void operator()(const std::shared_ptr<ASTStatementFunction>& function_statement) const {
