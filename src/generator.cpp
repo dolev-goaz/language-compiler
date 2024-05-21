@@ -30,7 +30,6 @@ std::string Generator::generate_program() {
         auto current = m_prog.statements[i].get();
         generate_statement(*current);
     }
-    m_stack.exitScope();
 
     // default exit statement
     m_generated << std::endl << "; default program end" << std::endl;
@@ -43,6 +42,7 @@ std::string Generator::generate_program() {
         auto current = m_prog.functions[i].get();
         generate_statement_function(*current);
     }
+    m_stack.exitScope();
 
     return m_generated.str();
 }
@@ -145,10 +145,12 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
     m_generated << ";\t" << operation << " Evaluation BEGIN" << std::endl;
     auto& lhsExp = *binary.get()->lhs.get();
     auto& rhsExp = *binary.get()->rhs.get();
+    size_t rhs_size_bytes = data_type_size_bytes.at(rhsExp.data_type);
+    size_t lhs_size_bytes = data_type_size_bytes.at(lhsExp.data_type);
     generate_expression(lhsExp);
     generate_expression(rhsExp);
-    pop_stack_register("rbx", size_bytes);  // rbx = rhs
-    pop_stack_register("rax", size_bytes);  // rax = lhs
+    pop_stack_register("rbx", rhs_size_bytes);  // rbx = rhs
+    pop_stack_register("rax", lhs_size_bytes);  // rax = lhs
     switch (binary.get()->operation) {
         case BinOperation::add:
             m_generated << "\tadd rax, rbx; rax += rbx" << std::endl;  // rax = rax + rbx
