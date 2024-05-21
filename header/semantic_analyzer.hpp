@@ -18,8 +18,13 @@ struct Variable {
     TokenMeta start_token_meta;
     DataType data_type;
 };
+struct FunctionHeader {
+    TokenMeta start_token_meta;
+    DataType data_type;
+    std::vector<ASTFunctionParam> parameters;
+};
 using SemanticScopeStack = ScopeStack<Variable>;
-using SemanticFunctionTable = std::map<std::string, std::vector<ASTFunctionParam>>;
+using SemanticFunctionTable = std::map<std::string, SymbolTable::FunctionHeader>;
 };  // namespace SymbolTable
 
 class SemanticAnalyzer {

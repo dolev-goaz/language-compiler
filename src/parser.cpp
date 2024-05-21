@@ -316,6 +316,7 @@ std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
         return nullptr;
     }
     auto statement_begin_meta = consume().value().meta;
+    auto return_data_type = assert_consume(TokenType::identifier, "Expected data type");
     auto func_name = assert_consume(TokenType::identifier, "Expected function name");
     assert_consume(TokenType::open_paren, "Expected '(' after function name");
 
@@ -332,6 +333,8 @@ std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
         .name = func_name.value.value(),
         .parameters = parameters,
         .statement = statement,
+        .return_data_type_str = return_data_type.value.value(),
+        .return_data_type = DataType::NONE,
     });
 }
 std::vector<ASTFunctionParam> Parser::parse_function_params() {

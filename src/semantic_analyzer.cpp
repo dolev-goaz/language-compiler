@@ -66,7 +66,8 @@ struct SemanticAnalyzer::ExpressionVisitor {
             error << "Unknown function " << func_name << ".";
             throw SemanticAnalyzerException(error.str(), start_token_meta);
         }
-        auto& function_expected_params = function_table.at(function_call_expr.function_name);
+        auto& function_header_data = function_table.at(function_call_expr.function_name);
+        auto& function_expected_params = function_header_data.parameters;
         std::vector<ASTExpression>& provided_params = function_call_expr.parameters;
         if (provided_params.size() != function_expected_params.size()) {
             std::stringstream error;
@@ -88,7 +89,7 @@ struct SemanticAnalyzer::ExpressionVisitor {
             provided_params[i].data_type = function_expected_params[i].data_type;
         }
 
-        return DataType::NONE;  // TODO: add datatype here
+        return function_header_data.data_type;
     }
 };
 
@@ -212,11 +213,22 @@ void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatem
 }
 
 void SemanticAnalyzer::analyze_function_header(ASTStatementFunction& func) {
+    if (datatype_mapping.count(func.return_data_type_str) == 0) {
+        std::stringstream errorMessage;
+        errorMessage << "Unknown data type '" << func.return_data_type_str << "'";
+        throw SemanticAnalyzerException(errorMessage.str(), func.start_token_meta);
+    }
     for (auto& function_param : func.parameters) {
         // set params datatype
         analyze_function_param(function_param);
     }
-    m_function_table.emplace(func.name, func.parameters);
+    func.return_data_type = datatype_mapping.at(func.return_data_type_str);
+    SymbolTable::FunctionHeader function_header = {
+        .start_token_meta = func.start_token_meta,
+        .data_type = func.return_data_type,
+        .parameters = func.parameters,
+    };
+    m_function_table.emplace(func.name, function_header);
 }
 void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
     m_symbol_table.enterScope();

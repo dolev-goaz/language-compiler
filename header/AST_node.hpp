@@ -121,6 +121,9 @@ struct ASTStatementFunction {
     std::string name;
     std::vector<ASTFunctionParam> parameters;
     std::shared_ptr<ASTStatement> statement;
+
+    std::string return_data_type_str;
+    DataType return_data_type;
 };
 
 struct ASTStatementReturn {
