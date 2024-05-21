@@ -33,6 +33,7 @@ enum class TokenType {
     _else,
     _while,
     _function,
+    _return,
 };
 
 extern std::map<std::string, TokenType> tokenMappingsKeywords;

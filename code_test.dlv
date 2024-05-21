@@ -1,13 +1,13 @@
-int_64 h = 50;
-int_16 y = 20;
 
-custom_exit_sum(10);
+int_16 n = 5;
+factorial(n);
 
-exit(y);
+exit(n);
 
-func custom_exit_sum(int_16 y) {
-    if (h) {
-        h = h - y;
-        custom_exit_sum(y);
+func factorial(int_16 y) {
+    if (y){
+        return y * factorial(y - 1);
+    } else {
+        return 1;
     }
 }

@@ -374,6 +374,22 @@ std::vector<ASTExpression> Parser::parse_statement_function_call_params() {
     return parameters;
 }
 
+std::shared_ptr<ASTStatementReturn> Parser::parse_statement_return() {
+    if (!test_peek(TokenType::_return)) {
+        return nullptr;
+    }
+    auto statement_begin_meta = consume().value().meta;
+    auto expression = parse_expression();
+    if (!expression.has_value()) {
+        throw ParserException("Expected expression after 'return'", statement_begin_meta);
+    }
+    assert_consume(TokenType::semicol, "Expected semicolon ';' after return statement");
+    return std::make_shared<ASTStatementReturn>(ASTStatementReturn{
+        .start_token_meta = statement_begin_meta,
+        .expression = expression.value(),
+    });
+}
+
 // throws ParserException if couldn't parse statement
 std::shared_ptr<ASTStatement> Parser::parse_statement() {
     // check for exit statement
@@ -421,6 +437,11 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
     if (auto func_call_statement = parse_statement_function_call(); func_call_statement != nullptr) {
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(func_call_statement)});
+    }
+
+    if (auto return_statement = parse_statement_return(); return_statement != nullptr) {
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(return_statement)});
     }
 
     // fallback- no matching statement found

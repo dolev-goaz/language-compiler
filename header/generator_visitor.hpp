@@ -28,6 +28,10 @@ struct Generator::StatementVisitor {
     void operator()(const std::shared_ptr<ASTStatementFunctionCall>& function_call_statement) const {
         generator.generate_statement_function_call(*function_call_statement.get());
     }
+    void operator()(const std::shared_ptr<ASTStatementReturn>& return_statement) const {
+        (void)return_statement;
+        assert(false && "Not implemented generation for return statement");
+    }
 };
 
 struct Generator::ExpressionVisitor {

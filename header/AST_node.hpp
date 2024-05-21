@@ -123,12 +123,18 @@ struct ASTStatementFunctionCall {
     std::string function_name;
 };
 
+struct ASTStatementReturn {
+    TokenMeta start_token_meta;
+    ASTExpression expression;
+};
+
 struct ASTStatement {
     TokenMeta start_token_meta;
     std::variant<std::shared_ptr<ASTStatementExit>, std::shared_ptr<ASTStatementVar>,
                  std::shared_ptr<ASTStatementScope>, std::shared_ptr<ASTStatementIf>,
                  std::shared_ptr<ASTStatementAssign>, std::shared_ptr<ASTStatementWhile>,
-                 std::shared_ptr<ASTStatementFunction>, std::shared_ptr<ASTStatementFunctionCall>>
+                 std::shared_ptr<ASTStatementFunction>, std::shared_ptr<ASTStatementFunctionCall>,
+                 std::shared_ptr<ASTStatementReturn>>
         statement;
 };
 

@@ -11,7 +11,7 @@ bool number_verify(const std::string& num_str) {
 
 std::map<std::string, TokenType> tokenMappingsKeywords = {
     {"exit", TokenType::exit},    {"if", TokenType::_if},         {"else", TokenType::_else},
-    {"while", TokenType::_while}, {"func", TokenType::_function},
+    {"while", TokenType::_while}, {"func", TokenType::_function}, {"return", TokenType::_return},
 };
 std::map<char, TokenType> tokenMappingsSymbols = {
     {';', TokenType::semicol},    {'(', TokenType::open_paren},  {')', TokenType::close_paren},

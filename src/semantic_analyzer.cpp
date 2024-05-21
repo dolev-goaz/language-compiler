@@ -174,6 +174,10 @@ struct SemanticAnalyzer::StatementVisitor {
             provided_params[i].data_type = function_expected_params[i].data_type;
         }
     }
+    void operator()(const std::shared_ptr<ASTStatementReturn>& return_statement) const {
+        (void)return_statement;
+        assert(false && "Not implemented analysis for return statement");
+    }
 };
 
 void SemanticAnalyzer::analyze_function_param(ASTFunctionParam& param) {
