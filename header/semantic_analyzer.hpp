@@ -35,7 +35,7 @@ class SemanticAnalyzer {
    private:
     void analyze_function_header(ASTStatementFunction& func);
     void analyze_function_body(ASTStatementFunction& func);
-    void analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements);
+    void analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements, std::string function_name = "");
     void analyze_function_param(ASTFunctionParam& param);
 
     ASTProgram m_prog;

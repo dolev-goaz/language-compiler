@@ -95,6 +95,7 @@ struct SemanticAnalyzer::ExpressionVisitor {
 
 struct SemanticAnalyzer::StatementVisitor {
     SemanticAnalyzer* analyzer;
+    std::string function_name = "";
     void operator()(const std::shared_ptr<ASTStatementExit>& exit) const {
         auto& expression = exit.get()->status_code;
         expression.data_type =
@@ -161,7 +162,7 @@ struct SemanticAnalyzer::StatementVisitor {
         }
     }
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
-        analyzer->analyze_scope(scope.get()->statements);
+        analyzer->analyze_scope(scope.get()->statements, function_name);
     }
     void operator()(const std::shared_ptr<ASTStatementIf>& _if) const {
         auto& expression = _if.get()->expression;
@@ -169,9 +170,11 @@ struct SemanticAnalyzer::StatementVisitor {
         expression.data_type =
             std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table, analyzer->m_function_table},
                        expression.expression);
-        std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
+        std::visit(SemanticAnalyzer::StatementVisitor{.analyzer = analyzer, .function_name = function_name},
+                   success_statement.get()->statement);
         if (_if.get()->fail_statement != nullptr) {
-            std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, _if.get()->fail_statement.get()->statement);
+            std::visit(SemanticAnalyzer::StatementVisitor{.analyzer = analyzer, .function_name = function_name},
+                       _if.get()->fail_statement.get()->statement);
         }
     }
     void operator()(const std::shared_ptr<ASTStatementWhile>& while_statement) const {
@@ -181,15 +184,31 @@ struct SemanticAnalyzer::StatementVisitor {
         expression.data_type =
             std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table, analyzer->m_function_table},
                        expression.expression);
-        std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
+        std::visit(SemanticAnalyzer::StatementVisitor{.analyzer = analyzer, .function_name = function_name},
+                   success_statement.get()->statement);
     }
     void operator()(const std::shared_ptr<ASTStatementFunction>& function_statement) const {
         (void)function_statement;  // ignore unused
         assert(false && "Should never reach here. Function statements are to be parsed seperately");
     }
     void operator()(const std::shared_ptr<ASTStatementReturn>& return_statement) const {
-        (void)return_statement;
-        assert(false && "Not implemented analysis for return statement");
+        if (function_name.empty()) {
+            throw SemanticAnalyzerException("Can't use 'return' outside of a function",
+                                            return_statement.get()->start_token_meta);
+        }
+        auto& meta = return_statement.get()->start_token_meta;
+        auto& function_header = analyzer->m_function_table.at(function_name);
+        auto& expression = return_statement.get()->expression;
+        expression.data_type =
+            std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table, analyzer->m_function_table},
+                       expression.expression);
+        if (expression.data_type != function_header.data_type) {
+            std::cout
+                << "SEMANTIC WARNING AT " << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
+                << ": return statement with different datatype of function return type. Data will be narrowed/widened."
+                << std::endl;
+            expression.data_type = function_header.data_type;
+        }
     }
 };
 
@@ -204,10 +223,12 @@ void SemanticAnalyzer::analyze_function_param(ASTFunctionParam& param) {
     param.data_type = data_type;
 }
 
-void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements) {
+void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements,
+                                     std::string function_name) {
     this->m_symbol_table.enterScope();
     for (auto& statement : statements) {
-        std::visit(SemanticAnalyzer::StatementVisitor{this}, statement.get()->statement);
+        std::visit(SemanticAnalyzer::StatementVisitor{.analyzer = this, .function_name = function_name},
+                   statement.get()->statement);
     }
     this->m_symbol_table.exitScope();
 }
@@ -243,7 +264,8 @@ void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
             throw SemanticAnalyzerException(e.what(), start_token_meta);
         }
     }
-    std::visit(SemanticAnalyzer::StatementVisitor{this}, func.statement.get()->statement);
+    std::visit(SemanticAnalyzer::StatementVisitor{.analyzer = this, .function_name = func.name},
+               func.statement.get()->statement);
     m_symbol_table.exitScope();
 }
 
@@ -257,7 +279,7 @@ void SemanticAnalyzer::analyze() {
     }
     // pass through global statements
     for (auto& statement : statements) {
-        std::visit(SemanticAnalyzer::StatementVisitor{this}, statement.get()->statement);
+        std::visit(SemanticAnalyzer::StatementVisitor{.analyzer = this}, statement.get()->statement);
     }
     // second passage through functions- function body
     for (auto& function : functions) {
