@@ -182,6 +182,10 @@ std::shared_ptr<ASTStatementScope> Parser::parse_statement_scope() {
     const TokenMeta statement_begin_meta = consume().value().meta;
     std::vector<std::shared_ptr<ASTStatement>> statements;
     while (peek().has_value() && !test_peek(TokenType::close_curly)) {
+        if (peek().value().type == TokenType::comment) {
+            consume();
+            continue;
+        }
         statements.push_back(parse_statement());
     }
     assert_consume(TokenType::close_curly, "Expected '}'");
