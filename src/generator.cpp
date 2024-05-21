@@ -24,6 +24,8 @@ std::string Generator::generate_program() {
     m_generated << "global main" << std::endl << "main:" << std::endl;
 
     m_stack.enterScope();
+    // generate all statements
+    // TODO: store initial rsp, to allow access to global variables(outside functions)
     for (size_t i = 0; i < m_prog.statements.size(); ++i) {
         auto current = m_prog.statements[i].get();
         generate_statement(*current);
@@ -35,6 +37,13 @@ std::string Generator::generate_program() {
     m_generated << "\tmov rax, 60" << std::endl;
     m_generated << "\tmov rdi, 0; status code 0- OK" << std::endl;
     m_generated << "\tsyscall";
+
+    // generate all functions at the end of the file
+    for (size_t i = 0; i < m_prog.functions.size(); ++i) {
+        auto current = m_prog.functions[i].get();
+        generate_statement_function(*current);
+    }
+
     return m_generated.str();
 }
 
@@ -75,8 +84,7 @@ void Generator::pop_stack_register(const std::string& reg, size_t size) {
         // popping non-qword from the stack. so we read from the stack(0-filled)
         // and then update the stack pointer, effectively manually popping from the stack
         m_generated << ";\tManual POP BEGIN" << std::endl;
-        m_generated << "\tmovsx " << reg << ", " << size_keyword << " "
-                    << "[rsp]" << std::endl;
+        m_generated << "\tmovsx " << reg << ", " << size_keyword << " " << "[rsp]" << std::endl;
         m_generated << "\tadd rsp, " << size << std::endl;
         m_generated << ";\tManual POP END" << std::endl;
     }
@@ -295,20 +303,40 @@ void Generator::generate_statement_while(const ASTStatementWhile& while_statemen
 }
 
 void Generator::generate_statement_function(const ASTStatementFunction& function_statement) {
-    // TODO: function statements should realistically all be at the end of the file, so the assembly code
-    // won't call them
+    m_stack.enterScope();
+    // add function parameters to scope
+    for (auto& func_param : function_statement.parameters) {
+        size_t size_bytes = data_type_size_bytes.at(func_param.data_type);
+        Generator::Variable var{
+            .stack_location_bytes = m_stack_size,
+            .size_bytes = size_bytes,
+        };
+        m_stack.insert(func_param.name, var);
+        m_stack_size += size_bytes;
+    }
     m_stack_size += 8;  // return address pushed by 'call'
+
     m_generated << std::endl << "; BEGIN OF FUNCTION '" << function_statement.name << "'" << std::endl;
     m_generated << function_statement.name << ":" << std::endl;
     generate_statement(*function_statement.statement.get());
     m_generated << "\tret" << std::endl;
     m_generated << "; END OF FUNCTION '" << function_statement.name << "'" << std::endl << std::endl;
+
     m_stack_size -= 8;  // return address popped by 'ret'
+    m_stack.exitScope();
 }
 
 void Generator::generate_statement_function_call(const ASTStatementFunctionCall& function_call_statement) {
-    // TODO: might not want to allow access to 'global' variables from methods because of stack changes
+    // push parameters to the stack before calling
+    size_t total_function_params_size = 0;
+    for (auto& func_param : function_call_statement.parameters) {
+        generate_expression(func_param);
+        total_function_params_size += data_type_size_bytes.at(func_param.data_type);
+    };
+
     m_generated << "\tcall " << function_call_statement.function_name << std::endl;
+    m_generated << "\tadd rsp, " << total_function_params_size << std::endl;  // clear stack params
+    m_stack_size -= total_function_params_size;
 }
 
 int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {

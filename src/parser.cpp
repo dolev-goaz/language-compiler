@@ -182,6 +182,10 @@ std::shared_ptr<ASTStatementScope> Parser::parse_statement_scope() {
     const TokenMeta statement_begin_meta = consume().value().meta;
     std::vector<std::shared_ptr<ASTStatement>> statements;
     while (peek().has_value() && !test_peek(TokenType::close_curly)) {
+        if (peek().value().type == TokenType::comment) {
+            consume();
+            continue;
+        }
         statements.push_back(parse_statement());
     }
     assert_consume(TokenType::close_curly, "Expected '}'");
@@ -297,21 +301,7 @@ std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
     auto func_name = assert_consume(TokenType::identifier, "Expected function name");
     assert_consume(TokenType::open_paren, "Expected '(' after function name");
 
-    // TODO: temporarily commented, functions have no parameters
-    // std::vector<ASTFunctionParam> parameters;
-    // while (peek().has_value() && peek().value().type != TokenType::close_paren) {
-    //     if (parameters.size() > 0) {
-    //         assert_consume(TokenType::comma, "Expected comma after parameter and before closing paren ')'");
-    //     }
-    //     auto datatype = assert_consume(TokenType::identifier, "Expected parameter datatype");
-    //     auto param_name = assert_consume(TokenType::identifier, "Expected parameter name");
-    //     // TODO: check for initial value
-    //     parameters.push_back(ASTFunctionParam{
-    //         .start_token_meta = datatype.meta,
-    //         .data_type_str = datatype.value.value(),
-    //         .name = param_name.value.value(),
-    //     });
-    // }
+    auto parameters = parse_function_params();
 
     assert_consume(TokenType::close_paren, "Expected ')' after function params");
     auto statement = parse_statement();
@@ -322,8 +312,28 @@ std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
     return std::make_shared<ASTStatementFunction>(ASTStatementFunction{
         .start_token_meta = statement_begin_meta,
         .name = func_name.value.value(),
+        .parameters = parameters,
         .statement = statement,
     });
+}
+std::vector<ASTFunctionParam> Parser::parse_function_params() {
+    std::vector<ASTFunctionParam> parameters;
+    while (peek().has_value() && peek().value().type != TokenType::close_paren) {
+        if (parameters.size() > 0) {
+            assert_consume(TokenType::comma, "Expected comma after parameter and before closing paren ')'");
+        }
+        auto datatype = assert_consume(TokenType::identifier, "Expected parameter datatype");
+        auto param_name = assert_consume(TokenType::identifier, "Expected parameter name");
+        // TODO: check for initial value
+        parameters.push_back(ASTFunctionParam{
+            .start_token_meta = datatype.meta,
+            .data_type_str = datatype.value.value(),
+            .data_type = DataType::NONE,
+            .name = param_name.value.value(),
+        });
+    }
+
+    return parameters;
 }
 
 std::shared_ptr<ASTStatementFunctionCall> Parser::parse_statement_function_call() {
@@ -332,12 +342,36 @@ std::shared_ptr<ASTStatementFunctionCall> Parser::parse_statement_function_call(
     }
     auto func_name_token = consume().value();
     consume();  // consume '('
+    auto params = parse_statement_function_call_params();
     assert_consume(TokenType::close_paren, "Expected closing parenthesis ')'");
     assert_consume(TokenType::semicol, "Expected semicolon ';'");
     return std::make_shared<ASTStatementFunctionCall>(ASTStatementFunctionCall{
         .start_token_meta = func_name_token.meta,
+        .parameters = params,
         .function_name = func_name_token.value.value(),
     });
+}
+
+std::vector<ASTExpression> Parser::parse_statement_function_call_params() {
+    std::vector<ASTExpression> parameters;
+    while (peek().has_value() && peek().value().type != TokenType::close_paren) {
+        if (parameters.size() > 0) {
+            assert_consume(TokenType::comma, "Expected comma after parameter and before closing paren ')'");
+        }
+        auto expression = parse_expression();
+        if (!expression.has_value()) {
+            auto nextToken = peek();
+            if (nextToken.has_value()) {
+                throw ParserException("Expected parameter expression", nextToken.value().meta);
+            } else {
+                throw ParserException("Expected expression after opening parenthesis '('");
+            }
+        }
+        // TODO: check for initial value
+        parameters.push_back(expression.value());
+    }
+
+    return parameters;
 }
 
 // throws ParserException if couldn't parse statement
@@ -397,12 +431,20 @@ ASTProgram Parser::parse_program() {
     ASTProgram result;
 
     while (peek().has_value()) {
+        auto type = peek().value().type;
         // skip through comments
-        if (peek().value().type == TokenType::comment) {
+        if (type == TokenType::comment) {
             consume();
             continue;
         }
-        result.statements.push_back(parse_statement());
+        auto statement = parse_statement();
+        if (type == TokenType::_function) {
+            // NOTE: could probably figure out a better way to know the statement is a function statement
+            auto& func_statement = statement.get()->statement;
+            result.functions.push_back(std::get<std::shared_ptr<ASTStatementFunction>>(func_statement));
+            continue;
+        }
+        result.statements.push_back(statement);
     }
 
     return result;

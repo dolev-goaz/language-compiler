@@ -112,13 +112,14 @@ struct ASTFunctionParam {
 struct ASTStatementFunction {
     TokenMeta start_token_meta;
     std::string name;
-    // std::vector<ASTFunctionParam> parameters; // TODO: temporarily commented, functions have no parameters
+    std::vector<ASTFunctionParam> parameters;  // TODO: temporarily commented, functions have no parameters
     std::shared_ptr<ASTStatement> statement;  // TODO: this should be a unique statement, holding a return value as well
 };
 
 // TODO: when adding return values, this should be an expression
 struct ASTStatementFunctionCall {
     TokenMeta start_token_meta;
+    std::vector<ASTExpression> parameters;
     std::string function_name;
 };
 
@@ -133,4 +134,5 @@ struct ASTStatement {
 
 struct ASTProgram {
     std::vector<std::shared_ptr<ASTStatement>> statements;
+    std::vector<std::shared_ptr<ASTStatementFunction>> functions;
 };

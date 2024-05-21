@@ -1,8 +1,7 @@
 int_64 h = 20;
 
-custom_exit();
-exit(10);
+custom_exit_sum(h, 15);
 
-func custom_exit() {
-    exit(h + 15);
+func custom_exit_sum(int_64 x, int_64 y) {
+    exit(x + y);
 }

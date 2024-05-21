@@ -141,21 +141,51 @@ struct SemanticAnalyzer::StatementVisitor {
         std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, success_statement.get()->statement);
     }
     void operator()(const std::shared_ptr<ASTStatementFunction>& function_statement) const {
-        // TODO: create a table for all functions
-        // will be relevant when adding function_call expressions
-
-        // TODO: add parameters to the function's scope
-
-        // NOTE: could wrap the function's statement inside another, hidden scope.
-        // the hidden scope will contain the variable declarations of the parameters
-        auto& func_statement_flat = *function_statement.get();
-        std::visit(SemanticAnalyzer::StatementVisitor{analyzer}, func_statement_flat.statement.get()->statement);
+        (void)function_statement;  // ignore unused
+        assert(false && "Should never reach here. Function statements are to be parsed seperately");
     }
     void operator()(const std::shared_ptr<ASTStatementFunctionCall>& function_call_statement) const {
-        // NOTE: for now, nothing to do here
-        (void)function_call_statement;
+        auto& func_name = function_call_statement.get()->function_name;
+        auto& start_token_meta = function_call_statement.get()->start_token_meta;
+        if (analyzer->m_function_table.count(func_name) == 0) {
+            std::stringstream error;
+            error << "Unknown function " << func_name << ".";
+            throw SemanticAnalyzerException(error.str(), start_token_meta);
+        }
+        auto& function_expected_params = analyzer->m_function_table.at(function_call_statement.get()->function_name);
+        auto& provided_params = function_call_statement.get()->parameters;
+        if (provided_params.size() != function_expected_params.size()) {
+            std::stringstream error;
+            error << "Function " << func_name << " expected " << function_expected_params.size()
+                  << " parameters, instead got " << provided_params.size() << ".";
+            throw SemanticAnalyzerException(error.str(), start_token_meta);
+        }
+        for (size_t i = 0; i < provided_params.size(); ++i) {
+            provided_params[i].data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table},
+                                                      provided_params[i].expression);
+            if (provided_params[i].data_type == function_expected_params[i].data_type) {
+                // no type issues
+                continue;
+            }
+            auto& meta = provided_params[i].start_token_meta;
+            std::cout << "SEMANTIC WARNING AT "
+                      << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
+                      << ": Provided parameter of different data type. Data will be narrowed/widened." << std::endl;
+            provided_params[i].data_type = function_expected_params[i].data_type;
+        }
     }
 };
+
+void SemanticAnalyzer::analyze_function_param(ASTFunctionParam& param) {
+    auto& start_token_meta = param.start_token_meta;
+    if (datatype_mapping.count(param.data_type_str) == 0) {
+        std::stringstream errorMessage;
+        errorMessage << "Unknown data type '" << param.data_type_str << "'";
+        throw SemanticAnalyzerException(errorMessage.str(), start_token_meta);
+    }
+    DataType data_type = datatype_mapping.at(param.data_type_str);
+    param.data_type = data_type;
+}
 
 void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements) {
     this->m_symbol_table.enterScope();
@@ -165,8 +195,45 @@ void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatem
     this->m_symbol_table.exitScope();
 }
 
+void SemanticAnalyzer::analyze_function_header(ASTStatementFunction& func) {
+    for (auto& function_param : func.parameters) {
+        // set params datatype
+        analyze_function_param(function_param);
+    }
+    m_function_table.emplace(func.name, func.parameters);
+}
+void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
+    m_symbol_table.enterScope();
+    for (auto& function_param : func.parameters) {
+        auto& start_token_meta = function_param.start_token_meta;
+        try {
+            m_symbol_table.insert(function_param.name, SymbolTable::Variable{
+                                                           .start_token_meta = start_token_meta,
+                                                           .data_type = function_param.data_type,
+                                                       });
+        } catch (const ScopeStackException& e) {
+            throw SemanticAnalyzerException(e.what(), start_token_meta);
+        }
+    }
+    std::visit(SemanticAnalyzer::StatementVisitor{this}, func.statement.get()->statement);
+    m_symbol_table.exitScope();
+}
+
 void SemanticAnalyzer::analyze() {
-    // basically, the entire program is wrapped in a scope, allowing declarations outside of a scope- creating the
-    // global scope.
-    analyze_scope(m_prog.statements);
+    this->m_symbol_table.enterScope();
+    auto& statements = m_prog.statements;
+    auto& functions = m_prog.functions;
+    // first passage through functions- function header
+    for (auto& function : functions) {
+        analyze_function_header(*function.get());
+    }
+    // pass through global statements
+    for (auto& statement : statements) {
+        std::visit(SemanticAnalyzer::StatementVisitor{this}, statement.get()->statement);
+    }
+    // second passage through functions- function body
+    for (auto& function : functions) {
+        analyze_function_body(*function.get());
+    }
+    this->m_symbol_table.exitScope();
 }
