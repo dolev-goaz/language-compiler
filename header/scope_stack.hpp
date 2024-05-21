@@ -47,6 +47,13 @@ class ScopeStack {
         }
         return false;
     }
+    bool is_variable_global(const std::string& identifier) {
+        if (scope_stack.empty()) {
+            return false;
+        }
+        scope firstScope = scope_stack.at(0);
+        return (firstScope.count(identifier) > 0);
+    }
 
    private:
     std::vector<scope> scope_stack;

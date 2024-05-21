@@ -22,6 +22,7 @@ std::map<size_t, std::string> size_bytes_to_register = {
 
 std::string Generator::generate_program() {
     m_generated << "global main" << std::endl << "main:" << std::endl;
+    m_generated << "\tmov rbp, rsp" << std::endl << std::endl;
 
     m_stack.enterScope();
     // generate all statements
@@ -51,25 +52,6 @@ void Generator::push_stack_literal(const std::string& value, size_t size) {
     std::string size_keyword = size_bytes_to_size_keyword.at(size);
     m_generated << "\tpush " << size_keyword << " " << value << std::endl;
     m_stack_size += size;
-}
-void Generator::push_stack_offset(int offset, size_t data_size, size_t requested_size) {
-    // reading a value from the an arbitrary point in the stack, then pushing that value
-    // to the top of the stack.
-
-    // NOTE: assumes that if theres type-changing, it is narrowing
-    // to handle type-widening, we need to first clear the entire a register before writing to it,
-    // and then zero/sign filling it with the data we read from the stack.
-    std::string original_size_keyword = size_bytes_to_size_keyword.at(data_size);
-    std::string original_data_reg = size_bytes_to_register.at(data_size);
-    std::string requested_data_reg = size_bytes_to_register.at(requested_size);
-
-    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rsp + " << offset << "]"
-                << std::endl;
-
-    // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
-    // probably just don't support 8-bit variables, lol
-    m_generated << "\tpush " << requested_data_reg << std::endl;
-    m_stack_size += requested_size;
 }
 
 void Generator::push_stack_register(const std::string& reg, size_t size) {
@@ -101,16 +83,26 @@ void Generator::generate_expression(const ASTExpression& expression) {
     std::visit(Generator::ExpressionVisitor{.generator = *this, .size = size_bytes}, expression.expression);
 }
 
-void Generator::generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes) {
-    Generator::Variable variableData = assert_get_variable_data(identifier.value);
-    m_generated << ";\tEvaluate Variable " << identifier.value << std::endl;
+void Generator::generate_expression_identifier(const ASTIdentifier& identifier, size_t requested_size_bytes) {
+    auto& variable_name = identifier.value;
+    auto variable_data = assert_get_variable_data(variable_name);
 
-    // get variable metadata
+    m_generated << ";\tEvaluate Variable " << variable_name << std::endl;
 
-    int offset = get_variable_stack_offset(variableData);
+    // NOTE: assumes that if theres type-changing, it is narrowing
+    // to handle type-widening, we need to first clear the entire a register before writing to it,
+    // and then zero/sign filling it with the data we read from the stack.
+    std::string original_size_keyword = size_bytes_to_size_keyword.at(variable_data.size_bytes);
+    std::string original_data_reg = size_bytes_to_register.at(variable_data.size_bytes);
+    std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
 
-    // push variable value into stack
-    push_stack_offset(offset, variableData.size_bytes, size_bytes);
+    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " "
+                << get_variable_memory_position(variable_name) << std::endl;
+
+    // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
+    // probably just don't support 8-bit variables, lol
+    m_generated << "\tpush " << requested_data_reg << std::endl;
+    m_stack_size += requested_size_bytes;
 }
 
 void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes) {
@@ -197,7 +189,6 @@ void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) 
 
 void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_assign_statement) {
     Generator::Variable variableData = assert_get_variable_data(var_assign_statement.name);
-    int variable_stack_offset = get_variable_stack_offset(variableData);
 
     m_generated << ";\tVariable Assigment " << var_assign_statement.name << " BEGIN" << std::endl;
 
@@ -208,7 +199,8 @@ void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_
     // popping to the largest register to allow data widening if necessary, up to 8 bytes
     pop_stack_register("rax", expression_size_bytes);
     std::string& temp_register = size_bytes_to_register.at(variableData.size_bytes);
-    m_generated << "\tmov [rsp + " << variable_stack_offset << "], " << temp_register << std::endl;
+    m_generated << "\tmov " << get_variable_memory_position(var_assign_statement.name) << ", " << temp_register
+                << std::endl;
     m_generated << ";\tVariable Assigment " << var_assign_statement.name << " END" << std::endl << std::endl;
 }
 
@@ -341,13 +333,21 @@ void Generator::generate_statement_function_call(const ASTStatementFunctionCall&
     m_stack_size -= total_function_params_size;
 }
 
-int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {
-    // get variable position in the stack
-    int variable_stack_offset = m_stack_size - variable_data.stack_location_bytes;
-    // rsp was on the next FREE address, offset it back to the variable's position.
-    variable_stack_offset -= variable_data.size_bytes;
+std::string Generator::get_variable_memory_position(const std::string& variable_name) {
+    auto variable_data = assert_get_variable_data(variable_name);
 
-    return variable_stack_offset;
+    bool is_global = m_stack.is_variable_global(variable_name);
+
+    int offset = variable_data.stack_location_bytes + variable_data.size_bytes;
+
+    std::stringstream out;
+    if (is_global) {
+        out << "[" << "rbp" << " - " << offset << "]";
+    } else {
+        offset = m_stack_size - offset;
+        out << "[" << "rsp" << " + " << offset << "]";
+    }
+    return out.str();
 }
 
 Generator::Variable Generator::assert_get_variable_data(std::string variable_name) {
