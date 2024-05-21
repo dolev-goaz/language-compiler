@@ -320,15 +320,15 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
     m_stack.exitScope();
 }
 
-void Generator::generate_statement_function_call(const ASTStatementFunctionCall& function_call_statement) {
+void Generator::generate_expression_function_call(const ASTFunctionCallExpression& function_call_expr) {
     // push parameters to the stack before calling
     size_t total_function_params_size = 0;
-    for (auto& func_param : function_call_statement.parameters) {
+    for (auto& func_param : function_call_expr.parameters) {
         generate_expression(func_param);
         total_function_params_size += data_type_size_bytes.at(func_param.data_type);
     };
 
-    m_generated << "\tcall " << function_call_statement.function_name << std::endl;
+    m_generated << "\tcall " << function_call_expr.function_name << std::endl;
     m_generated << "\tadd rsp, " << total_function_params_size << std::endl;  // clear stack params
     m_stack_size -= total_function_params_size;
 }

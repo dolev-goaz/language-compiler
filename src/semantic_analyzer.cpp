@@ -53,6 +53,37 @@ struct SemanticAnalyzer::ExpressionVisitor {
         auto& inner_expression = *paren_expr.expression.get();
         return std::visit(SemanticAnalyzer::ExpressionVisitor{symbol_table}, inner_expression.expression);
     }
+
+    DataType operator()(const ASTFunctionCallExpression& function_call_expr) const {
+        auto& func_name = function_call_expr.function_name;
+        auto& start_token_meta = function_call_expr.start_token_meta;
+        if (analyzer->m_function_table.count(func_name) == 0) {
+            std::stringstream error;
+            error << "Unknown function " << func_name << ".";
+            throw SemanticAnalyzerException(error.str(), start_token_meta);
+        }
+        auto& function_expected_params = analyzer->m_function_table.at(function_call_expr.get()->function_name);
+        auto& provided_params = function_call_expr.get()->parameters;
+        if (provided_params.size() != function_expected_params.size()) {
+            std::stringstream error;
+            error << "Function " << func_name << " expected " << function_expected_params.size()
+                  << " parameters, instead got " << provided_params.size() << ".";
+            throw SemanticAnalyzerException(error.str(), start_token_meta);
+        }
+        for (size_t i = 0; i < provided_params.size(); ++i) {
+            provided_params[i].data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table},
+                                                      provided_params[i].expression);
+            if (provided_params[i].data_type == function_expected_params[i].data_type) {
+                // no type issues
+                continue;
+            }
+            auto& meta = provided_params[i].start_token_meta;
+            std::cout << "SEMANTIC WARNING AT "
+                      << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
+                      << ": Provided parameter of different data type. Data will be narrowed/widened." << std::endl;
+            provided_params[i].data_type = function_expected_params[i].data_type;
+        }
+    }
 };
 
 struct SemanticAnalyzer::StatementVisitor {
@@ -143,36 +174,6 @@ struct SemanticAnalyzer::StatementVisitor {
     void operator()(const std::shared_ptr<ASTStatementFunction>& function_statement) const {
         (void)function_statement;  // ignore unused
         assert(false && "Should never reach here. Function statements are to be parsed seperately");
-    }
-    void operator()(const std::shared_ptr<ASTStatementFunctionCall>& function_call_statement) const {
-        auto& func_name = function_call_statement.get()->function_name;
-        auto& start_token_meta = function_call_statement.get()->start_token_meta;
-        if (analyzer->m_function_table.count(func_name) == 0) {
-            std::stringstream error;
-            error << "Unknown function " << func_name << ".";
-            throw SemanticAnalyzerException(error.str(), start_token_meta);
-        }
-        auto& function_expected_params = analyzer->m_function_table.at(function_call_statement.get()->function_name);
-        auto& provided_params = function_call_statement.get()->parameters;
-        if (provided_params.size() != function_expected_params.size()) {
-            std::stringstream error;
-            error << "Function " << func_name << " expected " << function_expected_params.size()
-                  << " parameters, instead got " << provided_params.size() << ".";
-            throw SemanticAnalyzerException(error.str(), start_token_meta);
-        }
-        for (size_t i = 0; i < provided_params.size(); ++i) {
-            provided_params[i].data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table},
-                                                      provided_params[i].expression);
-            if (provided_params[i].data_type == function_expected_params[i].data_type) {
-                // no type issues
-                continue;
-            }
-            auto& meta = provided_params[i].start_token_meta;
-            std::cout << "SEMANTIC WARNING AT "
-                      << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
-                      << ": Provided parameter of different data type. Data will be narrowed/widened." << std::endl;
-            provided_params[i].data_type = function_expected_params[i].data_type;
-        }
     }
     void operator()(const std::shared_ptr<ASTStatementReturn>& return_statement) const {
         (void)return_statement;

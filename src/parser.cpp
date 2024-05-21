@@ -64,9 +64,27 @@ std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
             .start_token_meta = meta, .value = ASTIntLiteral{.start_token_meta = meta, .value = token.value.value()}});
     }
     if (test_peek(TokenType::identifier)) {
-        Token token = consume().value();
+        // TODO: could refactor this code to seperate methods
+        Token name = consume().value();
+        std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCallExpression> value;
+        if (test_peek(TokenType::open_paren)) {
+            // function call
+            consume();
+            auto params = parse_statement_function_call_params();
+            assert_consume(TokenType::close_paren, "Expected closing parenthesis ')' after functionc call");
+            value = ASTFunctionCallExpression{
+                .start_token_meta = name.meta,
+                .parameters = params,
+                .function_name = name.value.value(),
+            };
+        } else {
+            // variable
+            value = ASTIdentifier{.start_token_meta = meta, .value = name.value.value()};
+        }
         return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression{
-            .start_token_meta = meta, .value = ASTIdentifier{.start_token_meta = meta, .value = token.value.value()}});
+            .start_token_meta = meta,
+            .value = value,
+        });
     }
     if (test_peek(TokenType::open_paren)) {
         consume();  // consume open paren '('
@@ -336,22 +354,6 @@ std::vector<ASTFunctionParam> Parser::parse_function_params() {
     return parameters;
 }
 
-std::shared_ptr<ASTStatementFunctionCall> Parser::parse_statement_function_call() {
-    if (!(test_peek(TokenType::identifier, 0) && test_peek(TokenType::open_paren, 1))) {
-        return nullptr;
-    }
-    auto func_name_token = consume().value();
-    consume();  // consume '('
-    auto params = parse_statement_function_call_params();
-    assert_consume(TokenType::close_paren, "Expected closing parenthesis ')'");
-    assert_consume(TokenType::semicol, "Expected semicolon ';'");
-    return std::make_shared<ASTStatementFunctionCall>(ASTStatementFunctionCall{
-        .start_token_meta = func_name_token.meta,
-        .parameters = params,
-        .function_name = func_name_token.value.value(),
-    });
-}
-
 std::vector<ASTExpression> Parser::parse_statement_function_call_params() {
     std::vector<ASTExpression> parameters;
     while (peek().has_value() && peek().value().type != TokenType::close_paren) {
@@ -432,11 +434,6 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
     if (auto func_statement = parse_statement_function(); func_statement != nullptr) {
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(func_statement)});
-    }
-
-    if (auto func_call_statement = parse_statement_function_call(); func_call_statement != nullptr) {
-        return std::make_shared<ASTStatement>(
-            ASTStatement{.start_token_meta = meta, .statement = std::move(func_call_statement)});
     }
 
     if (auto return_statement = parse_statement_return(); return_statement != nullptr) {
