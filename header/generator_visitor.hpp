@@ -26,8 +26,7 @@ struct Generator::StatementVisitor {
         generator.generate_statement_function(*function_statement.get());
     }
     void operator()(const std::shared_ptr<ASTStatementReturn>& return_statement) const {
-        (void)return_statement;
-        assert(false && "Not implemented generation for return statement");
+        generator.generate_statement_return(*return_statement.get());
     }
 };
 

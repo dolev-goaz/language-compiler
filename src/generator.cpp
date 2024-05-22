@@ -320,10 +320,16 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
     m_stack.exitScope();
 }
 
+void Generator::generate_statement_return(const ASTStatementReturn& return_statement) {
+    (void)return_statement;
+    assert(false && "Not implemented generation for return statement");
+}
+
 void Generator::generate_expression_function_call(const ASTFunctionCallExpression& function_call_expr) {
     size_t return_type_size = data_type_size_bytes.at(function_call_expr.return_data_type);
     if (return_type_size) {
         m_generated << "\tsub rsp, " << return_type_size << std::endl;  // allocate stack for return param
+        m_generated << "\tlea rdi, [rsp]" << std::endl;                 // return data location
         m_stack_size += return_type_size;
     }
     // push parameters to the stack before calling
