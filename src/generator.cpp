@@ -321,6 +321,7 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
 }
 
 void Generator::generate_statement_return(const ASTStatementReturn& return_statement) {
+    m_generated << "; BEGIN RETURN STATEMENT" << std::endl;
     generate_expression(return_statement.expression);
     size_t return_size_bytes = data_type_size_bytes.at(return_statement.expression.data_type);
     auto& reg = size_bytes_to_register.at(return_size_bytes);
@@ -329,40 +330,40 @@ void Generator::generate_statement_return(const ASTStatementReturn& return_state
     pop_stack_register(reg, return_size_bytes);
     m_generated << "\tmov [rdi], " << reg << std::endl;
     m_generated << "\tret" << std::endl;
+    m_generated << "; END RETURN STATEMENT" << std::endl;
 }
 
 void Generator::generate_expression_function_call(const ASTFunctionCallExpression& function_call_expr) {
     size_t return_type_size = data_type_size_bytes.at(function_call_expr.return_data_type);
     if (return_type_size) {
+        m_generated << "; BEGIN PREPARE RETURN LOCATION INTO RDI" << std::endl;
+        push_stack_register("rdi", 8);
         m_generated << "\tsub rsp, " << return_type_size << std::endl;  // allocate stack for return param
         m_generated << "\tlea rdi, [rsp]" << std::endl;                 // return data location
         m_stack_size += return_type_size;
+        m_generated << "; END PREPARE RETURN LOCATION INTO RDI" << std::endl;
     }
     // push parameters to the stack before calling
+    m_generated << "; BEGIN OF FUNCTION PARAMATERS FOR " << function_call_expr.function_name << std::endl;
     size_t total_function_params_size = 0;
     for (auto& func_param : function_call_expr.parameters) {
         generate_expression(func_param);
         total_function_params_size += data_type_size_bytes.at(func_param.data_type);
     };
+    m_generated << "; END OF FUNCTION PARAMATERS FOR " << function_call_expr.function_name << std::endl;
 
     m_generated << "\tcall " << function_call_expr.function_name << std::endl;
-    m_generated << "\tadd rsp, " << total_function_params_size << std::endl;  // clear stack params
-    m_stack_size -= total_function_params_size;
+    m_generated << "\tadd rsp, " << total_function_params_size << "; CLEAR FUNCTION PARAMATERS FOR "
+                << function_call_expr.function_name << std::endl;  // clear stack params
     if (return_type_size) {
-        // returned value is in [rsp]
-        // NOTE: for now this doesnt work for structure return type
-
-        // TODO: make sure if this is necessary, as the return type is already on top of the stack
-
-        /*
-        auto& keyword = size_bytes_to_size_keyword.at(return_type_size);
-        auto& reg = size_bytes_to_register.at(return_type_size);
-        m_generated << "\tmov " << reg << ", " << keyword << " [rsp]" << std::endl;
-        m_generated << "\tadd rsp, " << return_type_size << std::endl;
-        m_stack_size -= return_type_size;
+        std::string& reg = size_bytes_to_register.at(return_type_size);
+        pop_stack_register(reg, return_type_size);
+        pop_stack_register("rdi", 8);
         push_stack_register(reg, return_type_size);
-        */
+    } else {
+        pop_stack_register("rdi", 8);
     }
+    m_stack_size -= total_function_params_size;
 }
 
 std::string Generator::get_variable_memory_position(const std::string& variable_name) {
