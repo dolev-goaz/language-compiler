@@ -321,8 +321,14 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
 }
 
 void Generator::generate_statement_return(const ASTStatementReturn& return_statement) {
-    (void)return_statement;
-    assert(false && "Not implemented generation for return statement");
+    generate_expression(return_statement.expression);
+    size_t return_size_bytes = data_type_size_bytes.at(return_statement.expression.data_type);
+    auto& reg = size_bytes_to_register.at(return_size_bytes);
+
+    // NOTE: this only works for primitives for now
+    pop_stack_register(reg, return_size_bytes);
+    m_generated << "\tmov [rdi], " << reg << std::endl;
+    m_generated << "\tret" << std::endl;
 }
 
 void Generator::generate_expression_function_call(const ASTFunctionCallExpression& function_call_expr) {
