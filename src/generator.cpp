@@ -333,7 +333,8 @@ void Generator::generate_statement_return(const ASTStatementReturn& return_state
     m_generated << "; END RETURN STATEMENT" << std::endl;
 }
 
-void Generator::generate_expression_function_call(const ASTFunctionCallExpression& function_call_expr) {
+void Generator::generate_expression_function_call(const ASTFunctionCallExpression& function_call_expr,
+                                                  size_t size_bytes) {
     size_t return_type_size = data_type_size_bytes.at(function_call_expr.return_data_type);
     if (return_type_size) {
         m_generated << "; BEGIN PREPARE RETURN LOCATION INTO RDI" << std::endl;
@@ -356,10 +357,11 @@ void Generator::generate_expression_function_call(const ASTFunctionCallExpressio
     m_generated << "\tadd rsp, " << total_function_params_size << "; CLEAR FUNCTION PARAMATERS FOR "
                 << function_call_expr.function_name << std::endl;  // clear stack params
     if (return_type_size) {
-        std::string& reg = size_bytes_to_register.at(return_type_size);
-        pop_stack_register(reg, return_type_size);
+        pop_stack_register("rax", return_type_size);
         pop_stack_register("rdi", 8);
-        push_stack_register(reg, return_type_size);
+
+        std::string& reg = size_bytes_to_register.at(size_bytes);
+        push_stack_register(reg, size_bytes);
     } else {
         pop_stack_register("rdi", 8);
     }

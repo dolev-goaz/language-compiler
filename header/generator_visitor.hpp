@@ -54,6 +54,6 @@ struct Generator::ExpressionVisitor {
     }
 
     void operator()(const ASTFunctionCallExpression& function_call_expr) const {
-        generator.generate_expression_function_call(function_call_expr);
+        generator.generate_expression_function_call(function_call_expr, size);
     }
 };
