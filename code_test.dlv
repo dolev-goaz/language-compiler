@@ -1,10 +1,10 @@
 
 int_16 n = 5;
-factorial(n);
+int_64 total = factorial(n);
 
-exit(n);
+exit(total);
 
-func factorial(int_16 y) {
+func int_64 factorial(int_16 y) {
     if (y){
         return y * factorial(y - 1);
     } else {

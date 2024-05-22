@@ -76,6 +76,7 @@ std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
                 .start_token_meta = name.meta,
                 .parameters = params,
                 .function_name = name.value.value(),
+                .return_data_type = DataType::NONE,
             };
         } else {
             // variable

@@ -88,7 +88,7 @@ struct SemanticAnalyzer::ExpressionVisitor {
                       << ": Provided parameter of different data type. Data will be narrowed/widened." << std::endl;
             provided_params[i].data_type = function_expected_params[i].data_type;
         }
-
+        function_call_expr.return_data_type = function_header_data.data_type;
         return function_header_data.data_type;
     }
 };

@@ -50,6 +50,7 @@ struct ASTFunctionCallExpression {
     TokenMeta start_token_meta;
     std::vector<ASTExpression> parameters;
     std::string function_name;
+    DataType return_data_type;
 };
 
 struct ASTAtomicExpression {
