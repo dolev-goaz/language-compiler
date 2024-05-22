@@ -321,6 +321,11 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
 }
 
 void Generator::generate_expression_function_call(const ASTFunctionCallExpression& function_call_expr) {
+    size_t return_type_size = data_type_size_bytes.at(function_call_expr.return_data_type);
+    if (return_type_size) {
+        m_generated << "\tsub rsp, " << return_type_size << std::endl;  // allocate stack for return param
+        m_stack_size += return_type_size;
+    }
     // push parameters to the stack before calling
     size_t total_function_params_size = 0;
     for (auto& func_param : function_call_expr.parameters) {
@@ -331,6 +336,21 @@ void Generator::generate_expression_function_call(const ASTFunctionCallExpressio
     m_generated << "\tcall " << function_call_expr.function_name << std::endl;
     m_generated << "\tadd rsp, " << total_function_params_size << std::endl;  // clear stack params
     m_stack_size -= total_function_params_size;
+    if (return_type_size) {
+        // returned value is in [rsp]
+        // NOTE: for now this doesnt work for structure return type
+
+        // TODO: make sure if this is necessary, as the return type is already on top of the stack
+
+        /*
+        auto& keyword = size_bytes_to_size_keyword.at(return_type_size);
+        auto& reg = size_bytes_to_register.at(return_type_size);
+        m_generated << "\tmov " << reg << ", " << keyword << " [rsp]" << std::endl;
+        m_generated << "\tadd rsp, " << return_type_size << std::endl;
+        m_stack_size -= return_type_size;
+        push_stack_register(reg, return_type_size);
+        */
+    }
 }
 
 std::string Generator::get_variable_memory_position(const std::string& variable_name) {

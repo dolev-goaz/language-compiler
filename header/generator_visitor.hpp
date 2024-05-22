@@ -55,7 +55,6 @@ struct Generator::ExpressionVisitor {
     }
 
     void operator()(const ASTFunctionCallExpression& function_call_expr) const {
-        assert(false && "Didn't reimplement function call yet");
         generator.generate_expression_function_call(function_call_expr);
     }
 };
