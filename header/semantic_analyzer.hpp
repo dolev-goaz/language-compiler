@@ -38,6 +38,8 @@ class SemanticAnalyzer {
     void analyze_function_body(ASTStatementFunction& func);
     void analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements, std::string function_name = "");
     void analyze_function_param(ASTFunctionParam& param);
+    
+    bool is_int_literal(ASTExpression& expression);
 
     ASTProgram m_prog;
     SymbolTable::SemanticScopeStack m_symbol_table;
