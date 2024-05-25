@@ -25,6 +25,7 @@ class Generator {
     void generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes);
     void generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes);
     void generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes);
+    void generate_expression_function_call(const ASTFunctionCallExpression& function_call_expr, size_t size_bytes);
 
     void generate_statement_exit(const ASTStatementExit& exit_statement);
     void generate_statement_var_declare(const ASTStatementVar& var_statement);
@@ -33,7 +34,7 @@ class Generator {
     void generate_statement_if(const ASTStatementIf& if_statement);
     void generate_statement_while(const ASTStatementWhile& while_statement);
     void generate_statement_function(const ASTStatementFunction& function_statement);
-    void generate_statement_function_call(const ASTStatementFunctionCall& function_call_statement);
+    void generate_statement_return(const ASTStatementReturn& return_statement);
 
     void enter_scope();
     void exit_scope();

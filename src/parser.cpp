@@ -64,9 +64,28 @@ std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
             .start_token_meta = meta, .value = ASTIntLiteral{.start_token_meta = meta, .value = token.value.value()}});
     }
     if (test_peek(TokenType::identifier)) {
-        Token token = consume().value();
+        // TODO: could refactor this code to seperate methods
+        Token name = consume().value();
+        std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCallExpression> value;
+        if (test_peek(TokenType::open_paren)) {
+            // function call
+            consume();
+            auto params = parse_statement_function_call_params();
+            assert_consume(TokenType::close_paren, "Expected closing parenthesis ')' after functionc call");
+            value = ASTFunctionCallExpression{
+                .start_token_meta = name.meta,
+                .parameters = params,
+                .function_name = name.value.value(),
+                .return_data_type = DataType::NONE,
+            };
+        } else {
+            // variable
+            value = ASTIdentifier{.start_token_meta = meta, .value = name.value.value()};
+        }
         return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression{
-            .start_token_meta = meta, .value = ASTIdentifier{.start_token_meta = meta, .value = token.value.value()}});
+            .start_token_meta = meta,
+            .value = value,
+        });
     }
     if (test_peek(TokenType::open_paren)) {
         consume();  // consume open paren '('
@@ -298,6 +317,7 @@ std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
         return nullptr;
     }
     auto statement_begin_meta = consume().value().meta;
+    auto return_data_type = assert_consume(TokenType::identifier, "Expected data type");
     auto func_name = assert_consume(TokenType::identifier, "Expected function name");
     assert_consume(TokenType::open_paren, "Expected '(' after function name");
 
@@ -314,6 +334,8 @@ std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
         .name = func_name.value.value(),
         .parameters = parameters,
         .statement = statement,
+        .return_data_type_str = return_data_type.value.value(),
+        .return_data_type = DataType::NONE,
     });
 }
 std::vector<ASTFunctionParam> Parser::parse_function_params() {
@@ -336,22 +358,6 @@ std::vector<ASTFunctionParam> Parser::parse_function_params() {
     return parameters;
 }
 
-std::shared_ptr<ASTStatementFunctionCall> Parser::parse_statement_function_call() {
-    if (!(test_peek(TokenType::identifier, 0) && test_peek(TokenType::open_paren, 1))) {
-        return nullptr;
-    }
-    auto func_name_token = consume().value();
-    consume();  // consume '('
-    auto params = parse_statement_function_call_params();
-    assert_consume(TokenType::close_paren, "Expected closing parenthesis ')'");
-    assert_consume(TokenType::semicol, "Expected semicolon ';'");
-    return std::make_shared<ASTStatementFunctionCall>(ASTStatementFunctionCall{
-        .start_token_meta = func_name_token.meta,
-        .parameters = params,
-        .function_name = func_name_token.value.value(),
-    });
-}
-
 std::vector<ASTExpression> Parser::parse_statement_function_call_params() {
     std::vector<ASTExpression> parameters;
     while (peek().has_value() && peek().value().type != TokenType::close_paren) {
@@ -372,6 +378,22 @@ std::vector<ASTExpression> Parser::parse_statement_function_call_params() {
     }
 
     return parameters;
+}
+
+std::shared_ptr<ASTStatementReturn> Parser::parse_statement_return() {
+    if (!test_peek(TokenType::_return)) {
+        return nullptr;
+    }
+    auto statement_begin_meta = consume().value().meta;
+    auto expression = parse_expression();
+    if (!expression.has_value()) {
+        throw ParserException("Expected expression after 'return'", statement_begin_meta);
+    }
+    assert_consume(TokenType::semicol, "Expected semicolon ';' after return statement");
+    return std::make_shared<ASTStatementReturn>(ASTStatementReturn{
+        .start_token_meta = statement_begin_meta,
+        .expression = expression.value(),
+    });
 }
 
 // throws ParserException if couldn't parse statement
@@ -418,9 +440,9 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
             ASTStatement{.start_token_meta = meta, .statement = std::move(func_statement)});
     }
 
-    if (auto func_call_statement = parse_statement_function_call(); func_call_statement != nullptr) {
+    if (auto return_statement = parse_statement_return(); return_statement != nullptr) {
         return std::make_shared<ASTStatement>(
-            ASTStatement{.start_token_meta = meta, .statement = std::move(func_call_statement)});
+            ASTStatement{.start_token_meta = meta, .statement = std::move(return_statement)});
     }
 
     // fallback- no matching statement found

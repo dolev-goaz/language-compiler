@@ -45,9 +45,17 @@ struct ASTParenthesisExpression {
     std::shared_ptr<ASTExpression> expression;
 };
 
+// TODO: when adding return values, this should be an expression
+struct ASTFunctionCallExpression {
+    TokenMeta start_token_meta;
+    std::vector<ASTExpression> parameters;
+    std::string function_name;
+    DataType return_data_type;
+};
+
 struct ASTAtomicExpression {
     TokenMeta start_token_meta;
-    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression> value;
+    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCallExpression> value;
 };
 
 struct ASTBinExpression {
@@ -112,15 +120,16 @@ struct ASTFunctionParam {
 struct ASTStatementFunction {
     TokenMeta start_token_meta;
     std::string name;
-    std::vector<ASTFunctionParam> parameters;  // TODO: temporarily commented, functions have no parameters
-    std::shared_ptr<ASTStatement> statement;  // TODO: this should be a unique statement, holding a return value as well
+    std::vector<ASTFunctionParam> parameters;
+    std::shared_ptr<ASTStatement> statement;
+
+    std::string return_data_type_str;
+    DataType return_data_type;
 };
 
-// TODO: when adding return values, this should be an expression
-struct ASTStatementFunctionCall {
+struct ASTStatementReturn {
     TokenMeta start_token_meta;
-    std::vector<ASTExpression> parameters;
-    std::string function_name;
+    ASTExpression expression;
 };
 
 struct ASTStatement {
@@ -128,7 +137,7 @@ struct ASTStatement {
     std::variant<std::shared_ptr<ASTStatementExit>, std::shared_ptr<ASTStatementVar>,
                  std::shared_ptr<ASTStatementScope>, std::shared_ptr<ASTStatementIf>,
                  std::shared_ptr<ASTStatementAssign>, std::shared_ptr<ASTStatementWhile>,
-                 std::shared_ptr<ASTStatementFunction>, std::shared_ptr<ASTStatementFunctionCall>>
+                 std::shared_ptr<ASTStatementFunction>, std::shared_ptr<ASTStatementReturn>>
         statement;
 };
 
