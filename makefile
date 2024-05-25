@@ -15,7 +15,7 @@ HEADER_DIR = header
 OBJ_DIR = obj
 
 # Source files
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+SRCS = $(shell find $(SRC_DIR) -name '*.cpp')
 
 # Object files (automatically generated in the obj folder)
 OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
