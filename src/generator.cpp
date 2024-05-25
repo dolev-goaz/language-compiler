@@ -36,7 +36,7 @@ std::string Generator::generate_program() {
     m_generated << std::endl << "; default program end" << std::endl;
     m_generated << "\tmov rax, 60" << std::endl;
     m_generated << "\tmov rdi, 0; status code 0- OK" << std::endl;
-    m_generated << "\tsyscall";
+    m_generated << "\tsyscall" << std::endl;
 
     // generate all functions at the end of the file
     for (size_t i = 0; i < m_prog.functions.size(); ++i) {
@@ -312,7 +312,12 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
 
     m_generated << std::endl << "; BEGIN OF FUNCTION '" << function_statement.name << "'" << std::endl;
     m_generated << function_statement.name << ":" << std::endl;
+    push_stack_register("rbp", 8);                 // store the previous stack frame
+    m_generated << "\tmov rbp, rsp" << std::endl;  // this is the current stack frame
     generate_statement(*function_statement.statement.get());
+    m_generated << ".return:" << std::endl;
+    m_generated << "\tmov rsp, rbp" << std::endl;  // return the stack to its previous state
+    pop_stack_register("rbp", 8);                  // restore the previous stack frame
     m_generated << "\tret" << std::endl;
     m_generated << "; END OF FUNCTION '" << function_statement.name << "'" << std::endl << std::endl;
 
@@ -329,7 +334,7 @@ void Generator::generate_statement_return(const ASTStatementReturn& return_state
     // NOTE: this only works for primitives for now
     pop_stack_register(reg, return_size_bytes);
     m_generated << "\tmov [rdi], " << reg << std::endl;
-    m_generated << "\tret" << std::endl;
+    m_generated << "\tjmp .return" << std::endl;
     m_generated << "; END RETURN STATEMENT" << std::endl;
 }
 

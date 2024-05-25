@@ -1,14 +1,14 @@
 
-int_16 n = 1;
+int_64 n = 5;
 int_64 total = factorial(n);
 
 exit(total);
 
 // TODO: figure out why its bugged with int_16 param datatype/return datatype
-func int_16 factorial(int_64 y) {
+func int_64 factorial(int_64 y) {
+    int_64 x;
     if (y){
-        int_16 temp = factorial(y - 1);
-        return temp;
+        return y * factorial(y - 1);
     } else {
         return 1;
     }
