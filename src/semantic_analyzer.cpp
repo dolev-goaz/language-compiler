@@ -135,8 +135,12 @@ struct SemanticAnalyzer::StatementVisitor {
             std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table, analyzer->m_function_table},
                        expression.expression);
         // IN THE FUTURE: when there are more types, check for type compatibility
-        if (rhs_data_type > data_type) {
-            // type narrowing
+        if (rhs_data_type != data_type) {
+            // type narrowing/widening
+            std::cout << "SEMANTIC WARNING AT "
+                      << Globals::getInstance().getCurrentFilePosition(start_token_meta.line_num,
+                                                                       start_token_meta.line_pos)
+                      << ": Assignment operation of different data types. Data will be narrowed/widened." << std::endl;
             rhs_data_type = data_type;
         }
         expression.data_type = rhs_data_type;

@@ -49,7 +49,7 @@ class Generator {
     void push_stack_register(const std::string& reg, size_t size);
 
     // pop from the stack into a register
-    void pop_stack_register(const std::string& reg, size_t size);
+    void pop_stack_register(const std::string& reg, size_t register_size, size_t requested_size);
 
     std::stringstream m_generated;
     const ASTProgram m_prog;

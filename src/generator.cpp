@@ -58,19 +58,19 @@ void Generator::push_stack_register(const std::string& reg, size_t size) {
     m_generated << "\tpush " << reg << std::endl;
     m_stack_size += size;
 }
-void Generator::pop_stack_register(const std::string& reg, size_t size) {
-    if (size == 8) {
+void Generator::pop_stack_register(const std::string& reg, size_t register_size, size_t requested_size) {
+    if (requested_size == register_size) {
         m_generated << "\tpop " << reg << std::endl;
     } else {
-        std::string size_keyword = size_bytes_to_size_keyword.at(size);
+        std::string size_keyword = size_bytes_to_size_keyword.at(requested_size);
         // popping non-qword from the stack. so we read from the stack(0-filled)
         // and then update the stack pointer, effectively manually popping from the stack
         m_generated << ";\tManual POP BEGIN" << std::endl;
         m_generated << "\tmovsx " << reg << ", " << size_keyword << " " << "[rsp]" << std::endl;
-        m_generated << "\tadd rsp, " << size << std::endl;
+        m_generated << "\tadd rsp, " << requested_size << std::endl;
         m_generated << ";\tManual POP END" << std::endl;
     }
-    m_stack_size -= size;
+    m_stack_size -= requested_size;
 }
 
 // --------- expression generation
@@ -141,8 +141,8 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
     size_t lhs_size_bytes = data_type_size_bytes.at(lhsExp.data_type);
     generate_expression(lhsExp);
     generate_expression(rhsExp);
-    pop_stack_register("rbx", rhs_size_bytes);  // rbx = rhs
-    pop_stack_register("rax", lhs_size_bytes);  // rax = lhs
+    pop_stack_register("rbx", 8, rhs_size_bytes);  // rbx = rhs
+    pop_stack_register("rax", 8, lhs_size_bytes);  // rax = lhs
     switch (binary.get()->operation) {
         case BinOperation::add:
             m_generated << "\tadd rax, rbx; rax += rbx" << std::endl;  // rax = rax + rbx
@@ -183,7 +183,7 @@ void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) 
     m_generated << "\tmov rax, 60" << std::endl;
 
     size_t size = data_type_size_bytes.at(exit_statement.status_code.data_type);
-    pop_stack_register("rdi", size);
+    pop_stack_register("rdi", 8, size);
     m_generated << "\tsyscall" << std::endl;
 }
 
@@ -197,7 +197,7 @@ void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_
 
     // NOTE: assumes 'size_bytes_to_register' holds registers rax, eax, ax, al
     // popping to the largest register to allow data widening if necessary, up to 8 bytes
-    pop_stack_register("rax", expression_size_bytes);
+    pop_stack_register("rax", 8, expression_size_bytes);
     std::string& temp_register = size_bytes_to_register.at(variableData.size_bytes);
     m_generated << "\tmov " << get_variable_memory_position(var_assign_statement.name) << ", " << temp_register
                 << std::endl;
@@ -255,7 +255,7 @@ void Generator::generate_statement_if(const ASTStatementIf& if_statement) {
     auto& fail_statement = if_statement.fail_statement;
     size_t size_bytes = data_type_size_bytes.at(expression.data_type);
     generate_expression(expression);
-    pop_stack_register("rax", size_bytes);  // rax = lhs
+    pop_stack_register("rax", 8, size_bytes);  // rax = lhs
     m_generated << "\ttest rax, rax" << std::endl
                 << "\tjz " << after_if_label.str() << "; if the expression is false-y, skip the 'if' block's statements"
                 << std::endl;
@@ -286,7 +286,7 @@ void Generator::generate_statement_while(const ASTStatementWhile& while_statemen
 
     m_generated << before_while_label.str() << ":" << std::endl;
     generate_expression(expression);
-    pop_stack_register("rax", size_bytes);  // rax = lhs
+    pop_stack_register("rax", 8, size_bytes);  // rax = lhs
     m_generated << "\ttest rax, rax" << std::endl
                 << "\tjz " << after_while_label.str()
                 << "; if the expression is false-y, skip the 'while' block's statements" << std::endl;
@@ -317,7 +317,7 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
     generate_statement(*function_statement.statement.get());
     m_generated << ".return:" << std::endl;
     m_generated << "\tmov rsp, rbp" << std::endl;  // return the stack to its previous state
-    pop_stack_register("rbp", 8);                  // restore the previous stack frame
+    pop_stack_register("rbp", 8, 8);               // restore the previous stack frame
     m_generated << "\tret" << std::endl;
     m_generated << "; END OF FUNCTION '" << function_statement.name << "'" << std::endl << std::endl;
 
@@ -332,7 +332,7 @@ void Generator::generate_statement_return(const ASTStatementReturn& return_state
     auto& reg = size_bytes_to_register.at(return_size_bytes);
 
     // NOTE: this only works for primitives for now
-    pop_stack_register(reg, return_size_bytes);
+    pop_stack_register(reg, return_size_bytes, return_size_bytes);
     m_generated << "\tmov [rdi], " << reg << std::endl;
     m_generated << "\tjmp .return" << std::endl;
     m_generated << "; END RETURN STATEMENT" << std::endl;
@@ -362,13 +362,13 @@ void Generator::generate_expression_function_call(const ASTFunctionCallExpressio
     m_generated << "\tadd rsp, " << total_function_params_size << "; CLEAR FUNCTION PARAMATERS FOR "
                 << function_call_expr.function_name << std::endl;  // clear stack params
     if (return_type_size) {
-        pop_stack_register("rax", return_type_size);
-        pop_stack_register("rdi", 8);
+        pop_stack_register("rax", 8, return_type_size);
+        pop_stack_register("rdi", 8, 8);
 
         std::string& reg = size_bytes_to_register.at(size_bytes);
         push_stack_register(reg, size_bytes);
     } else {
-        pop_stack_register("rdi", 8);
+        pop_stack_register("rdi", 8, 8);
     }
     m_stack_size -= total_function_params_size;
 }
