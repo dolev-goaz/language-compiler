@@ -18,6 +18,12 @@ bool SemanticAnalyzer::is_int_literal(ASTExpression& expression) {
     return std::holds_alternative<ASTIntLiteral>(atomic.value);
 }
 
+void SemanticAnalyzer::semantic_warning(const std::string& message, const TokenMeta& position) {
+    std::cout << "SEMANTIC WARNING AT "
+              << Globals::getInstance().getCurrentFilePosition(position.line_num, position.line_pos) << ": " << message
+              << std::endl;
+}
+
 struct SemanticAnalyzer::ExpressionVisitor {
     SemanticAnalyzer* analyzer;
     DataType operator()(ASTIdentifier& identifier) const {
@@ -48,9 +54,7 @@ struct SemanticAnalyzer::ExpressionVisitor {
         // if rhs or lhs are int literals, no need for data narrowing warnings
         if ((lhs_data_type != rhs_data_type) && (!analyzer->is_int_literal(lhs) && !analyzer->is_int_literal(rhs))) {
             auto& meta = binExpr.get()->start_token_meta;
-            std::cout << "SEMANTIC WARNING AT "
-                      << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
-                      << ": Binary operation of different data types. Data will be narrowed." << std::endl;
+            semantic_warning("Binary operation of different data types. Data will be narrowed.", meta);
         }
 
         // type narrowing
@@ -89,10 +93,11 @@ struct SemanticAnalyzer::ExpressionVisitor {
                 // no type issues
                 continue;
             }
-            auto& meta = provided_params[i].start_token_meta;
-            std::cout << "SEMANTIC WARNING AT "
-                      << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
-                      << ": Provided parameter of different data type. Data will be narrowed/widened." << std::endl;
+
+            if (!analyzer->is_int_literal(provided_params[i])) {
+                auto& meta = provided_params[i].start_token_meta;
+                semantic_warning("Provided parameter of different data type. Data will be narrowed/widened.", meta);
+            }
             provided_params[i].data_type = function_expected_params[i].data_type;
         }
         function_call_expr.return_data_type = function_header_data.data_type;
@@ -141,11 +146,8 @@ struct SemanticAnalyzer::StatementVisitor {
         if (rhs_data_type != data_type) {
             // type narrowing/widening
             if (!analyzer->is_int_literal(expression)) {
-                std::cout << "SEMANTIC WARNING AT "
-                          << Globals::getInstance().getCurrentFilePosition(start_token_meta.line_num,
-                                                                           start_token_meta.line_pos)
-                          << ": Assignment operation of different data types. Data will be narrowed/widened."
-                          << std::endl;
+                semantic_warning("Assignment operation of different data types. Data will be narrowed/widened.",
+                                 start_token_meta);
             }
             // if rhs is int literal we can just cast it, no need to warn about it
             rhs_data_type = data_type;
@@ -164,9 +166,9 @@ struct SemanticAnalyzer::StatementVisitor {
         }
         expression.data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer}, expression.expression);
         if (expression.data_type != variableData.data_type) {
-            std::cout << "SEMANTIC WARNING AT "
-                      << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
-                      << ": Assignment operation of different data types. Data will be narrowed/widened." << std::endl;
+            if (!analyzer->is_int_literal(expression)) {
+                semantic_warning("Assignment operation of different data types. Data will be narrowed/widened.", meta);
+            }
             expression.data_type = variableData.data_type;
         }
     }
@@ -208,11 +210,9 @@ struct SemanticAnalyzer::StatementVisitor {
         expression.data_type = std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer}, expression.expression);
         if (expression.data_type != function_header.data_type) {
             if (!analyzer->is_int_literal(expression)) {
-                std::cout << "SEMANTIC WARNING AT "
-                          << Globals::getInstance().getCurrentFilePosition(meta.line_num, meta.line_pos)
-                          << ": return statement with different datatype of function return type. Data will be "
-                             "narrowed/widened."
-                          << std::endl;
+                semantic_warning(
+                    "Return statement with different datatype of function return type. Data will be narrowed/widened.",
+                    meta);
             }
             expression.data_type = function_header.data_type;
         }
