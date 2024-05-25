@@ -21,6 +21,7 @@ struct Variable {
 struct FunctionHeader {
     TokenMeta start_token_meta;
     DataType data_type;
+    bool found_return_statement;
     std::vector<ASTFunctionParam> parameters;
 };
 using SemanticScopeStack = ScopeStack<Variable>;

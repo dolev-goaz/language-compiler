@@ -198,6 +198,7 @@ struct SemanticAnalyzer::StatementVisitor {
         }
         auto& meta = return_statement.get()->start_token_meta;
         auto& function_header = analyzer->m_function_table.at(function_name);
+        function_header.found_return_statement = true;
         auto& expression = return_statement.get()->expression;
         expression.data_type =
             std::visit(SemanticAnalyzer::ExpressionVisitor{analyzer->m_symbol_table, analyzer->m_function_table},
@@ -247,6 +248,7 @@ void SemanticAnalyzer::analyze_function_header(ASTStatementFunction& func) {
     SymbolTable::FunctionHeader function_header = {
         .start_token_meta = func.start_token_meta,
         .data_type = func.return_data_type,
+        .found_return_statement = false,
         .parameters = func.parameters,
     };
     m_function_table.emplace(func.name, function_header);
@@ -267,6 +269,12 @@ void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
     std::visit(SemanticAnalyzer::StatementVisitor{.analyzer = this, .function_name = func.name},
                func.statement.get()->statement);
     m_symbol_table.exitScope();
+    auto& function_header = m_function_table.at(func.name);
+    // TODO: handle void datatype
+    // TODO: should handle all execution paths
+    if (!function_header.found_return_statement) {
+        throw SemanticAnalyzerException("Return statement not found", function_header.start_token_meta);
+    }
 }
 
 void SemanticAnalyzer::analyze() {
