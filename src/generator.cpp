@@ -22,19 +22,29 @@ std::map<size_t, std::string> size_bytes_to_register = {
 
 std::string Generator::generate_program() {
     m_generated << "global main" << std::endl << "main:" << std::endl;
+    m_generated << "\tmov rbp, rsp" << std::endl << std::endl;
 
     m_stack.enterScope();
+    // generate all statements
+    // TODO: store initial rsp, to allow access to global variables(outside functions)
     for (size_t i = 0; i < m_prog.statements.size(); ++i) {
         auto current = m_prog.statements[i].get();
         generate_statement(*current);
     }
-    m_stack.exitScope();
 
     // default exit statement
     m_generated << std::endl << "; default program end" << std::endl;
     m_generated << "\tmov rax, 60" << std::endl;
     m_generated << "\tmov rdi, 0; status code 0- OK" << std::endl;
-    m_generated << "\tsyscall";
+    m_generated << "\tsyscall" << std::endl;
+
+    // generate all functions at the end of the file
+    for (size_t i = 0; i < m_prog.functions.size(); ++i) {
+        auto current = m_prog.functions[i].get();
+        generate_statement_function(*current);
+    }
+    m_stack.exitScope();
+
     return m_generated.str();
 }
 
@@ -43,43 +53,24 @@ void Generator::push_stack_literal(const std::string& value, size_t size) {
     m_generated << "\tpush " << size_keyword << " " << value << std::endl;
     m_stack_size += size;
 }
-void Generator::push_stack_offset(int offset, size_t data_size, size_t requested_size) {
-    // reading a value from the an arbitrary point in the stack, then pushing that value
-    // to the top of the stack.
-
-    // NOTE: assumes that if theres type-changing, it is narrowing
-    // to handle type-widening, we need to first clear the entire a register before writing to it,
-    // and then zero/sign filling it with the data we read from the stack.
-    std::string original_size_keyword = size_bytes_to_size_keyword.at(data_size);
-    std::string original_data_reg = size_bytes_to_register.at(data_size);
-    std::string requested_data_reg = size_bytes_to_register.at(requested_size);
-
-    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rsp + " << offset << "]"
-                << std::endl;
-
-    // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
-    // probably just don't support 8-bit variables, lol
-    m_generated << "\tpush " << requested_data_reg << std::endl;
-    m_stack_size += requested_size;
-}
 
 void Generator::push_stack_register(const std::string& reg, size_t size) {
     m_generated << "\tpush " << reg << std::endl;
     m_stack_size += size;
 }
-void Generator::pop_stack_register(const std::string& reg, size_t size) {
-    if (size == 8) {
+void Generator::pop_stack_register(const std::string& reg, size_t register_size, size_t requested_size) {
+    if (requested_size == register_size) {
         m_generated << "\tpop " << reg << std::endl;
     } else {
-        std::string size_keyword = size_bytes_to_size_keyword.at(size);
+        std::string size_keyword = size_bytes_to_size_keyword.at(requested_size);
         // popping non-qword from the stack. so we read from the stack(0-filled)
         // and then update the stack pointer, effectively manually popping from the stack
         m_generated << ";\tManual POP BEGIN" << std::endl;
         m_generated << "\tmovsx " << reg << ", " << size_keyword << " " << "[rsp]" << std::endl;
-        m_generated << "\tadd rsp, " << size << std::endl;
+        m_generated << "\tadd rsp, " << requested_size << std::endl;
         m_generated << ";\tManual POP END" << std::endl;
     }
-    m_stack_size -= size;
+    m_stack_size -= requested_size;
 }
 
 // --------- expression generation
@@ -92,16 +83,26 @@ void Generator::generate_expression(const ASTExpression& expression) {
     std::visit(Generator::ExpressionVisitor{.generator = *this, .size = size_bytes}, expression.expression);
 }
 
-void Generator::generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes) {
-    Generator::Variable variableData = assert_get_variable_data(identifier.value);
-    m_generated << ";\tEvaluate Variable " << identifier.value << std::endl;
+void Generator::generate_expression_identifier(const ASTIdentifier& identifier, size_t requested_size_bytes) {
+    auto& variable_name = identifier.value;
+    auto variable_data = assert_get_variable_data(variable_name);
 
-    // get variable metadata
+    m_generated << ";\tEvaluate Variable " << variable_name << std::endl;
 
-    int offset = get_variable_stack_offset(variableData);
+    // NOTE: assumes that if theres type-changing, it is narrowing
+    // to handle type-widening, we need to first clear the entire a register before writing to it,
+    // and then zero/sign filling it with the data we read from the stack.
+    std::string original_size_keyword = size_bytes_to_size_keyword.at(variable_data.size_bytes);
+    std::string original_data_reg = size_bytes_to_register.at(variable_data.size_bytes);
+    std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
 
-    // push variable value into stack
-    push_stack_offset(offset, variableData.size_bytes, size_bytes);
+    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " "
+                << get_variable_memory_position(variable_name) << std::endl;
+
+    // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
+    // probably just don't support 8-bit variables, lol
+    m_generated << "\tpush " << requested_data_reg << std::endl;
+    m_stack_size += requested_size_bytes;
 }
 
 void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes) {
@@ -136,10 +137,12 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
     m_generated << ";\t" << operation << " Evaluation BEGIN" << std::endl;
     auto& lhsExp = *binary.get()->lhs.get();
     auto& rhsExp = *binary.get()->rhs.get();
+    size_t rhs_size_bytes = data_type_size_bytes.at(rhsExp.data_type);
+    size_t lhs_size_bytes = data_type_size_bytes.at(lhsExp.data_type);
     generate_expression(lhsExp);
     generate_expression(rhsExp);
-    pop_stack_register("rbx", size_bytes);  // rbx = rhs
-    pop_stack_register("rax", size_bytes);  // rax = lhs
+    pop_stack_register("rbx", 8, rhs_size_bytes);  // rbx = rhs
+    pop_stack_register("rax", 8, lhs_size_bytes);  // rax = lhs
     switch (binary.get()->operation) {
         case BinOperation::add:
             m_generated << "\tadd rax, rbx; rax += rbx" << std::endl;  // rax = rax + rbx
@@ -180,13 +183,12 @@ void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) 
     m_generated << "\tmov rax, 60" << std::endl;
 
     size_t size = data_type_size_bytes.at(exit_statement.status_code.data_type);
-    pop_stack_register("rdi", size);
+    pop_stack_register("rdi", 8, size);
     m_generated << "\tsyscall" << std::endl;
 }
 
 void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_assign_statement) {
     Generator::Variable variableData = assert_get_variable_data(var_assign_statement.name);
-    int variable_stack_offset = get_variable_stack_offset(variableData);
 
     m_generated << ";\tVariable Assigment " << var_assign_statement.name << " BEGIN" << std::endl;
 
@@ -195,9 +197,10 @@ void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_
 
     // NOTE: assumes 'size_bytes_to_register' holds registers rax, eax, ax, al
     // popping to the largest register to allow data widening if necessary, up to 8 bytes
-    pop_stack_register("rax", expression_size_bytes);
+    pop_stack_register("rax", 8, expression_size_bytes);
     std::string& temp_register = size_bytes_to_register.at(variableData.size_bytes);
-    m_generated << "\tmov [rsp + " << variable_stack_offset << "], " << temp_register << std::endl;
+    m_generated << "\tmov " << get_variable_memory_position(var_assign_statement.name) << ", " << temp_register
+                << std::endl;
     m_generated << ";\tVariable Assigment " << var_assign_statement.name << " END" << std::endl << std::endl;
 }
 
@@ -252,7 +255,7 @@ void Generator::generate_statement_if(const ASTStatementIf& if_statement) {
     auto& fail_statement = if_statement.fail_statement;
     size_t size_bytes = data_type_size_bytes.at(expression.data_type);
     generate_expression(expression);
-    pop_stack_register("rax", size_bytes);  // rax = lhs
+    pop_stack_register("rax", 8, size_bytes);  // rax = lhs
     m_generated << "\ttest rax, rax" << std::endl
                 << "\tjz " << after_if_label.str() << "; if the expression is false-y, skip the 'if' block's statements"
                 << std::endl;
@@ -283,7 +286,7 @@ void Generator::generate_statement_while(const ASTStatementWhile& while_statemen
 
     m_generated << before_while_label.str() << ":" << std::endl;
     generate_expression(expression);
-    pop_stack_register("rax", size_bytes);  // rax = lhs
+    pop_stack_register("rax", 8, size_bytes);  // rax = lhs
     m_generated << "\ttest rax, rax" << std::endl
                 << "\tjz " << after_while_label.str()
                 << "; if the expression is false-y, skip the 'while' block's statements" << std::endl;
@@ -293,13 +296,98 @@ void Generator::generate_statement_while(const ASTStatementWhile& while_statemen
     m_generated << after_while_label.str() << ":" << std::endl;
 }
 
-int Generator::get_variable_stack_offset(Generator::Variable& variable_data) {
-    // get variable position in the stack
-    int variable_stack_offset = m_stack_size - variable_data.stack_location_bytes;
-    // rsp was on the next FREE address, offset it back to the variable's position.
-    variable_stack_offset -= variable_data.size_bytes;
+void Generator::generate_statement_function(const ASTStatementFunction& function_statement) {
+    m_stack.enterScope();
+    // add function parameters to scope
+    for (auto& func_param : function_statement.parameters) {
+        size_t size_bytes = data_type_size_bytes.at(func_param.data_type);
+        Generator::Variable var{
+            .stack_location_bytes = m_stack_size,
+            .size_bytes = size_bytes,
+        };
+        m_stack.insert(func_param.name, var);
+        m_stack_size += size_bytes;
+    }
+    m_stack_size += 8;  // return address pushed by 'call'
 
-    return variable_stack_offset;
+    m_generated << std::endl << "; BEGIN OF FUNCTION '" << function_statement.name << "'" << std::endl;
+    m_generated << function_statement.name << ":" << std::endl;
+    push_stack_register("rbp", 8);                 // store the previous stack frame
+    m_generated << "\tmov rbp, rsp" << std::endl;  // this is the current stack frame
+    generate_statement(*function_statement.statement.get());
+    m_generated << ".return:" << std::endl;
+    m_generated << "\tmov rsp, rbp" << std::endl;  // return the stack to its previous state
+    pop_stack_register("rbp", 8, 8);               // restore the previous stack frame
+    m_generated << "\tret" << std::endl;
+    m_generated << "; END OF FUNCTION '" << function_statement.name << "'" << std::endl << std::endl;
+
+    m_stack_size -= 8;  // return address popped by 'ret'
+    m_stack.exitScope();
+}
+
+void Generator::generate_statement_return(const ASTStatementReturn& return_statement) {
+    m_generated << "; BEGIN RETURN STATEMENT" << std::endl;
+    generate_expression(return_statement.expression);
+    size_t return_size_bytes = data_type_size_bytes.at(return_statement.expression.data_type);
+    auto& reg = size_bytes_to_register.at(return_size_bytes);
+
+    // NOTE: this only works for primitives for now
+    pop_stack_register(reg, return_size_bytes, return_size_bytes);
+    m_generated << "\tmov [rdi], " << reg << std::endl;
+    m_generated << "\tjmp .return" << std::endl;
+    m_generated << "; END RETURN STATEMENT" << std::endl;
+}
+
+void Generator::generate_expression_function_call(const ASTFunctionCallExpression& function_call_expr,
+                                                  size_t size_bytes) {
+    size_t return_type_size = data_type_size_bytes.at(function_call_expr.return_data_type);
+    if (return_type_size) {
+        m_generated << "; BEGIN PREPARE RETURN LOCATION INTO RDI" << std::endl;
+        push_stack_register("rdi", 8);
+        m_generated << "\tsub rsp, " << return_type_size << std::endl;  // allocate stack for return param
+        m_generated << "\tlea rdi, [rsp]" << std::endl;                 // return data location
+        m_stack_size += return_type_size;
+        m_generated << "; END PREPARE RETURN LOCATION INTO RDI" << std::endl;
+    }
+    // push parameters to the stack before calling
+    m_generated << "; BEGIN OF FUNCTION PARAMATERS FOR " << function_call_expr.function_name << std::endl;
+    size_t total_function_params_size = 0;
+    for (auto& func_param : function_call_expr.parameters) {
+        generate_expression(func_param);
+        total_function_params_size += data_type_size_bytes.at(func_param.data_type);
+    };
+    m_generated << "; END OF FUNCTION PARAMATERS FOR " << function_call_expr.function_name << std::endl;
+
+    m_generated << "\tcall " << function_call_expr.function_name << std::endl;
+    m_generated << "\tadd rsp, " << total_function_params_size << "; CLEAR FUNCTION PARAMATERS FOR "
+                << function_call_expr.function_name << std::endl;  // clear stack params
+    if (return_type_size) {
+        pop_stack_register("rax", 8, return_type_size);
+        pop_stack_register("rdi", 8, 8);
+
+        std::string& reg = size_bytes_to_register.at(size_bytes);
+        push_stack_register(reg, size_bytes);
+    } else {
+        pop_stack_register("rdi", 8, 8);
+    }
+    m_stack_size -= total_function_params_size;
+}
+
+std::string Generator::get_variable_memory_position(const std::string& variable_name) {
+    auto variable_data = assert_get_variable_data(variable_name);
+
+    bool is_global = m_stack.is_variable_global(variable_name);
+
+    int offset = variable_data.stack_location_bytes + variable_data.size_bytes;
+
+    std::stringstream out;
+    if (is_global) {
+        out << "[" << "rbp" << " - " << offset << "]";
+    } else {
+        offset = m_stack_size - offset;
+        out << "[" << "rsp" << " + " << offset << "]";
+    }
+    return out.str();
 }
 
 Generator::Variable Generator::assert_get_variable_data(std::string variable_name) {

@@ -45,9 +45,17 @@ struct ASTParenthesisExpression {
     std::shared_ptr<ASTExpression> expression;
 };
 
+// TODO: when adding return values, this should be an expression
+struct ASTFunctionCallExpression {
+    TokenMeta start_token_meta;
+    std::vector<ASTExpression> parameters;
+    std::string function_name;
+    DataType return_data_type;
+};
+
 struct ASTAtomicExpression {
     TokenMeta start_token_meta;
-    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression> value;
+    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCallExpression> value;
 };
 
 struct ASTBinExpression {
@@ -100,14 +108,40 @@ struct ASTStatementWhile {
     std::shared_ptr<ASTStatement> success_statement;
 };
 
+// NOTE: same as ASTStatementVar
+struct ASTFunctionParam {
+    TokenMeta start_token_meta;
+    std::string data_type_str;
+    DataType data_type;
+    std::string name;
+    // std::optional<ASTExpression> initial_value; // TODO: support initial value
+};
+
+struct ASTStatementFunction {
+    TokenMeta start_token_meta;
+    std::string name;
+    std::vector<ASTFunctionParam> parameters;
+    std::shared_ptr<ASTStatement> statement;
+
+    std::string return_data_type_str;
+    DataType return_data_type;
+};
+
+struct ASTStatementReturn {
+    TokenMeta start_token_meta;
+    ASTExpression expression;
+};
+
 struct ASTStatement {
     TokenMeta start_token_meta;
     std::variant<std::shared_ptr<ASTStatementExit>, std::shared_ptr<ASTStatementVar>,
                  std::shared_ptr<ASTStatementScope>, std::shared_ptr<ASTStatementIf>,
-                 std::shared_ptr<ASTStatementAssign>, std::shared_ptr<ASTStatementWhile>>
+                 std::shared_ptr<ASTStatementAssign>, std::shared_ptr<ASTStatementWhile>,
+                 std::shared_ptr<ASTStatementFunction>, std::shared_ptr<ASTStatementReturn>>
         statement;
 };
 
 struct ASTProgram {
     std::vector<std::shared_ptr<ASTStatement>> statements;
+    std::vector<std::shared_ptr<ASTStatementFunction>> functions;
 };

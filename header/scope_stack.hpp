@@ -47,6 +47,17 @@ class ScopeStack {
         }
         return false;
     }
+    bool is_variable_global(const std::string& identifier) {
+        // variable is global only if it is in the lowest scope(global scope)
+        // if we find it anywhere before the last scope, it isn't global
+        for (int scope_ind = scope_stack.size() - 1; scope_ind >= 0; --scope_ind) {
+            scope current_scope = scope_stack.at(scope_ind);
+            if (current_scope.count(identifier) > 0) {
+                return scope_ind == 0;
+            }
+        }
+        return false;
+    }
 
    private:
     std::vector<scope> scope_stack;

@@ -28,6 +28,11 @@ class Parser {
     std::shared_ptr<ASTStatementIf> parse_statement_if();
     std::shared_ptr<ASTStatementWhile> parse_statement_while();
 
+    std::shared_ptr<ASTStatementFunction> parse_statement_function();
+    std::vector<ASTFunctionParam> parse_function_params();
+    std::vector<ASTExpression> parse_statement_function_call_params();
+    std::shared_ptr<ASTStatementReturn> parse_statement_return();
+
     // uses predence climbing, described here-
     // https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
     std::optional<ASTExpression> parse_expression(const int min_prec = 0);

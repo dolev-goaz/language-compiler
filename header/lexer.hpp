@@ -19,6 +19,7 @@ enum class TokenType {
     open_curly,
     close_curly,
     comment,
+    comma,
 
     // mathematical operations
     plus,
@@ -31,6 +32,8 @@ enum class TokenType {
     _if,
     _else,
     _while,
+    _function,
+    _return,
 };
 
 extern std::map<std::string, TokenType> tokenMappingsKeywords;

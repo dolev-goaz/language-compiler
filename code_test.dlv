@@ -1,9 +1,14 @@
-int_16 loop_count = 10;
 
-int_16 exit_code = 0;
+int_16 n = 5;
+int_64 total = factorial(n);
 
-while (loop_count) {
-    exit_code = exit_code + 2;
-    loop_count = loop_count - 1;
+exit(total);
+
+func int_16 factorial(int_16 y) {
+    int_64 x;
+    if (y){
+        return y * factorial(y - 1);
+    } else {
+        return 1;
+    }
 }
-exit(exit_code);
