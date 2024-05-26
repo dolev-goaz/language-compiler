@@ -30,13 +30,12 @@ using SemanticFunctionTable = std::map<std::string, SymbolTable::FunctionHeader>
 
 class SemanticAnalyzer {
    public:
-    SemanticAnalyzer(ASTProgram program) : m_prog(program) {}
+    SemanticAnalyzer(ASTProgram program) : m_prog(program), m_current_function_name("") {}
     void analyze();
 
    private:
     void analyze_function_header(ASTStatementFunction& func);
     void analyze_function_body(ASTStatementFunction& func);
-    void analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements, std::string function_name = "");
     void analyze_function_param(ASTFunctionParam& param);
 
     DataType analyze_expression(ASTExpression& expression);
@@ -66,6 +65,7 @@ class SemanticAnalyzer {
     ASTProgram m_prog;
     SymbolTable::SemanticScopeStack m_symbol_table;
     SymbolTable::SemanticFunctionTable m_function_table;
+    std::string m_current_function_name;
     struct ExpressionVisitor;
     struct StatementVisitor;
 };

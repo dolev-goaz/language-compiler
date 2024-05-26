@@ -27,7 +27,6 @@ struct SemanticAnalyzer::ExpressionVisitor {
 
 struct SemanticAnalyzer::StatementVisitor {
     SemanticAnalyzer* analyzer;
-    std::string function_name = "";
     void operator()(const std::shared_ptr<ASTStatementExit>& exit) const { analyzer->analyze_statement_exit(exit); }
     void operator()(const std::shared_ptr<ASTStatementVar>& var_declare) const {
         analyzer->analyze_statement_var_declare(var_declare);

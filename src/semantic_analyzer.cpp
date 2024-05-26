@@ -36,7 +36,7 @@ void SemanticAnalyzer::analyze() {
     }
     // pass through global statements
     for (auto& statement : statements) {
-        std::visit(SemanticAnalyzer::StatementVisitor{.analyzer = this}, statement.get()->statement);
+        analyze_statement(*statement.get());
     }
     // second passage through functions- function body
     for (auto& function : functions) {
@@ -88,7 +88,7 @@ DataType SemanticAnalyzer::analyze_expression_binary(const std::shared_ptr<ASTBi
 
 DataType SemanticAnalyzer::analyze_expression_parenthesis(const ASTParenthesisExpression& paren_expr) {
     auto& inner_expression = *paren_expr.expression.get();
-    return std::visit(SemanticAnalyzer::ExpressionVisitor{this}, inner_expression.expression);
+    return analyze_expression(inner_expression);
 }
 
 DataType SemanticAnalyzer::analyze_expression_function_call(ASTFunctionCallExpression& function_call_expr) {
@@ -109,8 +109,7 @@ DataType SemanticAnalyzer::analyze_expression_function_call(ASTFunctionCallExpre
         throw SemanticAnalyzerException(error.str(), start_token_meta);
     }
     for (size_t i = 0; i < provided_params.size(); ++i) {
-        provided_params[i].data_type =
-            std::visit(SemanticAnalyzer::ExpressionVisitor{this}, provided_params[i].expression);
+        provided_params[i].data_type = analyze_expression(provided_params[i]);
         if (provided_params[i].data_type == function_expected_params[i].data_type) {
             // no type issues
             continue;
@@ -137,16 +136,6 @@ void SemanticAnalyzer::analyze_function_param(ASTFunctionParam& param) {
     param.data_type = data_type;
 }
 
-void SemanticAnalyzer::analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements,
-                                     std::string function_name) {
-    this->m_symbol_table.enterScope();
-    for (auto& statement : statements) {
-        std::visit(SemanticAnalyzer::StatementVisitor{.analyzer = this, .function_name = function_name},
-                   statement.get()->statement);
-    }
-    this->m_symbol_table.exitScope();
-}
-
 void SemanticAnalyzer::analyze_function_header(ASTStatementFunction& func) {
     if (datatype_mapping.count(func.return_data_type_str) == 0) {
         std::stringstream errorMessage;
@@ -166,8 +155,10 @@ void SemanticAnalyzer::analyze_function_header(ASTStatementFunction& func) {
     };
     m_function_table.emplace(func.name, function_header);
 }
+
 void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
     m_symbol_table.enterScope();
+    m_current_function_name = func.name;
     for (auto& function_param : func.parameters) {
         auto& start_token_meta = function_param.start_token_meta;
         try {
@@ -179,8 +170,8 @@ void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
             throw SemanticAnalyzerException(e.what(), start_token_meta);
         }
     }
-    std::visit(SemanticAnalyzer::StatementVisitor{.analyzer = this, .function_name = func.name},
-               func.statement.get()->statement);
+    analyze_statement(*func.statement.get());
+    m_current_function_name = "";
     m_symbol_table.exitScope();
     auto& function_header = m_function_table.at(func.name);
     // TODO: handle void datatype
@@ -191,6 +182,10 @@ void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
 }
 
 // ---------
+
+void SemanticAnalyzer::analyze_statement(ASTStatement& statement) {
+    return std::visit(SemanticAnalyzer::StatementVisitor{this}, statement.statement);
+}
 
 void SemanticAnalyzer::analyze_statement_exit(const std::shared_ptr<ASTStatementExit>& exit) {
     auto& expression = exit.get()->status_code;
@@ -256,7 +251,11 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
     }
 }
 void SemanticAnalyzer::analyze_statement_scope(const std::shared_ptr<ASTStatementScope>& scope) {
-    analyze_scope(scope.get()->statements, function_name);
+    this->m_symbol_table.enterScope();
+    for (auto& statement : scope.get()->statements) {
+        analyze_statement(*statement.get());
+    }
+    this->m_symbol_table.exitScope();
 }
 void SemanticAnalyzer::analyze_statement_if(const std::shared_ptr<ASTStatementIf>& _if) {
     auto& expression = _if.get()->expression;
@@ -280,12 +279,12 @@ void SemanticAnalyzer::analyze_statement_function(const std::shared_ptr<ASTState
     assert(false && "Should never reach here. Function statements are to be parsed seperately");
 }
 void SemanticAnalyzer::analyze_statement_return(const std::shared_ptr<ASTStatementReturn>& return_statement) {
-    if (function_name.empty()) {
+    if (m_current_function_name.empty()) {
         throw SemanticAnalyzerException("Can't use 'return' outside of a function",
                                         return_statement.get()->start_token_meta);
     }
     auto& meta = return_statement.get()->start_token_meta;
-    auto& function_header = m_function_table.at(function_name);
+    auto& function_header = m_function_table.at(m_current_function_name);
     function_header.found_return_statement = true;
     auto& expression = return_statement.get()->expression;
     expression.data_type = analyze_expression(expression);
