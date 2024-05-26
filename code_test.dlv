@@ -1,5 +1,8 @@
 
 int_16 n = 5;
+if (n == 5) {
+    n = n - 1;
+}
 int_64 total = factorial(n);
 
 exit(total);
