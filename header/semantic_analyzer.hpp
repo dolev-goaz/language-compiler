@@ -38,9 +38,28 @@ class SemanticAnalyzer {
     void analyze_function_body(ASTStatementFunction& func);
     void analyze_scope(const std::vector<std::shared_ptr<ASTStatement>>& statements, std::string function_name = "");
     void analyze_function_param(ASTFunctionParam& param);
-    
+
+    DataType analyze_expression(ASTExpression& expression);
+
+    DataType analyze_expression_identifier(ASTIdentifier& identifier);
+    DataType analyze_expression_int_literal(ASTIntLiteral& ignored);
+    DataType analyze_expression_atomic(const std::shared_ptr<ASTAtomicExpression>& atomic);
+    DataType analyze_expression_binary(const std::shared_ptr<ASTBinExpression>& binExpr);
+    DataType analyze_expression_parenthesis(const ASTParenthesisExpression& paren_expr);
+    DataType analyze_expression_function_call(ASTFunctionCallExpression& function_call_expr);
+
+    // void analyze_statement(ASTStatement& statement) const;
+    // void analyze_statement_exit(const std::shared_ptr<ASTStatementExit>& exit) const;
+    // void analyze_statement_var_declare(const std::shared_ptr<ASTStatementVar>& var_declare) const;
+    // void analyze_statement_var_assign(const std::shared_ptr<ASTStatementAssign>& var_assign) const;
+    // void analyze_statement_scope(const std::shared_ptr<ASTStatementScope>& scope) const;
+    // void analyze_statement_if(const std::shared_ptr<ASTStatementIf>& _if) const;
+    // void analyze_statement_while(const std::shared_ptr<ASTStatementWhile>& while_statement) const;
+    // void analyze_statement_function(const std::shared_ptr<ASTStatementFunction>& function_statement) const;
+    // void analyze_statement_return(const std::shared_ptr<ASTStatementReturn>& return_statement) const;
+
     static void semantic_warning(const std::string& message, const TokenMeta& position);
-    
+
     bool is_int_literal(ASTExpression& expression);
 
     ASTProgram m_prog;
