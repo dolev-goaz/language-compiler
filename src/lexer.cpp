@@ -14,10 +14,11 @@ std::map<std::string, TokenType> tokenMappingsKeywords = {
     {"while", TokenType::_while}, {"func", TokenType::_function}, {"return", TokenType::_return},
 };
 std::map<char, TokenType> tokenMappingsSymbols = {
-    {';', TokenType::semicol},    {'(', TokenType::open_paren},  {')', TokenType::close_paren},
-    {'{', TokenType::open_curly}, {'}', TokenType::close_curly}, {'=', TokenType::eq},
-    {'+', TokenType::plus},       {'-', TokenType::minus},       {'*', TokenType::star},
-    {'/', TokenType::fslash},     {'%', TokenType::percent},     {',', TokenType::comma},
+    {';', TokenType::semicol},       {'(', TokenType::open_paren},     {')', TokenType::close_paren},
+    {'{', TokenType::open_curly},    {'}', TokenType::close_curly},    {'=', TokenType::eq},
+    {'+', TokenType::plus},          {'-', TokenType::minus},          {'*', TokenType::star},
+    {'/', TokenType::fslash},        {'%', TokenType::percent},        {',', TokenType::comma},
+    {'<', TokenType::open_triangle}, {'>', TokenType::close_triangle},
 };
 
 char Lexer::consume() {

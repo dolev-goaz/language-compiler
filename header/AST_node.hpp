@@ -23,7 +23,11 @@ enum class BinOperation {
     divide,
     modulo,
 
-    eq,              // comparison equals
+    eq,  // comparison equals
+    lt,
+    le,
+    gt,
+    ge,
     operationCount,  // used for assertions
 };
 
