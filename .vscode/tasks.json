@@ -4,7 +4,7 @@
         {
             "type": "shell",
             "label": "build",
-            "command": "make clean && make",
+            "command": "make",
             "group": {
                 "kind": "build",
                 "isDefault": true

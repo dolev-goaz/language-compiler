@@ -7,23 +7,50 @@ std::map<TokenType, BinOperation> singleCharBinOperationMapping = {
 };
 BinOperation Parser::try_consume_binary_operation() {
     if (!peek().has_value()) return BinOperation::NONE;
+
+    // check for multi-token operations
+    if (test_peek(TokenType::eq)) {
+        //"="
+        consume();
+        if (test_peek(TokenType::eq)) {
+            //"=="
+            consume();
+            return BinOperation::eq;
+        }
+        // NOTE: return assign here(in the future)
+    }
+    if (test_peek(TokenType::open_triangle)) {
+        //"<"
+        consume();
+        if (test_peek(TokenType::eq)) {
+            //"<="
+            consume();
+            return BinOperation::le;
+        }
+        return BinOperation::lt;
+    }
+    if (test_peek(TokenType::close_triangle)) {
+        //">"
+        consume();
+        if (test_peek(TokenType::eq)) {
+            //">="
+            consume();
+            return BinOperation::ge;
+        }
+        return BinOperation::gt;
+    }
+
+    // check for single-token operations
     if (singleCharBinOperationMapping.count(peek().value().type) > 0) {
         auto current = consume();
         return singleCharBinOperationMapping.at(current.value().type);
-    }
-
-    // check for multi-token operations
-    if (test_peek(TokenType::eq, 0) && test_peek(TokenType::eq, 1)) {
-        consume();
-        consume();
-        return BinOperation::eq;
     }
 
     return BinOperation::NONE;
 }
 
 std::optional<int> Parser::binary_operator_precedence(const BinOperation& operation) {
-    static_assert((int)BinOperation::operationCount - 1 == 6,
+    static_assert((int)BinOperation::operationCount - 1 == 10,
                   "Binary Operations enum changed without changing precendence mapping");
     switch (operation) {
         case BinOperation::multiply:
@@ -33,6 +60,11 @@ std::optional<int> Parser::binary_operator_precedence(const BinOperation& operat
         case BinOperation::add:
         case BinOperation::subtract:
             return 13;
+        case BinOperation::ge:
+        case BinOperation::gt:
+        case BinOperation::le:
+        case BinOperation::lt:
+            return 11;
         case BinOperation::eq:
             return 10;
         default:

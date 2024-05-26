@@ -15,7 +15,6 @@ enum class TokenType {
     identifier,
     open_paren,
     close_paren,
-    eq,
     open_curly,
     close_curly,
     comment,
@@ -27,6 +26,10 @@ enum class TokenType {
     star,
     fslash,
     percent,
+
+    eq,
+    open_triangle,
+    close_triangle,
 
     // keywords
     _if,

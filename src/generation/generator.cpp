@@ -86,7 +86,7 @@ void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, si
 }
 
 void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes) {
-    static_assert((int)BinOperation::operationCount - 1 == 6,
+    static_assert((int)BinOperation::operationCount - 1 == 10,
                   "Binary Operations enum changed without changing generator");
     std::string operation;
     switch (binary.get()->operation) {
@@ -106,7 +106,19 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
             operation = "Modulo";
             break;
         case BinOperation::eq:
-            operation = "Comparison";
+            operation = "Comparison(=)";
+            break;
+        case BinOperation::lt:
+            operation = "Comparison(<)";
+            break;
+        case BinOperation::le:
+            operation = "Comparison(<=)";
+            break;
+        case BinOperation::gt:
+            operation = "Comparison(>)";
+            break;
+        case BinOperation::ge:
+            operation = "Comparison(>=)";
             break;
         default:
             // should never reach here. this is to remove warnings
@@ -146,6 +158,22 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
         case BinOperation::eq:
             m_generated << "\tcmp rax, rbx" << std::endl;
             m_generated << "\tsete " << _8bit_reg << std::endl;
+            break;
+        case BinOperation::lt:
+            m_generated << "\tcmp rax, rbx" << std::endl;
+            m_generated << "\tsetl " << _8bit_reg << std::endl;
+            break;
+        case BinOperation::le:
+            m_generated << "\tcmp rax, rbx" << std::endl;
+            m_generated << "\tsetle " << _8bit_reg << std::endl;
+            break;
+        case BinOperation::gt:
+            m_generated << "\tcmp rax, rbx" << std::endl;
+            m_generated << "\tsetg " << _8bit_reg << std::endl;
+            break;
+        case BinOperation::ge:
+            m_generated << "\tcmp rax, rbx" << std::endl;
+            m_generated << "\tsetge " << _8bit_reg << std::endl;
             break;
         default:
             // should never reach here. this is to remove warnings
