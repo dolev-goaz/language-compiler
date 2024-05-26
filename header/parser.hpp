@@ -20,7 +20,7 @@ class Parser {
     size_t m_token_index = 0;
 
     std::shared_ptr<ASTStatement> parse_statement();
-    BinOperation consume_binary_operation();
+    BinOperation try_consume_binary_operation();
 
     std::shared_ptr<ASTStatementExit> parse_statement_exit();
     std::shared_ptr<ASTStatementVar> parse_statement_var_declare();

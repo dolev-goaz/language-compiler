@@ -5,7 +5,7 @@ std::map<TokenType, BinOperation> singleCharBinOperationMapping = {
     {TokenType::star, BinOperation::multiply},  {TokenType::fslash, BinOperation::divide},
     {TokenType::percent, BinOperation::modulo},
 };
-BinOperation Parser::consume_binary_operation() {
+BinOperation Parser::try_consume_binary_operation() {
     if (!peek().has_value()) return BinOperation::NONE;
     if (singleCharBinOperationMapping.count(peek().value().type) > 0) {
         auto current = consume();
@@ -109,7 +109,7 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
         .expression = atomic,
     };
     while (true) {
-        auto binOperation = consume_binary_operation();
+        auto binOperation = try_consume_binary_operation();
         if (binOperation == BinOperation::NONE) {
             break;
         }
@@ -117,7 +117,6 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
         if (!currentPrecedence.has_value() || currentPrecedence.value() < min_prec) {
             break;
         }
-        consume();  // consume the token now that we know it's a binary operator
         auto rhs = parse_expression(currentPrecedence.value() + 1);
         if (!rhs.has_value()) {
             auto nextToken = peek();
