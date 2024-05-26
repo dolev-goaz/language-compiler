@@ -22,6 +22,8 @@ enum class BinOperation {
     multiply,
     divide,
     modulo,
+
+    eq,              // comparison equals
     operationCount,  // used for assertions
 };
 

@@ -58,10 +58,9 @@ struct SemanticAnalyzer::ExpressionVisitor {
         }
 
         // type narrowing
-        DataType data_type = std::min(lhs_data_type, rhs_data_type);
-        lhs.data_type = data_type;
-        rhs.data_type = data_type;
-        return data_type;
+        rhs.data_type = lhs_data_type;
+        lhs.data_type = lhs_data_type;
+        return lhs_data_type;
     }
 
     DataType operator()(const ASTParenthesisExpression& paren_expr) const {

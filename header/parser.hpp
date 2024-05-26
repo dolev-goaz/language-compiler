@@ -8,7 +8,7 @@
 #include "./error/parser_error.hpp"
 #include "./lexer.hpp"
 
-extern std::map<TokenType, BinOperation> binOperationMapping;
+extern std::map<TokenType, BinOperation> singleCharBinOperationMapping;
 class Parser {
    public:
     Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0) {}
@@ -20,6 +20,7 @@ class Parser {
     size_t m_token_index = 0;
 
     std::shared_ptr<ASTStatement> parse_statement();
+    BinOperation consume_binary_operation();
 
     std::shared_ptr<ASTStatementExit> parse_statement_exit();
     std::shared_ptr<ASTStatementVar> parse_statement_var_declare();

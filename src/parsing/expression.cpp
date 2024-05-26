@@ -1,22 +1,40 @@
 #include "parser.hpp"
 
-std::map<TokenType, BinOperation> binOperationMapping = {
+std::map<TokenType, BinOperation> singleCharBinOperationMapping = {
     {TokenType::plus, BinOperation::add},       {TokenType::minus, BinOperation::subtract},
     {TokenType::star, BinOperation::multiply},  {TokenType::fslash, BinOperation::divide},
     {TokenType::percent, BinOperation::modulo},
 };
+BinOperation Parser::consume_binary_operation() {
+    if (!peek().has_value()) return BinOperation::NONE;
+    if (singleCharBinOperationMapping.count(peek().value().type) > 0) {
+        auto current = consume();
+        return singleCharBinOperationMapping.at(current.value().type);
+    }
+
+    // check for multi-token operations
+    if (test_peek(TokenType::eq, 0) && test_peek(TokenType::eq, 1)) {
+        consume();
+        consume();
+        return BinOperation::eq;
+    }
+
+    return BinOperation::NONE;
+}
 
 std::optional<int> Parser::binary_operator_precedence(const BinOperation& operation) {
-    static_assert((int)BinOperation::operationCount - 1 == 5,
+    static_assert((int)BinOperation::operationCount - 1 == 6,
                   "Binary Operations enum changed without changing precendence mapping");
     switch (operation) {
-        case BinOperation::add:
-        case BinOperation::subtract:
-            return 0;
         case BinOperation::multiply:
         case BinOperation::divide:
         case BinOperation::modulo:
-            return 1;
+            return 14;
+        case BinOperation::add:
+        case BinOperation::subtract:
+            return 13;
+        case BinOperation::eq:
+            return 10;
         default:
             assert(false && "Binary operation not implemented- " + (int)operation);
     }
@@ -91,12 +109,10 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
         .expression = atomic,
     };
     while (true) {
-        auto binOperator = peek();
-        if (!binOperator.has_value() || binOperationMapping.count(binOperator.value().type) == 0) {
-            // no binary operator after lhs
+        auto binOperation = consume_binary_operation();
+        if (binOperation == BinOperation::NONE) {
             break;
         }
-        auto binOperation = binOperationMapping.at(binOperator.value().type);
         std::optional<int> currentPrecedence = binary_operator_precedence(binOperation);
         if (!currentPrecedence.has_value() || currentPrecedence.value() < min_prec) {
             break;
