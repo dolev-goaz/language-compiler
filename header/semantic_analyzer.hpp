@@ -48,15 +48,16 @@ class SemanticAnalyzer {
     DataType analyze_expression_parenthesis(const ASTParenthesisExpression& paren_expr);
     DataType analyze_expression_function_call(ASTFunctionCallExpression& function_call_expr);
 
-    // void analyze_statement(ASTStatement& statement) const;
-    // void analyze_statement_exit(const std::shared_ptr<ASTStatementExit>& exit) const;
-    // void analyze_statement_var_declare(const std::shared_ptr<ASTStatementVar>& var_declare) const;
-    // void analyze_statement_var_assign(const std::shared_ptr<ASTStatementAssign>& var_assign) const;
-    // void analyze_statement_scope(const std::shared_ptr<ASTStatementScope>& scope) const;
-    // void analyze_statement_if(const std::shared_ptr<ASTStatementIf>& _if) const;
-    // void analyze_statement_while(const std::shared_ptr<ASTStatementWhile>& while_statement) const;
-    // void analyze_statement_function(const std::shared_ptr<ASTStatementFunction>& function_statement) const;
-    // void analyze_statement_return(const std::shared_ptr<ASTStatementReturn>& return_statement) const;
+    void analyze_statement(ASTStatement& statement);
+
+    void analyze_statement_exit(const std::shared_ptr<ASTStatementExit>& exit);
+    void analyze_statement_var_declare(const std::shared_ptr<ASTStatementVar>& var_declare);
+    void analyze_statement_var_assign(const std::shared_ptr<ASTStatementAssign>& var_assign);
+    void analyze_statement_scope(const std::shared_ptr<ASTStatementScope>& scope);
+    void analyze_statement_if(const std::shared_ptr<ASTStatementIf>& _if);
+    void analyze_statement_while(const std::shared_ptr<ASTStatementWhile>& while_statement);
+    void analyze_statement_function(const std::shared_ptr<ASTStatementFunction>& function_statement);
+    void analyze_statement_return(const std::shared_ptr<ASTStatementReturn>& return_statement);
 
     static void semantic_warning(const std::string& message, const TokenMeta& position);
 
