@@ -1,7 +1,6 @@
 
 int_16 n = 5;
 
-// TODO: don't allow assigning of void function call
 int_16 h = try_exit(10);
 exit(h);
 try_exit(15);

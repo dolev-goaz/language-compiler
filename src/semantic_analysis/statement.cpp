@@ -39,6 +39,9 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
 
     auto& expression = var_declare.get()->value.value();
     DataType rhs_data_type = analyze_expression(expression);
+    if (rhs_data_type == DataType::_void) {
+        throw SemanticAnalyzerException("Can not assign variables to 'void'", start_token_meta);
+    }
     // IN THE FUTURE: when there are more types, check for type compatibility
     if (rhs_data_type != data_type) {
         // type narrowing/widening
