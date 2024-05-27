@@ -12,6 +12,7 @@ $$
     [d\_type]\space[identifier]; \\
     [d\_type]\space[identifier] = [expression]; \\
     [identifier] = [expression]; \\
+    func\space[data\_type]([func\_params]) [statement] \\
 \end {cases} \\
 
 \text{expression} &\to
@@ -19,8 +20,24 @@ $$
     [int\_literal] \\
     [identifier] \\
     ([expression]) \\ % parenthesis
+    [expression]([func\_call\_params]) \\ % function cal
     [binary\_expression] \\
 \end {cases} \\
+
+\text{func\_call\_params} &\to
+\begin {cases}
+    \varepsilon \\
+    [expression] \\
+    [expression],[func\_call\_params]^* \\
+\end {cases} \\
+
+\text{func\_params} &\to
+\begin{cases}
+    \varepsilon \\
+    [identifier] \\
+    [identifier],[func\_params] \\
+\end{cases} \\
+
 
 \text{binary\_expression} &\to
 \begin {cases}
@@ -29,6 +46,11 @@ $$
     [expression] * [expression] \\
     [expression] / [expression] \\
     [expression] \% [expression] \\
+    [expression] > [expression] \\
+    [expression] >= [expression] \\
+    [expression] < [expression] \\
+    [expression] <= [expression] \\
+    [expression] == [expression] \\
 \end {cases} \\
 
 \text{int\_literal} &\to
