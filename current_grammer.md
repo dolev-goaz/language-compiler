@@ -19,6 +19,7 @@ $$
 \text{expression} &\to
 \begin {cases}
     [int\_literal] \\
+    '.' (char)\\  % char
     [identifier] \\
     ([expression]) \\ % parenthesis
     [expression]([func\_call\_params]) \\ % function call
@@ -66,6 +67,7 @@ $$
 \text{d\_type} &\to
 \begin{cases}
  void \\
+ char \\
  int\_16 \\
  int\_64 \\
 \end{cases} \\
