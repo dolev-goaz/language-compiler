@@ -9,6 +9,9 @@ void SemanticAnalyzer::analyze_function_param(ASTFunctionParam& param) {
         throw SemanticAnalyzerException(errorMessage.str(), start_token_meta);
     }
     DataType data_type = datatype_mapping.at(param.data_type_str);
+    if (data_type == DataType::_void) {
+        throw SemanticAnalyzerException("Function parameter can not be of type void", start_token_meta);
+    }
     param.data_type = data_type;
 }
 

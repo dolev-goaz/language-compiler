@@ -12,7 +12,7 @@ $$
     [d\_type]\space[identifier]; \\
     [d\_type]\space[identifier] = [expression]; \\
     [identifier] = [expression]; \\
-    func\space[data\_type]([func\_params]) [statement] \\
+    func\space[d\_type]([func\_params]) [statement] \\
     [expression]([func\_call\_params]) \\ % function call
 \end {cases} \\
 
@@ -35,8 +35,8 @@ $$
 \text{func\_params} &\to
 \begin{cases}
     \varepsilon \\
-    [identifier] \\
-    [identifier],[func\_params] \\
+    [d\_type]\space[identifier] \\
+    [d\_type]\space[identifier],[func\_params] \\
 \end{cases} \\
 
 
@@ -65,6 +65,7 @@ $$
 
 \text{d\_type} &\to
 \begin{cases}
+ void \\
  int\_16 \\
  int\_64 \\
 \end{cases} \\
