@@ -34,13 +34,13 @@ class ScopeStack {
         }
         current_scope[identifier] = variable_data;
     }
-    bool lookup(const std::string& identifier, T& variable_data) const {
+    bool lookup(const std::string& identifier, T* variable_data) const {
         // throw error if no existing scope
         for (auto scope_it = scope_stack.rbegin(); scope_it != scope_stack.rend(); ++scope_it) {
             scope currentScope = *scope_it;
             for (auto variable_it = currentScope.begin(); variable_it != currentScope.end(); ++variable_it) {
                 if (variable_it->first == identifier) {
-                    variable_data = variable_it->second;
+                    variable_data = &variable_it->second;
                     return true;
                 }
             }

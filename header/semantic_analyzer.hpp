@@ -17,6 +17,7 @@ namespace SymbolTable {
 struct Variable {
     TokenMeta start_token_meta;
     DataType data_type;
+    bool is_initialized;
 };
 struct FunctionHeader {
     TokenMeta start_token_meta;

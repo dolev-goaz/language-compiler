@@ -1,4 +1,4 @@
 
 int_16 t1;
 char test = 'A';
-exit(test);
+exit(t1);
