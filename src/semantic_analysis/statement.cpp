@@ -60,7 +60,7 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
     auto& name = var_assign.get()->name;
     auto& expression = var_assign.get()->value;
     SymbolTable::Variable* variableData = nullptr;
-    if (m_symbol_table.lookup(name, variableData)) {
+    if (m_symbol_table.lookup(name, &variableData)) {
         std::stringstream error;
         error << "Assignment of variable '" << name << "' which does not exist in current scope";
         throw SemanticAnalyzerException(error.str(), meta);

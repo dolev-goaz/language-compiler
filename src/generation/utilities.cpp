@@ -19,7 +19,7 @@ std::string Generator::get_variable_memory_position(const std::string& variable_
 
 Generator::Variable Generator::assert_get_variable_data(std::string variable_name) {
     Generator::Variable* variableData = nullptr;
-    if (!m_stack.lookup(variable_name, variableData)) {
+    if (!m_stack.lookup(variable_name, &variableData)) {
         std::cerr << "Variable '" << variable_name << "' does not exist!" << std::endl;
         exit(EXIT_FAILURE);
     }
