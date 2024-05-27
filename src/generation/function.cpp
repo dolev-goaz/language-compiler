@@ -42,8 +42,7 @@ void Generator::generate_statement_return(const ASTStatementReturn& return_state
     m_generated << "; END RETURN STATEMENT" << std::endl;
 }
 
-void Generator::generate_expression_function_call(const ASTFunctionCallExpression& function_call_expr,
-                                                  size_t size_bytes) {
+void Generator::generate_expression_function_call(const ASTFunctionCall& function_call_expr, size_t size_bytes) {
     size_t return_type_size = data_type_size_bytes.at(function_call_expr.return_data_type);
     if (return_type_size) {
         m_generated << "; BEGIN PREPARE RETURN LOCATION INTO RDI" << std::endl;

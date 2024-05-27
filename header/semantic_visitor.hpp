@@ -20,7 +20,7 @@ struct SemanticAnalyzer::ExpressionVisitor {
         return analyzer->analyze_expression_parenthesis(paren_expr);
     }
 
-    DataType operator()(ASTFunctionCallExpression& function_call_expr) const {
+    DataType operator()(ASTFunctionCall& function_call_expr) const {
         return analyzer->analyze_expression_function_call(function_call_expr);
     }
 };
@@ -45,5 +45,9 @@ struct SemanticAnalyzer::StatementVisitor {
     }
     void operator()(const std::shared_ptr<ASTStatementReturn>& return_statement) const {
         analyzer->analyze_statement_return(return_statement);
+    }
+    void operator()(const std::shared_ptr<ASTFunctionCall>& function_call_statement) const {
+        (void)function_call_statement;
+        assert(false && "Not implemented function call as statement in semantic visitor");
     }
 };

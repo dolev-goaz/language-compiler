@@ -1,7 +1,6 @@
 #include "semantic_analyzer.hpp"
 #include "semantic_visitor.hpp"
 
-
 DataType SemanticAnalyzer::analyze_expression(ASTExpression& expression) {
     return std::visit(SemanticAnalyzer::ExpressionVisitor{this}, expression.expression);
 }
@@ -48,7 +47,7 @@ DataType SemanticAnalyzer::analyze_expression_parenthesis(const ASTParenthesisEx
     return analyze_expression(inner_expression);
 }
 
-DataType SemanticAnalyzer::analyze_expression_function_call(ASTFunctionCallExpression& function_call_expr) {
+DataType SemanticAnalyzer::analyze_expression_function_call(ASTFunctionCall& function_call_expr) {
     auto& func_name = function_call_expr.function_name;
     auto& start_token_meta = function_call_expr.start_token_meta;
     if (m_function_table.count(func_name) == 0) {

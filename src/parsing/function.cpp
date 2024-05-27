@@ -47,7 +47,7 @@ std::vector<ASTFunctionParam> Parser::parse_function_params() {
     return parameters;
 }
 
-std::vector<ASTExpression> Parser::parse_statement_function_call_params() {
+std::vector<ASTExpression> Parser::parse_function_call_params() {
     std::vector<ASTExpression> parameters;
     while (peek().has_value() && peek().value().type != TokenType::close_paren) {
         if (parameters.size() > 0) {
@@ -83,4 +83,23 @@ std::shared_ptr<ASTStatementReturn> Parser::parse_statement_return() {
         .start_token_meta = statement_begin_meta,
         .expression = expression.value(),
     });
+}
+
+std::shared_ptr<ASTFunctionCall> Parser::parse_function_call() {
+    if (!test_peek(TokenType::identifier, 0) || !test_peek(TokenType::open_paren, 1)) {
+        return nullptr;
+    }
+
+    auto name_token = consume().value();
+    consume();  // open parenthesis
+    auto params = parse_function_call_params();
+    assert_consume(TokenType::close_paren, "Expected closing parenthesis ')' after functionc call");
+    auto value = ASTFunctionCall{
+        .start_token_meta = name_token.meta,
+        .parameters = params,
+        .function_name = name_token.value.value(),
+        .return_data_type = DataType::NONE,
+    };
+
+    return std::make_shared<ASTFunctionCall>(value);
 }

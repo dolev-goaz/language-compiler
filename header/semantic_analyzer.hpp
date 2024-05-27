@@ -45,7 +45,7 @@ class SemanticAnalyzer {
     DataType analyze_expression_atomic(const std::shared_ptr<ASTAtomicExpression>& atomic);
     DataType analyze_expression_binary(const std::shared_ptr<ASTBinExpression>& binExpr);
     DataType analyze_expression_parenthesis(const ASTParenthesisExpression& paren_expr);
-    DataType analyze_expression_function_call(ASTFunctionCallExpression& function_call_expr);
+    DataType analyze_expression_function_call(ASTFunctionCall& function_call_expr);
 
     void analyze_statement(ASTStatement& statement);
 
