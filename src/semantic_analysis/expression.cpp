@@ -6,13 +6,18 @@ DataType SemanticAnalyzer::analyze_expression(ASTExpression& expression) {
 }
 
 DataType SemanticAnalyzer::analyze_expression_identifier(ASTIdentifier& identifier) {
-    SymbolTable::Variable literal_data;
-    if (!m_symbol_table.lookup(identifier.value, literal_data)) {
+    SymbolTable::Variable* literal_data = nullptr;
+    if (!m_symbol_table.lookup(identifier.value, &literal_data)) {
         std::stringstream errorMessage;
         errorMessage << "Unknown Identifier '" << identifier.value << "'";
         throw SemanticAnalyzerException(errorMessage.str(), identifier.start_token_meta);
     }
-    return literal_data.data_type;
+    if (!literal_data->is_initialized) {
+        std::stringstream errorMessage;
+        errorMessage << "Access to uninitialized variable '" << identifier.value << "'";
+        throw SemanticAnalyzerException(errorMessage.str(), identifier.start_token_meta);
+    }
+    return literal_data->data_type;
 }
 
 DataType SemanticAnalyzer::analyze_expression_int_literal(ASTIntLiteral& ignored) {

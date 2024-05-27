@@ -41,10 +41,12 @@ void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
     for (auto& function_param : func.parameters) {
         auto& start_token_meta = function_param.start_token_meta;
         try {
-            m_symbol_table.insert(function_param.name, SymbolTable::Variable{
-                                                           .start_token_meta = start_token_meta,
-                                                           .data_type = function_param.data_type,
-                                                       });
+            m_symbol_table.insert(function_param.name,
+                                  SymbolTable::Variable{
+                                      .start_token_meta = start_token_meta,
+                                      .data_type = function_param.data_type,
+                                      .is_initialized = true,  // parameters are initialized from caller
+                                  });
         } catch (const ScopeStackException& e) {
             throw SemanticAnalyzerException(e.what(), start_token_meta);
         }

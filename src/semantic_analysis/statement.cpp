@@ -18,19 +18,22 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
         throw SemanticAnalyzerException(errorMessage.str(), start_token_meta);
     }
     DataType data_type = datatype_mapping.at(var_declare.get()->data_type_str);
+    bool is_initialized = var_declare.get()->value.has_value();
     if (data_type == DataType::_void) {
         throw SemanticAnalyzerException("Variables can not be of void type", start_token_meta);
     }
     var_declare.get()->data_type = data_type;
     try {
-        m_symbol_table.insert(var_declare.get()->name,
-                              SymbolTable::Variable{.start_token_meta = start_token_meta, .data_type = data_type});
+        m_symbol_table.insert(var_declare.get()->name, SymbolTable::Variable{
+                                                           .start_token_meta = start_token_meta,
+                                                           .data_type = data_type,
+                                                           .is_initialized = is_initialized,
+                                                       });
     } catch (const ScopeStackException& e) {
         throw SemanticAnalyzerException(e.what(), start_token_meta);
     }
 
-    // no initial value
-    if (!var_declare.get()->value.has_value()) {
+    if (!is_initialized) {
         return;
     }
 
@@ -56,8 +59,8 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
     auto& meta = var_assign.get()->start_token_meta;
     auto& name = var_assign.get()->name;
     auto& expression = var_assign.get()->value;
-    SymbolTable::Variable variableData;
-    if (m_symbol_table.lookup(name, variableData)) {
+    SymbolTable::Variable* variableData = nullptr;
+    if (!m_symbol_table.lookup(name, &variableData)) {
         std::stringstream error;
         error << "Assignment of variable '" << name << "' which does not exist in current scope";
         throw SemanticAnalyzerException(error.str(), meta);
@@ -66,12 +69,14 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
     if (expression.data_type == DataType::_void) {
         throw SemanticAnalyzerException("Can't assign variables to void value", meta);
     }
-    if (expression.data_type != variableData.data_type) {
+    if (expression.data_type != variableData->data_type) {
         if (!is_int_literal(expression)) {
             semantic_warning("Assignment operation of different data types. Data will be narrowed/widened.", meta);
         }
-        expression.data_type = variableData.data_type;
+        expression.data_type = variableData->data_type;
     }
+
+    variableData->is_initialized = true;
 }
 
 void SemanticAnalyzer::analyze_statement_scope(const std::shared_ptr<ASTStatementScope>& scope) {
