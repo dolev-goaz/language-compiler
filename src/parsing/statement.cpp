@@ -202,6 +202,12 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
             ASTStatement{.start_token_meta = meta, .statement = std::move(return_statement)});
     }
 
+    if (auto func_call = parse_function_call(); func_call != nullptr) {
+        assert_consume(TokenType::semicol, "Expected ';' after function call statement");
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(func_call)});
+    }
+
     // fallback- no matching statement found
     throw ParserException("Invalid statement", meta);
 }

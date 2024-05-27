@@ -81,28 +81,16 @@ std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
         return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression{
             .start_token_meta = meta, .value = ASTIntLiteral{.start_token_meta = meta, .value = token.value.value()}});
     }
+    if (auto func_call = parse_function_call(); func_call != nullptr) {
+        return std::make_shared<ASTAtomicExpression>(
+            ASTAtomicExpression{.start_token_meta = meta, .value = *func_call.get()});
+    }
     if (test_peek(TokenType::identifier)) {
-        // TODO: could refactor this code to seperate methods
         Token name = consume().value();
-        std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCallExpression> value;
-        if (test_peek(TokenType::open_paren)) {
-            // function call
-            consume();
-            auto params = parse_statement_function_call_params();
-            assert_consume(TokenType::close_paren, "Expected closing parenthesis ')' after functionc call");
-            value = ASTFunctionCallExpression{
-                .start_token_meta = name.meta,
-                .parameters = params,
-                .function_name = name.value.value(),
-                .return_data_type = DataType::NONE,
-            };
-        } else {
-            // variable
-            value = ASTIdentifier{.start_token_meta = meta, .value = name.value.value()};
-        }
+        // variable
         return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression{
             .start_token_meta = meta,
-            .value = value,
+            .value = ASTIdentifier{.start_token_meta = meta, .value = name.value.value()},
         });
     }
     if (test_peek(TokenType::open_paren)) {

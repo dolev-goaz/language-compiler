@@ -13,6 +13,7 @@ $$
     [d\_type]\space[identifier] = [expression]; \\
     [identifier] = [expression]; \\
     func\space[data\_type]([func\_params]) [statement] \\
+    [expression]([func\_call\_params]) \\ % function call
 \end {cases} \\
 
 \text{expression} &\to
@@ -20,7 +21,7 @@ $$
     [int\_literal] \\
     [identifier] \\
     ([expression]) \\ % parenthesis
-    [expression]([func\_call\_params]) \\ % function cal
+    [expression]([func\_call\_params]) \\ % function call
     [binary\_expression] \\
 \end {cases} \\
 
