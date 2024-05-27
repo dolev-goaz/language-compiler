@@ -29,15 +29,9 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
         throw SemanticAnalyzerException(e.what(), start_token_meta);
     }
 
-    // initial 0 value if left uninitialized
+    // no initial value
     if (!var_declare.get()->value.has_value()) {
-        ASTAtomicExpression zero_literal = ASTAtomicExpression{
-            .start_token_meta = {0, 0},
-            .value = ASTIntLiteral{.start_token_meta = {0, 0}, .value = "0"},
-        };
-        var_declare.get()->value = ASTExpression{.start_token_meta = {0, 0},
-                                                 .data_type = DataType::int_64,
-                                                 .expression = std::make_shared<ASTAtomicExpression>(zero_literal)};
+        return;
     }
 
     auto& expression = var_declare.get()->value.value();

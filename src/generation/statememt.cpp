@@ -41,7 +41,13 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
         .size_bytes = size_bytes,
     };
     m_generated << ";\tVariable Declaration " << var_statement.name << " BEGIN" << std::endl;
-    generate_expression(var_statement.value.value());
+    if (var_statement.value.has_value()) {
+        generate_expression(var_statement.value.value());
+    } else {
+        // allocate stack without initializing
+        m_generated << "\tsub rsp, " << size_bytes << std::endl;
+        m_stack_size += size_bytes;
+    }
 
     m_stack.insert(var_statement.name, var);
     m_generated << ";\tVariable Declaration " << var_statement.name << " END" << std::endl << std::endl;
