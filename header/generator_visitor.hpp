@@ -43,10 +43,7 @@ struct Generator::ExpressionVisitor {
 
     void operator()(const ASTIntLiteral& literal) const { generator.generate_expression_int_literal(literal, size); }
 
-    void operator()(const ASTCharLiteral& literal) const {
-        (void)literal;
-        assert(false && "Char value generation not implemented");
-    }
+    void operator()(const ASTCharLiteral& literal) const { generator.generate_expression_char_literal(literal, size); }
 
     void operator()(const std::shared_ptr<ASTBinExpression>& binary) const {
         generator.generate_expression_binary(binary, size);
