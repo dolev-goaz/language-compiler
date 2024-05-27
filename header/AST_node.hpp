@@ -9,6 +9,7 @@
 
 enum class DataType {
     NONE = 0,
+    _void,
     int_8,
     int_16,
     int_32,
@@ -135,7 +136,7 @@ struct ASTStatementFunction {
 
 struct ASTStatementReturn {
     TokenMeta start_token_meta;
-    ASTExpression expression;
+    std::optional<ASTExpression> expression;
 };
 
 struct ASTStatement {

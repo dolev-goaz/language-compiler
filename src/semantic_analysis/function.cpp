@@ -65,7 +65,16 @@ void SemanticAnalyzer::analyze_statement_return(const std::shared_ptr<ASTStateme
     auto& meta = return_statement.get()->start_token_meta;
     auto& function_header = m_function_table.at(m_current_function_name);
     function_header.found_return_statement = true;
-    auto& expression = return_statement.get()->expression;
+    auto& possible_expression = return_statement.get()->expression;
+    if (!possible_expression.has_value()) {
+        if (function_header.data_type != DataType::_void) {
+            throw SemanticAnalyzerException("Return statement of function with return type must include an expression",
+                                            meta);
+        }
+        return;
+    }
+    // TODO: check the other case where the function shouldnt return anything
+    auto& expression = possible_expression.value();
     expression.data_type = analyze_expression(expression);
     if (expression.data_type != function_header.data_type) {
         if (!is_int_literal(expression)) {
