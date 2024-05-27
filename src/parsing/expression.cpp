@@ -93,6 +93,20 @@ std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
             .value = ASTIdentifier{.start_token_meta = meta, .value = name.value.value()},
         });
     }
+    if (test_peek(TokenType::quote)) {
+        consume();
+        auto char_value = assert_consume(TokenType::identifier, "Expected char value");
+        assert_consume(TokenType::quote, "Expected closing quote for char value");
+        auto& inner_value = char_value.value.value();
+        // can't be 0 since we consumed an identifier
+        if (inner_value.size() > 1) {
+            throw ParserException("Char value can only contain a singular character", char_value.meta);
+        }
+        return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression {
+            .start_token_meta= meta,
+            .value = ASTCharLiteral {.start_token_meta = meta, .value = inner_value.at(0)},
+        });
+    }
     if (test_peek(TokenType::open_paren)) {
         consume();  // consume open paren '('
         auto expression = parse_expression();
