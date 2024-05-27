@@ -29,8 +29,7 @@ struct Generator::StatementVisitor {
         generator.generate_statement_return(*return_statement.get());
     }
     void operator()(const std::shared_ptr<ASTFunctionCall>& function_call_statement) const {
-        (void)function_call_statement;
-        assert(false && "Not implemented function call as statement in generator visitor");
+        generator.generate_expression_function_call(*function_call_statement.get(), 0);
     }
 };
 

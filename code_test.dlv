@@ -2,6 +2,8 @@
 int_16 n = 5;
 int_64 total = factorial(n);
 
+factorial(n);
+
 exit(total);
 
 func int_16 factorial(int_16 y) {
