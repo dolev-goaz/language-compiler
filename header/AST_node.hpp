@@ -52,7 +52,6 @@ struct ASTParenthesisExpression {
     std::shared_ptr<ASTExpression> expression;
 };
 
-// TODO: when adding return values, this should be an expression
 struct ASTFunctionCall {
     TokenMeta start_token_meta;
     std::vector<ASTExpression> parameters;

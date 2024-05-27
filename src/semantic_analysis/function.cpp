@@ -53,7 +53,6 @@ void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
     m_current_function_name = "";
     m_symbol_table.exitScope();
     auto& function_header = m_function_table.at(func.name);
-    // TODO: handle void datatype
     // TODO: should handle all execution paths
     if (!function_header.found_return_statement && function_header.data_type != DataType::_void) {
         throw SemanticAnalyzerException("Return statement not found", function_header.start_token_meta);

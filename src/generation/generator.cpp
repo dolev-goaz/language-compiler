@@ -28,7 +28,6 @@ std::string Generator::generate_program() {
 
     m_stack.enterScope();
     // generate all statements
-    // TODO: store initial rsp, to allow access to global variables(outside functions)
     for (size_t i = 0; i < m_prog.statements.size(); ++i) {
         auto current = m_prog.statements[i].get();
         generate_statement(*current);
