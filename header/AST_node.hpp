@@ -35,6 +35,11 @@ enum class BinOperation {
 struct ASTExpression;
 struct ASTStatement;
 
+struct ASTCharLiteral {
+    TokenMeta start_token_meta;
+    char value;
+};
+
 struct ASTIntLiteral {
     TokenMeta start_token_meta;
     // literal value- 0x1f, 15, 0b1001..
@@ -61,7 +66,7 @@ struct ASTFunctionCall {
 
 struct ASTAtomicExpression {
     TokenMeta start_token_meta;
-    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCall> value;
+    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCall, ASTCharLiteral> value;
 };
 
 struct ASTBinExpression {

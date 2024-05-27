@@ -37,6 +37,12 @@ void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, si
     push_stack_literal(literal.value, size_bytes);
 }
 
+void Generator::generate_expression_char_literal(const ASTCharLiteral& literal, size_t size_bytes) {
+    auto ascii_value = std::to_string(literal.value);
+    push_stack_literal(ascii_value, size_bytes);
+}
+
+
 void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes) {
     static_assert((int)BinOperation::operationCount - 1 == 10,
                   "Binary Operations enum changed without changing generator");

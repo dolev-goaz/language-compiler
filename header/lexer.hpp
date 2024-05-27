@@ -19,6 +19,7 @@ enum class TokenType {
     close_curly,
     comment,
     comma,
+    quote,
 
     // mathematical operations
     plus,

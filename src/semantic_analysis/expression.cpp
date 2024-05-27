@@ -20,6 +20,11 @@ DataType SemanticAnalyzer::analyze_expression_int_literal(ASTIntLiteral& ignored
     return DataType::int_64;
 }
 
+DataType SemanticAnalyzer::analyze_expression_char_literal(ASTCharLiteral& ignored) {
+    (void)ignored; // suppress unused
+    return DataType::int_16; // inner type
+}
+
 DataType SemanticAnalyzer::analyze_expression_atomic(const std::shared_ptr<ASTAtomicExpression>& atomic) {
     return std::visit(SemanticAnalyzer::ExpressionVisitor{this}, atomic.get()->value);
 }

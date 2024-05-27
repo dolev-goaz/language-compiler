@@ -1,14 +1,3 @@
 
-int_16 n = 5;
-
-try_exit(10);
-try_exit(15);
-try_exit(20);
-
-func void try_exit(int_16 x) {
-    if (x <= 15) {
-        return;
-    }
-    
-    exit(x);
-}
+char test = 'A';
+exit(test);
