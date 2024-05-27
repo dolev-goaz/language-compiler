@@ -9,8 +9,7 @@ struct SemanticAnalyzer::ExpressionVisitor {
     }
 
     DataType operator()(ASTCharLiteral& char_literal) const {
-        (void)char_literal;
-        assert(false && "Char value analysis not implemented");
+        return analyzer->analyze_expression_char_literal(char_literal);
     }
 
     DataType operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
