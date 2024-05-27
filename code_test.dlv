@@ -1,6 +1,8 @@
 
 int_16 n = 5;
 
+int_16 test = 'h';
+
 try_exit(10);
 try_exit(15);
 try_exit(20);
