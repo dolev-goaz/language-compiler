@@ -74,14 +74,11 @@ std::shared_ptr<ASTStatementReturn> Parser::parse_statement_return() {
         return nullptr;
     }
     auto statement_begin_meta = consume().value().meta;
-    auto expression = parse_expression();
-    if (!expression.has_value()) {
-        throw ParserException("Expected expression after 'return'", statement_begin_meta);
-    }
+    auto possible_expression = parse_expression();
     assert_consume(TokenType::semicol, "Expected semicolon ';' after return statement");
     return std::make_shared<ASTStatementReturn>(ASTStatementReturn{
         .start_token_meta = statement_begin_meta,
-        .expression = expression.value(),
+        .expression = possible_expression,
     });
 }
 

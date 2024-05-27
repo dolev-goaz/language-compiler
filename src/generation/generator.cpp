@@ -4,6 +4,7 @@
 
 std::map<DataType, size_t> data_type_size_bytes = {
     {DataType::NONE, 0},
+    {DataType::_void, 0},
     {DataType::int_16, 2},
     // {DataType::int_32, 4},
     {DataType::int_64, 8},

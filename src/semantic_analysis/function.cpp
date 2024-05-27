@@ -9,6 +9,9 @@ void SemanticAnalyzer::analyze_function_param(ASTFunctionParam& param) {
         throw SemanticAnalyzerException(errorMessage.str(), start_token_meta);
     }
     DataType data_type = datatype_mapping.at(param.data_type_str);
+    if (data_type == DataType::_void) {
+        throw SemanticAnalyzerException("Function parameter can not be of type void", start_token_meta);
+    }
     param.data_type = data_type;
 }
 
@@ -52,7 +55,7 @@ void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
     auto& function_header = m_function_table.at(func.name);
     // TODO: handle void datatype
     // TODO: should handle all execution paths
-    if (!function_header.found_return_statement) {
+    if (!function_header.found_return_statement && function_header.data_type != DataType::_void) {
         throw SemanticAnalyzerException("Return statement not found", function_header.start_token_meta);
     }
 }
@@ -65,7 +68,18 @@ void SemanticAnalyzer::analyze_statement_return(const std::shared_ptr<ASTStateme
     auto& meta = return_statement.get()->start_token_meta;
     auto& function_header = m_function_table.at(m_current_function_name);
     function_header.found_return_statement = true;
-    auto& expression = return_statement.get()->expression;
+    auto& possible_expression = return_statement.get()->expression;
+    if (!possible_expression.has_value()) {
+        if (function_header.data_type != DataType::_void) {
+            throw SemanticAnalyzerException("Return statement of function with return type must include an expression",
+                                            meta);
+        }
+        return;
+    }
+    auto& expression = possible_expression.value();
+    if (function_header.data_type == DataType::_void && expression.data_type != DataType::_void) {
+        throw SemanticAnalyzerException("Can not return non-void expressions from void methods", meta);
+    }
     expression.data_type = analyze_expression(expression);
     if (expression.data_type != function_header.data_type) {
         if (!is_int_literal(expression)) {

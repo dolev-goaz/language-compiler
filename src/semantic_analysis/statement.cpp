@@ -18,6 +18,9 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
         throw SemanticAnalyzerException(errorMessage.str(), start_token_meta);
     }
     DataType data_type = datatype_mapping.at(var_declare.get()->data_type_str);
+    if (data_type == DataType::_void) {
+        throw SemanticAnalyzerException("Variables can not be of void type", start_token_meta);
+    }
     var_declare.get()->data_type = data_type;
     try {
         m_symbol_table.insert(var_declare.get()->name,
@@ -39,6 +42,9 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
 
     auto& expression = var_declare.get()->value.value();
     DataType rhs_data_type = analyze_expression(expression);
+    if (rhs_data_type == DataType::_void) {
+        throw SemanticAnalyzerException("Can not assign variables to 'void'", start_token_meta);
+    }
     // IN THE FUTURE: when there are more types, check for type compatibility
     if (rhs_data_type != data_type) {
         // type narrowing/widening
@@ -63,6 +69,9 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
         throw SemanticAnalyzerException(error.str(), meta);
     }
     expression.data_type = analyze_expression(expression);
+    if (expression.data_type == DataType::_void) {
+        throw SemanticAnalyzerException("Can't assign variables to void value", meta);
+    }
     if (expression.data_type != variableData.data_type) {
         if (!is_int_literal(expression)) {
             semantic_warning("Assignment operation of different data types. Data will be narrowed/widened.", meta);
