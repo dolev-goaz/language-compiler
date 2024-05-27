@@ -2,8 +2,8 @@
 #include "semantic_visitor.hpp"
 
 std::map<std::string, DataType> datatype_mapping = {
-    {"void", DataType::_void},    {"int_8", DataType::int_8},   {"int_16", DataType::int_16},
-    {"int_32", DataType::int_32}, {"int_64", DataType::int_64},
+    {"void", DataType::_void},  {"int_8", DataType::int_8},   {"int_16", DataType::int_16},
+    {"char", DataType::int_16}, {"int_32", DataType::int_32}, {"int_64", DataType::int_64},
 };
 
 bool SemanticAnalyzer::is_int_literal(ASTExpression& expression) {
