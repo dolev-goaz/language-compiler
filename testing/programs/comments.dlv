@@ -1,0 +1,7 @@
+// Should compile and run
+/*
+    This is a multiline comment.
+    It should not affect the compilation.
+*/
+int_64 a = 10; // This is a single-line comment
+exit(a);

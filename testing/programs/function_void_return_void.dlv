@@ -1,0 +1,10 @@
+func void my_exit() {
+    return fancy_exit(5);
+}
+
+func void fancy_exit(int_64 y) {
+    if (y >= 5) {
+        exit(10);
+    }
+    exit(2);
+}

@@ -66,11 +66,42 @@
         "expected_return_code": 24
     },
     {
-        "name": "Char variable comparison",
+        "name": "Char Variable Comparison",
         "file": "char_comparison.dlv",
         "should_compile": true,
         "expected_return_code": 65
     },
+    {
+        "name": "Access Global Variables From Functions",
+        "file": "access_global_variable.dlv",
+        "should_compile": true,
+        "expected_return_code": 500
+    },
+    {
+        "name": "Allow Single and Multi Line Comments",
+        "file": "comments.dlv",
+        "should_compile": true,
+        "expected_return_code": 10
+    },
+    {
+        "name": "Void Function Without Return",
+        "file": "function_void_no_return.dlv",
+        "should_compile": true,
+        "expected_return_code": 10
+    },
+    {
+        "name": "Void Function Returning Void",
+        "file": "function_void_return_void.dlv",
+        "should_compile": true,
+        "expected_return_code": 10
+    },
+    {
+        "name": "Nested Condition",
+        "file": "nested_condition.dlv",
+        "should_compile": true,
+        "expected_return_code": 1
+    },
+
 
 
     {
