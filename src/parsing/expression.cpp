@@ -5,16 +5,15 @@ std::map<TokenType, BinOperation> singleCharBinOperationMapping = {
     {TokenType::star, BinOperation::multiply},  {TokenType::fslash, BinOperation::divide},
     {TokenType::percent, BinOperation::modulo},
 };
-BinOperation Parser::try_consume_binary_operation() {
+
+BinOperation Parser::peek_binary_operation() {
     if (!peek().has_value()) return BinOperation::NONE;
 
     // check for multi-token operations
     if (test_peek(TokenType::eq)) {
         //"="
-        consume();
-        if (test_peek(TokenType::eq)) {
+        if (test_peek(TokenType::eq, 1)) {
             //"=="
-            consume();
             return BinOperation::eq;
         }
         // NOTE: return assign here(in the future)
@@ -22,19 +21,16 @@ BinOperation Parser::try_consume_binary_operation() {
     if (test_peek(TokenType::open_triangle)) {
         //"<"
         consume();
-        if (test_peek(TokenType::eq)) {
+        if (test_peek(TokenType::eq, 1)) {
             //"<="
-            consume();
             return BinOperation::le;
         }
         return BinOperation::lt;
     }
     if (test_peek(TokenType::close_triangle)) {
         //">"
-        consume();
-        if (test_peek(TokenType::eq)) {
+        if (test_peek(TokenType::eq, 1)) {
             //">="
-            consume();
             return BinOperation::ge;
         }
         return BinOperation::gt;
@@ -42,11 +38,42 @@ BinOperation Parser::try_consume_binary_operation() {
 
     // check for single-token operations
     if (singleCharBinOperationMapping.count(peek().value().type) > 0) {
-        auto current = consume();
-        return singleCharBinOperationMapping.at(current.value().type);
+        return singleCharBinOperationMapping.at(peek().value().type);
     }
 
     return BinOperation::NONE;
+}
+
+BinOperation Parser::try_consume_binary_operation() {
+    auto to_consume = peek_binary_operation();
+    if (to_consume == BinOperation::NONE) {
+        return BinOperation::NONE;
+    }
+
+    size_t consume_count = 0;
+    switch (to_consume) {
+        case BinOperation::add:
+        case BinOperation::subtract:
+        case BinOperation::multiply:
+        case BinOperation::divide:
+        case BinOperation::modulo:
+        case BinOperation::lt:
+        case BinOperation::gt:
+            consume_count = 1;
+            break;
+        case BinOperation::eq:
+        case BinOperation::le:
+        case BinOperation::ge:
+            consume_count = 2;
+            break;
+        default:
+            assert(false && "Unknown binary operation- " + (int)to_consume);
+    }
+    for (size_t i = 0; i < consume_count; i++) {
+        consume();
+    }
+
+    return to_consume;
 }
 
 std::optional<int> Parser::binary_operator_precedence(const BinOperation& operation) {
@@ -102,9 +129,9 @@ std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
         if (inner_value.size() > 1) {
             throw ParserException("Char value can only contain a singular character", char_value.meta);
         }
-        return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression {
-            .start_token_meta= meta,
-            .value = ASTCharLiteral {.start_token_meta = meta, .value = inner_value.at(0)},
+        return std::make_shared<ASTAtomicExpression>(ASTAtomicExpression{
+            .start_token_meta = meta,
+            .value = ASTCharLiteral{.start_token_meta = meta, .value = inner_value.at(0)},
         });
     }
     if (test_peek(TokenType::open_paren)) {
@@ -143,7 +170,7 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
         .expression = atomic,
     };
     while (true) {
-        auto binOperation = try_consume_binary_operation();
+        auto binOperation = peek_binary_operation();
         if (binOperation == BinOperation::NONE) {
             break;
         }
@@ -151,6 +178,7 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
         if (!currentPrecedence.has_value() || currentPrecedence.value() < min_prec) {
             break;
         }
+        try_consume_binary_operation();
         auto rhs = parse_expression(currentPrecedence.value() + 1);
         if (!rhs.has_value()) {
             auto nextToken = peek();

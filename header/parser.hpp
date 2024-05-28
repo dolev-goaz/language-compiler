@@ -21,6 +21,7 @@ class Parser {
 
     std::shared_ptr<ASTStatement> parse_statement();
     BinOperation try_consume_binary_operation();
+    BinOperation peek_binary_operation();
 
     std::shared_ptr<ASTStatementExit> parse_statement_exit();
     std::shared_ptr<ASTStatementVar> parse_statement_var_declare();
