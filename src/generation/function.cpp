@@ -35,11 +35,13 @@ void Generator::generate_statement_return(const ASTStatementReturn& return_state
         auto& expression = return_statement.expression.value();
         generate_expression(expression);
         size_t return_size_bytes = data_type_size_bytes.at(expression.data_type);
-        auto& reg = size_bytes_to_register.at(return_size_bytes);
+        if (return_size_bytes > 0) {
+            auto& reg = size_bytes_to_register.at(return_size_bytes);
 
-        // NOTE: this only works for primitives for now
-        pop_stack_register(reg, return_size_bytes, return_size_bytes);
-        m_generated << "\tmov [rdi], " << reg << std::endl;
+            // NOTE: this only works for primitives for now
+            pop_stack_register(reg, return_size_bytes, return_size_bytes);
+            m_generated << "\tmov [rdi], " << reg << std::endl;
+        }
     }
     m_generated << "\tjmp .return" << std::endl;
     m_generated << "; END RETURN STATEMENT" << std::endl;

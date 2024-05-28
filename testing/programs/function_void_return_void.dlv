@@ -1,3 +1,5 @@
+my_exit();
+
 func void my_exit() {
     return fancy_exit(5);
 }
