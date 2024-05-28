@@ -81,7 +81,7 @@
         "name": "Access Global Variables From Functions",
         "file": "access_global_variable.dlv",
         "should_compile": true,
-        "expected_return_code": 500
+        "expected_return_code": 100
     },
     {
         "name": "Allow Single and Multi Line Comments",

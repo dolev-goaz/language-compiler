@@ -1,4 +1,4 @@
-int_64 globalVar = 100;
+int_64 globalVar = 20;
 
 func int_64 multiplyByGlobal(int_64 a) {
     return a * globalVar;
