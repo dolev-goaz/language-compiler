@@ -18,13 +18,18 @@ class RunResult:
     stdout: str
     stderr: str
 
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+TEST_CASES_FILE = os.path.join(SCRIPT_DIR, "test_cases.json")
+PROGRAMS_DIR = os.path.join(SCRIPT_DIR, "programs")
+
+
 class TestCompiler(unittest.TestCase):
 
     @staticmethod
     def run_program(source_file: str) -> RunResult:
         # Compile the program
         compile_process = subprocess.run(
-            ["../compiler", "compile", source_file], 
+            [f"{SCRIPT_DIR}/../compiler", "compile", source_file],
             capture_output=True, text=True
         )
         if compile_process.returncode != 0:
@@ -45,11 +50,11 @@ class TestCompiler(unittest.TestCase):
                          f"Status code mismatch for {test_name}.")
 
 def load_test_cases():
-    with open("test_cases.json", "r") as f:
+    with open(TEST_CASES_FILE, "r") as f:
         test_cases: List[ProgramTestCase] = json.load(f)
 
     for idx, program in enumerate(test_cases):
-        source_file = os.path.join("programs", program["file"])
+        source_file = os.path.join(PROGRAMS_DIR, program["file"])
         test_method = create_test_method(source_file, program)
         test_method.__name__ = f"test '{program['name']}'"
         setattr(TestCompiler, test_method.__name__, test_method)
