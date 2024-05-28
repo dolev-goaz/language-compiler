@@ -4,5 +4,10 @@
         "file": "exit.dlv",
         "should_compile": true,
         "expected_return_code": 1
+    },
+    {
+        "name": "Disallow using unassigned",
+        "file": "err_use_unassigned.dlv",
+        "should_compile": false
     }
 ]
