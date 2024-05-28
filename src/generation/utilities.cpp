@@ -1,20 +1,22 @@
 #include "generator.hpp"
 
-std::string Generator::get_variable_memory_position(const std::string& variable_name) {
+void Generator::load_memory_address(const std::string& reg, const std::string& variable_name) {
     auto variable_data = assert_get_variable_data(variable_name);
 
     bool is_global = m_stack.is_variable_global(variable_name);
 
     int offset = variable_data.stack_location_bytes + variable_data.size_bytes;
 
-    std::stringstream out;
+    m_generated << "\t; Load Memory Address Of " << variable_name << std::endl;
     if (is_global) {
-        out << "[" << "rbp" << " - " << offset << "]";
+        m_generated << "\tmov " << reg << ", " << "[global_variables_base]" << std::endl;
+        m_generated << "\tsub " << reg << ", " << offset << std::endl;;
     } else {
         offset = m_stack_size - offset;
-        out << "[" << "rsp" << " + " << offset << "]";
+        m_generated << "\tmov " << reg << ", " << "rsp" << std::endl;
+        m_generated << "\tadd " << reg << ", " << offset << std::endl;
     }
-    return out.str();
+    m_generated << "\t; End Load Memory Address Of " << variable_name << std::endl;
 }
 
 Generator::Variable Generator::assert_get_variable_data(std::string variable_name) {

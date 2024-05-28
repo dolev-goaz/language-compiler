@@ -23,16 +23,19 @@ std::map<size_t, std::string> size_bytes_to_register = {
 };
 
 std::map<BinOperation, std::string> comparison_operation = {
-    {BinOperation::eq, "sete"},
-    {BinOperation::lt, "setl"},
-    {BinOperation::le, "setle"},
-    {BinOperation::gt, "setg"},
-    {BinOperation::ge, "setge"},
+    {BinOperation::eq, "sete"}, {BinOperation::lt, "setl"},  {BinOperation::le, "setle"},
+    {BinOperation::gt, "setg"}, {BinOperation::ge, "setge"},
 };
 
 std::string Generator::generate_program() {
-    m_generated << "global main" << std::endl << "main:" << std::endl;
-    m_generated << "\tmov rbp, rsp" << std::endl << std::endl;
+    m_generated << "section .bss" << std::endl
+                << "\tglobal_variables_base resq 1" << std::endl
+                << "section .text" << std::endl
+                << "\tglobal main" << std::endl
+                << "main:" << std::endl
+                << "\tmov rbp, rsp" << std::endl
+                << "\tmov [global_variables_base], rbp" << std::endl
+                << std::endl;
 
     m_stack.enterScope();
     // generate all statements

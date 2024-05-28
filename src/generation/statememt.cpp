@@ -27,8 +27,9 @@ void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_
     // popping to the largest register to allow data widening if necessary, up to 8 bytes
     pop_stack_register("rax", 8, expression_size_bytes);
     std::string& temp_register = size_bytes_to_register.at(variableData.size_bytes);
-    m_generated << "\tmov " << get_variable_memory_position(var_assign_statement.name) << ", " << temp_register
-                << std::endl;
+
+    load_memory_address("rdx", var_assign_statement.name);
+    m_generated << "\tmov [rdx], " << temp_register << std::endl;
     m_generated << ";\tVariable Assigment " << var_assign_statement.name << " END" << std::endl << std::endl;
 }
 

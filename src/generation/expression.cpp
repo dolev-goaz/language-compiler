@@ -24,8 +24,8 @@ void Generator::generate_expression_identifier(const ASTIdentifier& identifier, 
     std::string original_data_reg = size_bytes_to_register.at(variable_data.size_bytes);
     std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
 
-    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " "
-                << get_variable_memory_position(variable_name) << std::endl;
+    load_memory_address("rdx", variable_name);
+    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rdx]" << std::endl;
 
     // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
     // probably just don't support 8-bit variables, lol

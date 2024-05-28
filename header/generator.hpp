@@ -43,7 +43,7 @@ class Generator {
     void enter_scope();
     void exit_scope();
 
-    std::string get_variable_memory_position(const std::string& variable_name);
+    void load_memory_address(const std::string& reg, const std::string& variable_name);
     Generator::Variable assert_get_variable_data(std::string variable_name);
 
     // push a literal value to the stack
