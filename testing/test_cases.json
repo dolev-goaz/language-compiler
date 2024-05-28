@@ -6,6 +6,12 @@
         "expected_return_code": 1
     },
     {
+        "name": "Default Exit",
+        "file": "default_exit.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
         "name": "Variable Declaration With Binary Expression",
         "file": "var_declare_binary_expression.dlv",
         "should_compile": true,

@@ -1,0 +1,2 @@
+int_16 a = 5;
+// exit with 0 should be inserted automatically
