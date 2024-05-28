@@ -11,6 +11,7 @@
 extern std::map<DataType, size_t> data_type_size_bytes;
 extern std::map<size_t, std::string> size_bytes_to_size_keyword;
 extern std::map<size_t, std::string> size_bytes_to_register;
+extern std::map<BinOperation, std::string> comparison_operation;
 
 class Generator {
    public:

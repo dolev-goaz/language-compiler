@@ -1,3 +1,36 @@
-int_64 x = 15 * 2 + 14 / (3 + 1);
+int_64 x = 15 * 2 + 16 / (3 + 1);
 
-exit(x);
+int_16 y;
+
+// this is a comment
+/*
+    this is a multiline comment
+    :0 wow its still a comment
+*/
+
+y = 10 * x - 6;
+
+if (y < 35) {
+    exit(10);
+}
+
+while (y > 5) {
+    y = y - 10;
+}
+
+fancy_exit(y);
+
+func void fancy_exit(int_64 y) {
+    if (y >= 5) {
+        exit(10);
+    }
+    exit(factorial(y));
+}
+
+func int_64 factorial(int_64 n) {
+    if (n < 2) {
+        return 1;
+    }
+
+    return n * factorial(n - 1);
+}

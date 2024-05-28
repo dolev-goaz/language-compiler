@@ -22,6 +22,14 @@ std::map<size_t, std::string> size_bytes_to_register = {
     {8, "rax"},
 };
 
+std::map<BinOperation, std::string> comparison_operation = {
+    {BinOperation::eq, "sete"},
+    {BinOperation::lt, "setl"},
+    {BinOperation::le, "setle"},
+    {BinOperation::gt, "setg"},
+    {BinOperation::ge, "setge"},
+};
+
 std::string Generator::generate_program() {
     m_generated << "global main" << std::endl << "main:" << std::endl;
     m_generated << "\tmov rbp, rsp" << std::endl << std::endl;

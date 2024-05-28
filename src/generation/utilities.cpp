@@ -61,7 +61,7 @@ void Generator::pop_stack_register(const std::string& reg, size_t register_size,
         // popping non-qword from the stack. so we read from the stack(0-filled)
         // and then update the stack pointer, effectively manually popping from the stack
         m_generated << ";\tManual POP BEGIN" << std::endl;
-        m_generated << "\tmovsx " << reg << ", " << size_keyword << " " << "[rsp]" << std::endl;
+        m_generated << "\tmovzx " << reg << ", " << size_keyword << " " << "[rsp]" << std::endl;
         m_generated << "\tadd rsp, " << requested_size << std::endl;
         m_generated << ";\tManual POP END" << std::endl;
     }

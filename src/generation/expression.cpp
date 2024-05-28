@@ -93,8 +93,8 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
     pop_stack_register("rbx", 8, rhs_size_bytes);  // rbx = rhs
     pop_stack_register("rax", 8, lhs_size_bytes);  // rax = lhs
 
-    std::string _8bit_reg = size_bytes_to_register.at(1);
-    switch (binary.get()->operation) {
+    auto bin_operation = binary.get()->operation;
+    switch (bin_operation) {
         case BinOperation::add:
             m_generated << "\tadd rax, rbx; rax += rbx" << std::endl;  // rax = rax + rbx
             break;
@@ -114,24 +114,14 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
             m_generated << "\tmov rax, rdx; rdx stores the remainder" << std::endl;
             break;
         case BinOperation::eq:
-            m_generated << "\tcmp rax, rbx" << std::endl;
-            m_generated << "\tsete " << _8bit_reg << std::endl;
-            break;
         case BinOperation::lt:
-            m_generated << "\tcmp rax, rbx" << std::endl;
-            m_generated << "\tsetl " << _8bit_reg << std::endl;
-            break;
         case BinOperation::le:
-            m_generated << "\tcmp rax, rbx" << std::endl;
-            m_generated << "\tsetle " << _8bit_reg << std::endl;
-            break;
         case BinOperation::gt:
-            m_generated << "\tcmp rax, rbx" << std::endl;
-            m_generated << "\tsetg " << _8bit_reg << std::endl;
-            break;
         case BinOperation::ge:
             m_generated << "\tcmp rax, rbx" << std::endl;
-            m_generated << "\tsetge " << _8bit_reg << std::endl;
+            m_generated << "\t" << comparison_operation.at(bin_operation) << " bl; temporary in bl" << std::endl;
+            m_generated << "\txor rax, rax" << std::endl;
+            m_generated << "\tmov al, bl" << std::endl; // final result is stored in rax by convention
             break;
         default:
             // should never reach here. this is to remove warnings
