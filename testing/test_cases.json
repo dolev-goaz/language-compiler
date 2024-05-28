@@ -12,6 +12,12 @@
         "expected_return_code": 0
     },
     {
+        "name": "Exit With Code Higher Than 255 (status 500 -> 244)",
+        "file": "exit_status_code_overflow.dlv",
+        "should_compile": true,
+        "expected_return_code": 244
+    },
+    {
         "name": "Variable Declaration With Binary Expression",
         "file": "var_declare_binary_expression.dlv",
         "should_compile": true,
