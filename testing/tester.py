@@ -5,6 +5,8 @@ import json
 from dataclasses import dataclass
 from typing import TypedDict, List
 
+__unittest = True # removes tracebacks, somehow lol
+
 class ProgramTestCase(TypedDict):
     name: str
     file: str
@@ -43,11 +45,11 @@ class TestCompiler(unittest.TestCase):
         test_name = case_info["name"]
         result = self.run_program(source_file)
         self.assertEqual(result.compile_success, case_info["should_compile"], 
-                         f"Unexpected compilation status for {test_name} - {result.stderr}")
+                         f"Unexpected compilation status for test '{test_name}' -\n{result.stderr}")
         if not result.compile_success:
             return
         self.assertEqual(result.exit_code, case_info["expected_return_code"], 
-                         f"Status code mismatch for {test_name}.")
+                         f"Status code mismatch for test '{test_name}'.")
 
 def load_test_cases():
     with open(TEST_CASES_FILE, "r") as f:
