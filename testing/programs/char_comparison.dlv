@@ -1,0 +1,5 @@
+char n = 'A';
+if (n == 'A') {
+    exit(65);
+}
+exit(0);

@@ -1,0 +1,6 @@
+func int_64 multiply(int_64 a, int_64 b, int_64 c) {
+    return a * b * c;
+}
+
+int_64 l = multiply(2, 3, 4);
+exit(l);

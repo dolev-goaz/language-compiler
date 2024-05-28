@@ -6,6 +6,94 @@
         "expected_return_code": 1
     },
     {
+        "name": "Variable Declaration With Binary Expression",
+        "file": "var_declare_binary_expression.dlv",
+        "should_compile": true,
+        "expected_return_code": 20
+    },
+    {
+        "name": "Conditional Exit",
+        "file": "conditional_exit.dlv",
+        "should_compile": true,
+        "expected_return_code": 1
+    },
+    {
+        "name": "Exit Within Loop",
+        "file": "basic_loop.dlv",
+        "should_compile": true,
+        "expected_return_code": 8
+    },
+    {
+        "name": "Basic Function & Call",
+        "file": "function_call.dlv",
+        "should_compile": true,
+        "expected_return_code": 16
+    },
+    {
+        "name": "Function Conditional Return Value",
+        "file": "function_conditional_return_value.dlv",
+        "should_compile": true,
+        "expected_return_code": 13
+    },
+    {
+        "name": "Recursive Function (Factorial)",
+        "file": "function_recursion.dlv",
+        "should_compile": true,
+        "expected_return_code": 120
+    },
+    {
+        "name": "Nested Function Call",
+        "file": "function_nested_call.dlv",
+        "should_compile": true,
+        "expected_return_code": 16
+    },
+    {
+        "name": "Exit Within Loop",
+        "file": "exit_in_loop.dlv",
+        "should_compile": true,
+        "expected_return_code": 10
+    },
+    {
+        "name": "Nested Loop",
+        "file": "nested_loop.dlv",
+        "should_compile": true,
+        "expected_return_code": 6
+    },
+    {
+        "name": "Function Multiple Parameters",
+        "file": "function_multiparam.dlv",
+        "should_compile": true,
+        "expected_return_code": 24
+    },
+    {
+        "name": "Char variable comparison",
+        "file": "char_comparison.dlv",
+        "should_compile": true,
+        "expected_return_code": 65
+    },
+
+
+    {
+        "name": "Returning value from void method",
+        "file": "function_return_value_void.dlv",
+        "should_compile": false
+    },
+    {
+        "name": "Function Call missing Parameters",
+        "file": "function_missing_param.dlv",
+        "should_compile": false
+    },
+    {
+        "name": "Missing Semicolon Variable Declaration",
+        "file": "missing_semicol_var_declare.dlv",
+        "should_compile": false
+    },
+    {
+        "name": "Invalid Datatype",
+        "file": "invalid_datatype.dlv",
+        "should_compile": false
+    },
+    {
         "name": "Disallow using unassigned",
         "file": "err_use_unassigned.dlv",
         "should_compile": false

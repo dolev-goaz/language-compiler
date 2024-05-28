@@ -1,0 +1,9 @@
+func int_64 check_and_return(int_64 x) {
+    if (x < 10) {
+        return x + 5;
+    }
+    return x - 5;
+}
+
+int_64 e = check_and_return(8);
+exit(e);

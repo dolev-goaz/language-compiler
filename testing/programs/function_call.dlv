@@ -1,0 +1,6 @@
+func int_64 square(int_64 x) {
+    return x * x;
+}
+
+int_64 d = square(4);
+exit(d);

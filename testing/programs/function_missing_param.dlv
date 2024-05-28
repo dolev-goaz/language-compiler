@@ -1,0 +1,6 @@
+func int_64 subtract(int_64 a, int_64 b) {
+    return a - b;
+}
+
+int_64 m = subtract(5); // Missing second parameter
+exit(m);

@@ -1,0 +1,10 @@
+func int_64 multiply(int_64 a, int_64 b) {
+    return a * b;
+}
+
+func int_64 calculate(int_64 x, int_64 y) {
+    return multiply(x, y) + y;
+}
+
+int_64 result = calculate(3, 4);
+exit(result);

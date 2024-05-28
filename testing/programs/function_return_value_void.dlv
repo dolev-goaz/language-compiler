@@ -1,0 +1,5 @@
+func void invalid_return() {
+    return 1; // Cannot return a value from a void function
+}
+
+invalid_return();

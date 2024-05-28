@@ -1,0 +1,9 @@
+func int_64 factorial(int_64 n) {
+    if (n < 2) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+int_64 f = factorial(5);
+exit(f);

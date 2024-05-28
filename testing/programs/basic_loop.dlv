@@ -1,0 +1,5 @@
+int_16 c = 20;
+while (c > 10) {
+    c = c - 3;
+}
+exit(c);
