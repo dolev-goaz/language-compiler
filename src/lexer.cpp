@@ -203,19 +203,13 @@ std::vector<Token> Lexer::tokenize() {
 
         // consume special characters
 
-        bool found = false;
-        for (auto& pair : tokenMappingsSymbols) {
-            // first contains the key
-            if (this->try_consume_char(pair.first)) {
-                found = true;
-                break;
-            }
+        if (tokenMappingsSymbols.count(current) > 0) {
+            try_consume_char(current);
+            continue;
         }
-        if (!found) {
-            std::stringstream err_message;
-            err_message << "Unexpected Token '" << current << "', Character Code: " << (int)current;
-            throw LexerException(err_message.str(), m_line, m_col);
-        }
+        std::stringstream err_message;
+        err_message << "Unexpected Token '" << current << "', Character Code: " << (int)current;
+        throw LexerException(err_message.str(), m_line, m_col);
     }
 
     return this->tokens;
