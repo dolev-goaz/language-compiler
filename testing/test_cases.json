@@ -1,0 +1,8 @@
+[
+    {
+        "name": "Exit Statement",
+        "file": "exit.dlv",
+        "should_compile": true,
+        "expected_return_code": 1
+    }
+]
