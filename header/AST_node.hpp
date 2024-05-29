@@ -77,6 +77,7 @@ struct ASTBinExpression {
 };
 
 struct ASTExpression {
+    bool is_literal = false;
     TokenMeta start_token_meta;
     DataType data_type;
     std::variant<std::shared_ptr<ASTAtomicExpression>, std::shared_ptr<ASTBinExpression>> expression;

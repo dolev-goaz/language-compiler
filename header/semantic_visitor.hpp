@@ -1,30 +1,37 @@
 #pragma once
 #include "semantic_analyzer.hpp"
+struct SemanticAnalyzer::ExpressionAnalysisResult {
+    DataType data_type;
+    bool is_literal;
+};
+
 struct SemanticAnalyzer::ExpressionVisitor {
     SemanticAnalyzer* analyzer;
-    DataType operator()(ASTIdentifier& identifier) const { return analyzer->analyze_expression_identifier(identifier); }
+    SemanticAnalyzer::ExpressionAnalysisResult operator()(ASTIdentifier& identifier) const {
+        return analyzer->analyze_expression_identifier(identifier);
+    }
 
-    DataType operator()(ASTIntLiteral& int_literal) const {
+    SemanticAnalyzer::ExpressionAnalysisResult operator()(ASTIntLiteral& int_literal) const {
         return analyzer->analyze_expression_int_literal(int_literal);
     }
 
-    DataType operator()(ASTCharLiteral& char_literal) const {
+    SemanticAnalyzer::ExpressionAnalysisResult operator()(ASTCharLiteral& char_literal) const {
         return analyzer->analyze_expression_char_literal(char_literal);
     }
 
-    DataType operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
+    SemanticAnalyzer::ExpressionAnalysisResult operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
         return analyzer->analyze_expression_atomic(atomic);
     }
 
-    DataType operator()(const std::shared_ptr<ASTBinExpression>& binExpr) const {
+    SemanticAnalyzer::ExpressionAnalysisResult operator()(const std::shared_ptr<ASTBinExpression>& binExpr) const {
         return analyzer->analyze_expression_binary(binExpr);
     }
 
-    DataType operator()(const ASTParenthesisExpression& paren_expr) const {
+    SemanticAnalyzer::ExpressionAnalysisResult operator()(const ASTParenthesisExpression& paren_expr) const {
         return analyzer->analyze_expression_parenthesis(paren_expr);
     }
 
-    DataType operator()(ASTFunctionCall& function_call_expr) const {
+    SemanticAnalyzer::ExpressionAnalysisResult operator()(ASTFunctionCall& function_call_expr) const {
         return analyzer->analyze_function_call(function_call_expr);
     }
 };

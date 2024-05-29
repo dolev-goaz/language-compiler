@@ -78,12 +78,13 @@ void SemanticAnalyzer::analyze_statement_return(const std::shared_ptr<ASTStateme
         return;
     }
     auto& expression = possible_expression.value();
-    expression.data_type = analyze_expression(expression);
+    auto analysis_result = analyze_expression(expression);
+    expression.data_type = analysis_result.data_type;
     if (function_header.data_type == DataType::_void && expression.data_type != DataType::_void) {
         throw SemanticAnalyzerException("Can not return non-void expressions from void methods", meta);
     }
     if (expression.data_type != function_header.data_type) {
-        if (!is_int_literal(expression)) {
+        if (!analysis_result.is_literal) {
             semantic_warning(
                 "Return statement with different datatype of function return type. Data will be narrowed/widened.",
                 meta);
@@ -92,7 +93,8 @@ void SemanticAnalyzer::analyze_statement_return(const std::shared_ptr<ASTStateme
     }
 }
 
-DataType SemanticAnalyzer::analyze_function_call(ASTFunctionCall& function_call_expr) {
+SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_function_call(
+    ASTFunctionCall& function_call_expr) {
     auto& func_name = function_call_expr.function_name;
     auto& start_token_meta = function_call_expr.start_token_meta;
     if (m_function_table.count(func_name) == 0) {
@@ -110,18 +112,22 @@ DataType SemanticAnalyzer::analyze_function_call(ASTFunctionCall& function_call_
         throw SemanticAnalyzerException(error.str(), start_token_meta);
     }
     for (size_t i = 0; i < provided_params.size(); ++i) {
-        provided_params[i].data_type = analyze_expression(provided_params[i]);
+        auto analysis_result = analyze_expression(provided_params[i]);
+        provided_params[i].data_type = analysis_result.data_type;
         if (provided_params[i].data_type == function_expected_params[i].data_type) {
             // no type issues
             continue;
         }
 
-        if (!is_int_literal(provided_params[i])) {
+        if (!analysis_result.is_literal) {
             auto& meta = provided_params[i].start_token_meta;
             semantic_warning("Provided parameter of different data type. Data will be narrowed/widened.", meta);
         }
         provided_params[i].data_type = function_expected_params[i].data_type;
     }
     function_call_expr.return_data_type = function_header_data.data_type;
-    return function_header_data.data_type;
+    return SemanticAnalyzer::ExpressionAnalysisResult{
+        .data_type = function_header_data.data_type,
+        .is_literal = false,
+    };
 }

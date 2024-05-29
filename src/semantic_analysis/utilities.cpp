@@ -6,15 +6,6 @@ std::map<std::string, DataType> datatype_mapping = {
     {"char", DataType::int_16}, {"int_32", DataType::int_32}, {"int_64", DataType::int_64},
 };
 
-bool SemanticAnalyzer::is_int_literal(ASTExpression& expression) {
-    if (!std::holds_alternative<std::shared_ptr<ASTAtomicExpression>>(expression.expression)) {
-        return false;
-    }
-    auto& atomic = *std::get<std::shared_ptr<ASTAtomicExpression>>(expression.expression).get();
-
-    return std::holds_alternative<ASTIntLiteral>(atomic.value);
-}
-
 void SemanticAnalyzer::semantic_warning(const std::string& message, const TokenMeta& position) {
     std::cout << "SEMANTIC WARNING AT "
               << Globals::getInstance().getCurrentFilePosition(position.line_num, position.line_pos) << ": " << message

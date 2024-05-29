@@ -35,19 +35,23 @@ class SemanticAnalyzer {
     void analyze();
 
    private:
+    struct ExpressionVisitor;
+    struct StatementVisitor;
+    struct ExpressionAnalysisResult;
+
     void analyze_function_header(ASTStatementFunction& func);
     void analyze_function_body(ASTStatementFunction& func);
     void analyze_function_param(ASTFunctionParam& param);
 
-    DataType analyze_expression(ASTExpression& expression);
+    ExpressionAnalysisResult analyze_expression(ASTExpression& expression);
 
-    DataType analyze_expression_identifier(ASTIdentifier& identifier);
-    DataType analyze_expression_int_literal(ASTIntLiteral& int_literal);
-    DataType analyze_expression_char_literal(ASTCharLiteral& char_literal);
-    DataType analyze_expression_atomic(const std::shared_ptr<ASTAtomicExpression>& atomic);
-    DataType analyze_expression_binary(const std::shared_ptr<ASTBinExpression>& binExpr);
-    DataType analyze_expression_parenthesis(const ASTParenthesisExpression& paren_expr);
-    DataType analyze_function_call(ASTFunctionCall& function_call_expr);
+    ExpressionAnalysisResult analyze_expression_identifier(ASTIdentifier& identifier);
+    ExpressionAnalysisResult analyze_expression_int_literal(ASTIntLiteral& int_literal);
+    ExpressionAnalysisResult analyze_expression_char_literal(ASTCharLiteral& char_literal);
+    ExpressionAnalysisResult analyze_expression_atomic(const std::shared_ptr<ASTAtomicExpression>& atomic);
+    ExpressionAnalysisResult analyze_expression_binary(const std::shared_ptr<ASTBinExpression>& binExpr);
+    ExpressionAnalysisResult analyze_expression_parenthesis(const ASTParenthesisExpression& paren_expr);
+    ExpressionAnalysisResult analyze_function_call(ASTFunctionCall& function_call_expr);
 
     void analyze_statement(ASTStatement& statement);
 
@@ -62,12 +66,8 @@ class SemanticAnalyzer {
 
     static void semantic_warning(const std::string& message, const TokenMeta& position);
 
-    bool is_int_literal(ASTExpression& expression);
-
     ASTProgram m_prog;
     SymbolTable::SemanticScopeStack m_symbol_table;
     SymbolTable::SemanticFunctionTable m_function_table;
     std::string m_current_function_name;
-    struct ExpressionVisitor;
-    struct StatementVisitor;
 };

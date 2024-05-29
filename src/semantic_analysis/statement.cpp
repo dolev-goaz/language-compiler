@@ -7,7 +7,7 @@ void SemanticAnalyzer::analyze_statement(ASTStatement& statement) {
 
 void SemanticAnalyzer::analyze_statement_exit(const std::shared_ptr<ASTStatementExit>& exit) {
     auto& expression = exit.get()->status_code;
-    expression.data_type = analyze_expression(expression);
+    expression.data_type = analyze_expression(expression).data_type;
 }
 
 void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTStatementVar>& var_declare) {
@@ -38,14 +38,15 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
     }
 
     auto& expression = var_declare.get()->value.value();
-    DataType rhs_data_type = analyze_expression(expression);
+    auto rhs_anaysis = analyze_expression(expression);
+    DataType rhs_data_type = rhs_anaysis.data_type;
     if (rhs_data_type == DataType::_void) {
         throw SemanticAnalyzerException("Can not assign variables to 'void'", start_token_meta);
     }
     // IN THE FUTURE: when there are more types, check for type compatibility
     if (rhs_data_type != data_type) {
         // type narrowing/widening
-        if (!is_int_literal(expression)) {
+        if (!rhs_anaysis.is_literal) {
             semantic_warning("Assignment operation of different data types. Data will be narrowed/widened.",
                              start_token_meta);
         }
@@ -65,12 +66,13 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
         error << "Assignment of variable '" << name << "' which does not exist in current scope";
         throw SemanticAnalyzerException(error.str(), meta);
     }
-    expression.data_type = analyze_expression(expression);
+    auto rhs_analysis = analyze_expression(expression);
+    expression.data_type = rhs_analysis.data_type;
     if (expression.data_type == DataType::_void) {
         throw SemanticAnalyzerException("Can't assign variables to void value", meta);
     }
     if (expression.data_type != variableData->data_type) {
-        if (!is_int_literal(expression)) {
+        if (!rhs_analysis.is_literal) {
             semantic_warning("Assignment operation of different data types. Data will be narrowed/widened.", meta);
         }
         expression.data_type = variableData->data_type;
@@ -90,7 +92,7 @@ void SemanticAnalyzer::analyze_statement_scope(const std::shared_ptr<ASTStatemen
 void SemanticAnalyzer::analyze_statement_if(const std::shared_ptr<ASTStatementIf>& _if) {
     auto& expression = _if.get()->expression;
     auto& success_statement = *_if.get()->success_statement.get();
-    expression.data_type = analyze_expression(expression);
+    expression.data_type = analyze_expression(expression).data_type;
     analyze_statement(success_statement);
     if (_if.get()->fail_statement != nullptr) {
         auto& fail_statement = *_if.get()->fail_statement.get();
@@ -102,7 +104,7 @@ void SemanticAnalyzer::analyze_statement_while(const std::shared_ptr<ASTStatemen
     // NOTE: identical to analysis of if statements
     auto& expression = while_statement.get()->expression;
     auto& success_statement = *while_statement.get()->success_statement.get();
-    expression.data_type = analyze_expression(expression);
+    expression.data_type = analyze_expression(expression).data_type;
     analyze_statement(success_statement);
 }
 
