@@ -54,8 +54,9 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     auto rhs_analysis = analyze_expression(rhs);
     lhs.data_type = lhs_analysis.data_type;
     rhs.data_type = rhs_analysis.data_type;
+    // casts rhs to match lhs
     if (rhs.data_type != lhs.data_type) {
-        if (!rhs_analysis.is_literal) {
+        if (!lhs_analysis.is_literal && !rhs_analysis.is_literal) {
             semantic_warning("Binary operation of different data types. Data will be narrowed.", meta);
         }
         rhs.data_type = lhs.data_type;
