@@ -83,14 +83,15 @@ void SemanticAnalyzer::analyze_statement_return(const std::shared_ptr<ASTStateme
     if (function_header.data_type == DataType::_void && expression.data_type != DataType::_void) {
         throw SemanticAnalyzerException("Can not return non-void expressions from void methods", meta);
     }
-    if (expression.data_type != function_header.data_type) {
-        if (!analysis_result.is_literal) {
-            semantic_warning(
-                "Return statement with different datatype of function return type. Data will be narrowed/widened.",
-                meta);
-        }
-        expression.data_type = function_header.data_type;
+    if (expression.data_type == function_header.data_type) {
+        // no type issues
+        return;
     }
+    if (!analysis_result.is_literal) {
+        semantic_warning(
+            "Return statement with different datatype of function return type. Data will be narrowed/widened.", meta);
+    }
+    expression.data_type = function_header.data_type;
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_function_call(

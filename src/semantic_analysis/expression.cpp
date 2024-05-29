@@ -47,23 +47,23 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_binary(
     const std::shared_ptr<ASTBinExpression>& binExpr) {
     // IN THE FUTURE: when there are more types, check for type compatibility
+    auto& meta = binExpr.get()->start_token_meta;
     auto& lhs = *binExpr.get()->lhs.get();
     auto& rhs = *binExpr.get()->rhs.get();
     auto lhs_analysis = analyze_expression(lhs);
     auto rhs_analysis = analyze_expression(rhs);
-    // if rhs or lhs are int literals, no need for data narrowing warnings
-    bool is_literal = (lhs_analysis.is_literal && rhs_analysis.is_literal);
-    if ((lhs_analysis.data_type != rhs_analysis.data_type) && !is_literal) {
-        auto& meta = binExpr.get()->start_token_meta;
-        semantic_warning("Binary operation of different data types. Data will be narrowed.", meta);
+    lhs.data_type = lhs_analysis.data_type;
+    rhs.data_type = rhs_analysis.data_type;
+    if (rhs.data_type != lhs.data_type) {
+        if (!rhs_analysis.is_literal) {
+            semantic_warning("Binary operation of different data types. Data will be narrowed.", meta);
+        }
+        rhs.data_type = lhs.data_type;
     }
 
-    // type narrowing
-    rhs.data_type = lhs_analysis.data_type;
-    lhs.data_type = lhs_analysis.data_type;
     return SemanticAnalyzer::ExpressionAnalysisResult{
         .data_type = lhs.data_type,
-        .is_literal = is_literal,
+        .is_literal = (lhs_analysis.is_literal && rhs_analysis.is_literal),
     };
 }
 
