@@ -12,6 +12,18 @@ void SemanticAnalyzer::semantic_warning(const std::string& message, const TokenM
               << std::endl;
 }
 
+void SemanticAnalyzer::assert_cast_expression(ASTExpression& expression, DataType data_type, bool show_warning) {
+    if (expression.data_type == data_type) {
+        // no casting needed
+        return;
+    }
+    // TODO: check if cast is possible.. if not, return throw exception
+    if (show_warning) {
+        semantic_warning("Implicit casting. Data will be narrowed/widened.", expression.start_token_meta);
+    }
+    expression.data_type = data_type;
+}
+
 void SemanticAnalyzer::analyze() {
     this->m_symbol_table.enterScope();
     auto& statements = m_prog.statements;

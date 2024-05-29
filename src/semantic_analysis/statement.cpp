@@ -38,21 +38,14 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
     }
 
     auto& expression = var_declare.get()->value.value();
-    auto rhs_anaysis = analyze_expression(expression);
-    expression.data_type = rhs_anaysis.data_type;
+    auto rhs_analysis = analyze_expression(expression);
+    expression.data_type = rhs_analysis.data_type;
     if (expression.data_type == DataType::_void) {
         throw SemanticAnalyzerException("Can not assign variables to 'void'", start_token_meta);
     }
-    // IN THE FUTURE: when there are more types, check for type compatibility
-    if (expression.data_type == data_type) {
-        // no type issues
-        return;
+    if (expression.data_type != data_type) {
+        assert_cast_expression(expression, data_type, !rhs_analysis.is_literal);
     }
-    if (!rhs_anaysis.is_literal) {
-        semantic_warning("Assignment operation of different data types. Data will be narrowed/widened.",
-                         start_token_meta);
-    }
-    expression.data_type = data_type;
 }
 
 void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTStatementAssign>& var_assign) {
@@ -71,14 +64,9 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
     if (expression.data_type == DataType::_void) {
         throw SemanticAnalyzerException("Can't assign variables to void value", meta);
     }
-    if (expression.data_type == variableData->data_type) {
-        // no type issues
-        return;
+    if (expression.data_type != variableData->data_type) {
+        assert_cast_expression(expression, variableData->data_type, !rhs_analysis.is_literal);
     }
-    if (!rhs_analysis.is_literal) {
-        semantic_warning("Assignment operation of different data types. Data will be narrowed/widened.", meta);
-    }
-    expression.data_type = variableData->data_type;
 }
 
 void SemanticAnalyzer::analyze_statement_scope(const std::shared_ptr<ASTStatementScope>& scope) {

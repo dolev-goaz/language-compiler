@@ -83,15 +83,9 @@ void SemanticAnalyzer::analyze_statement_return(const std::shared_ptr<ASTStateme
     if (function_header.data_type == DataType::_void && expression.data_type != DataType::_void) {
         throw SemanticAnalyzerException("Can not return non-void expressions from void methods", meta);
     }
-    if (expression.data_type == function_header.data_type) {
-        // no type issues
-        return;
+    if (expression.data_type != function_header.data_type) {
+        assert_cast_expression(expression, function_header.data_type, !analysis_result.is_literal);
     }
-    if (!analysis_result.is_literal) {
-        semantic_warning(
-            "Return statement with different datatype of function return type. Data will be narrowed/widened.", meta);
-    }
-    expression.data_type = function_header.data_type;
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_function_call(
@@ -115,16 +109,11 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_function_ca
     for (size_t i = 0; i < provided_params.size(); ++i) {
         auto analysis_result = analyze_expression(provided_params[i]);
         provided_params[i].data_type = analysis_result.data_type;
-        if (provided_params[i].data_type == function_expected_params[i].data_type) {
-            // no type issues
-            continue;
-        }
+        auto expected_data_type = function_expected_params[i].data_type;
 
-        if (!analysis_result.is_literal) {
-            auto& meta = provided_params[i].start_token_meta;
-            semantic_warning("Provided parameter of different data type. Data will be narrowed/widened.", meta);
+        if (provided_params[i].data_type != expected_data_type) {
+            assert_cast_expression(provided_params[i], expected_data_type, !analysis_result.is_literal);
         }
-        provided_params[i].data_type = function_expected_params[i].data_type;
     }
     function_call_expr.return_data_type = function_header_data.data_type;
     return SemanticAnalyzer::ExpressionAnalysisResult{
