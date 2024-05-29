@@ -1,27 +1,28 @@
 #include "semantic_analyzer.hpp"
 #include "semantic_visitor.hpp"
 
-std::map<std::string, DataType> datatype_mapping = {
-    {"void", DataType::_void},  {"int_8", DataType::int_8},   {"int_16", DataType::int_16},
-    {"char", DataType::int_16}, {"int_32", DataType::int_32}, {"int_64", DataType::int_64},
-};
-
 void SemanticAnalyzer::semantic_warning(const std::string& message, const TokenMeta& position) {
     std::cout << "SEMANTIC WARNING AT "
               << Globals::getInstance().getCurrentFilePosition(position.line_num, position.line_pos) << ": " << message
               << std::endl;
 }
 
-void SemanticAnalyzer::assert_cast_expression(ASTExpression& expression, DataType data_type, bool show_warning) {
-    if (expression.data_type == data_type) {
-        // no casting needed
-        return;
-    }
-    // TODO: check if cast is possible.. if not, return throw exception
-    if (show_warning) {
-        semantic_warning("Implicit casting. Data will be narrowed/widened.", expression.start_token_meta);
-    }
+void SemanticAnalyzer::assert_cast_expression(ASTExpression& expression, std::shared_ptr<DataType> data_type,
+                                              bool show_warning) {
     expression.data_type = data_type;
+    auto compatibility = expression.data_type->isCompatible(*data_type);
+    switch (compatibility) {
+        case CompatibilityStatus::Compatible:
+            return;
+        case CompatibilityStatus::CompatibleWithWarning:
+            semantic_warning("Implicit casting. Data will be narrowed/widened.", expression.start_token_meta);
+            return;
+        case CompatibilityStatus::NotCompatible:
+            throw SemanticAnalyzerException("Implicit casting of non-compatible datatypes",
+                                            expression.start_token_meta);
+        default:
+            assert(false && "Shouldn't reach here");
+    }
 }
 
 void SemanticAnalyzer::analyze() {

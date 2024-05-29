@@ -16,12 +16,13 @@ extern std::map<std::string, DataType> datatype_mapping;
 namespace SymbolTable {
 struct Variable {
     TokenMeta start_token_meta;
-    DataType data_type;
+    
+    std::shared_ptr<DataType> data_type;
     bool is_initialized;
 };
 struct FunctionHeader {
     TokenMeta start_token_meta;
-    DataType data_type;
+    std::shared_ptr<DataType> data_type;
     bool found_return_statement;
     std::vector<ASTFunctionParam> parameters;
 };
@@ -64,7 +65,7 @@ class SemanticAnalyzer {
     void analyze_statement_function(const std::shared_ptr<ASTStatementFunction>& function_statement);
     void analyze_statement_return(const std::shared_ptr<ASTStatementReturn>& return_statement);
 
-    static void assert_cast_expression(ASTExpression& expression, DataType data_type, bool show_warning);
+    static void assert_cast_expression(ASTExpression& expression, std::shared_ptr<DataType> data_type, bool show_warning);
 
     static void semantic_warning(const std::string& message, const TokenMeta& position);
 
