@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <map>
 #include <memory>
 #include <string>
@@ -25,6 +26,7 @@ class DataType {
     virtual std::string toString() const = 0;
     virtual bool operator==(const DataType& other) const = 0;
     virtual CompatibilityStatus isCompatible(const DataType& other) const = 0;
+    virtual bool isVoid() const { return false; }
 };
 
 // Class for BasicDataType
@@ -33,6 +35,7 @@ class BasicType : public DataType {
     explicit BasicType(BasicDataType type) : type(type) {}
     // Helper function to create basic types
     static std::shared_ptr<DataType> makeBasicType(BasicDataType type);
+    static std::shared_ptr<DataType> makeBasicType(const std::string& type_str);
     std::string toString() const override {
         static const std::map<BasicDataType, std::string> basicTypeToString = {
             {BasicDataType::NONE, "none"},   {BasicDataType::VOID, "void"},   {BasicDataType::INT8, "int8"},
@@ -54,6 +57,11 @@ class BasicType : public DataType {
         }
         return CompatibilityStatus::NotCompatible;
     }
+
+    bool isVoid() const override {
+        return type == BasicDataType::VOID;
+    }
+
 
    private:
     BasicDataType type;

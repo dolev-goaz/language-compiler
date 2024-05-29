@@ -25,6 +25,43 @@ void SemanticAnalyzer::assert_cast_expression(ASTExpression& expression, std::sh
     }
 }
 
+std::shared_ptr<DataType> SemanticAnalyzer::create_data_type(const std::vector<Token> data_type_tokens) {
+    Token base_type_token = data_type_tokens.at(0);
+    std::string& base_type_str = base_type_token.value.value();
+    std::shared_ptr<DataType> type;
+    try {
+        type = BasicType::makeBasicType(base_type_str);
+    } catch (const std::exception& e) {
+        throw SemanticAnalyzerException(e.what(), base_type_token.meta);
+    }
+
+    size_t token_index = 1;
+    auto token_count = data_type_tokens.size();
+
+    Token array_size_token;
+    size_t array_size;
+
+    while (token_index < token_count) {
+        auto current = data_type_tokens.at(token_index);
+        switch (current.type) {
+            case TokenType::star:
+                type = std::make_shared<PointerType>(type);
+                break;
+            case TokenType::open_square:
+                array_size_token = data_type_tokens.at(token_index + 1);
+                token_index += 2;  // read count and closing square token
+                array_size = std::stoi(array_size_token.value.value());
+                type = std::make_shared<ArrayType>(type, array_size);
+                break;
+            default:
+                assert(false && "Shouldn't reach here");
+        }
+        token_index += 1;
+    }
+
+    return type;
+}
+
 void SemanticAnalyzer::analyze() {
     this->m_symbol_table.enterScope();
     auto& statements = m_prog.statements;
