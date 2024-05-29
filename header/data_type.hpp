@@ -17,6 +17,8 @@ enum class BasicDataType {
 // Abstract base class for DataType
 class DataType {
    public:
+    static const std::map<std::string, BasicDataType> data_type_name_to_value;
+
     virtual ~DataType() = default;
     virtual std::string toString() const = 0;
     virtual bool operator==(const DataType& other) const = 0;

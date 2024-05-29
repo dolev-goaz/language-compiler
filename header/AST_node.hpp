@@ -82,7 +82,9 @@ struct ASTStatementExit {
 
 struct ASTStatementVar {
     TokenMeta start_token_meta;
-    std::string data_type_str;
+    std::vector<Token> data_type_tokens;
+    std::vector<Token> array_modifiers;
+
     std::shared_ptr<DataType> data_type;
     std::string name;
     std::optional<ASTExpression> value;
@@ -115,7 +117,7 @@ struct ASTStatementWhile {
 // NOTE: same as ASTStatementVar
 struct ASTFunctionParam {
     TokenMeta start_token_meta;
-    std::string data_type_str;
+    std::vector<Token> data_type_tokens;
     std::shared_ptr<DataType> data_type;
     std::string name;
     // std::optional<ASTExpression> initial_value; // TODO: support initial value
@@ -127,7 +129,7 @@ struct ASTStatementFunction {
     std::vector<ASTFunctionParam> parameters;
     std::shared_ptr<ASTStatement> statement;
 
-    std::string return_data_type_str;
+    std::vector<Token> return_data_type_tokens;
     std::shared_ptr<DataType> return_data_type;
 };
 

@@ -5,7 +5,7 @@ std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
         return nullptr;
     }
     auto statement_begin_meta = consume().value().meta;
-    auto return_data_type = assert_consume(TokenType::identifier, "Expected data type");
+    auto data_type_tokens = consume_data_type_tokens();
     auto func_name = assert_consume(TokenType::identifier, "Expected function name");
     assert_consume(TokenType::open_paren, "Expected '(' after function name");
 
@@ -22,8 +22,8 @@ std::shared_ptr<ASTStatementFunction> Parser::parse_statement_function() {
         .name = func_name.value.value(),
         .parameters = parameters,
         .statement = statement,
-        .return_data_type_str = return_data_type.value.value(),
-        .return_data_type = DataType::NONE,
+        .return_data_type_tokens = data_type_tokens,
+        .return_data_type = nullptr,
     });
 }
 
@@ -33,13 +33,14 @@ std::vector<ASTFunctionParam> Parser::parse_function_params() {
         if (parameters.size() > 0) {
             assert_consume(TokenType::comma, "Expected comma after parameter and before closing paren ')'");
         }
-        auto datatype = assert_consume(TokenType::identifier, "Expected parameter datatype");
+        auto meta = peek().value().meta;
+        auto data_type_tokens = consume_data_type_tokens();
         auto param_name = assert_consume(TokenType::identifier, "Expected parameter name");
         // TODO: check for initial value
         parameters.push_back(ASTFunctionParam{
-            .start_token_meta = datatype.meta,
-            .data_type_str = datatype.value.value(),
-            .data_type = DataType::NONE,
+            .start_token_meta = meta,
+            .data_type_tokens = data_type_tokens,
+            .data_type = nullptr,
             .name = param_name.value.value(),
         });
     }
@@ -95,7 +96,7 @@ std::shared_ptr<ASTFunctionCall> Parser::parse_function_call() {
         .start_token_meta = name_token.meta,
         .parameters = params,
         .function_name = name_token.value.value(),
-        .return_data_type = DataType::NONE,
+        .return_data_type = nullptr,
     };
 
     return std::make_shared<ASTFunctionCall>(value);

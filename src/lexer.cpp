@@ -19,6 +19,7 @@ std::map<char, TokenType> tokenMappingsSymbols = {
     {'+', TokenType::plus},          {'-', TokenType::minus},          {'*', TokenType::star},
     {'/', TokenType::fslash},        {'%', TokenType::percent},        {',', TokenType::comma},
     {'<', TokenType::open_triangle}, {'>', TokenType::close_triangle}, {'\'', TokenType::quote},
+    {'[', TokenType::open_square}, {']', TokenType::close_square},
 };
 
 char Lexer::consume() {
