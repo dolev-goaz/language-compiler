@@ -42,7 +42,6 @@ void Generator::generate_expression_char_literal(const ASTCharLiteral& literal, 
     push_stack_literal(ascii_value, size_bytes);
 }
 
-
 void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes) {
     static_assert((int)BinOperation::operationCount - 1 == 10,
                   "Binary Operations enum changed without changing generator");
@@ -121,7 +120,7 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
             m_generated << "\tcmp rax, rbx" << std::endl;
             m_generated << "\t" << comparison_operation.at(bin_operation) << " bl; temporary in bl" << std::endl;
             m_generated << "\txor rax, rax" << std::endl;
-            m_generated << "\tmov al, bl" << std::endl; // final result is stored in rax by convention
+            m_generated << "\tmov al, bl" << std::endl;  // final result is stored in rax by convention
             break;
         default:
             // should never reach here. this is to remove warnings
@@ -131,4 +130,25 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
     auto& reg = size_bytes_to_register.at(size_bytes);
     push_stack_register(reg, size_bytes);
     m_generated << ";\t" << operation << " Evaluation END" << std::endl << std::endl;
+}
+
+void Generator::generate_expression_unary(const std::shared_ptr<ASTUnaryExpression>& unary, size_t size_bytes) {
+    static_assert((int)UnaryOperation::operationCount - 1 == 1,
+                  "Implemented unary operations without updating generator");
+
+    auto& operand = *unary->expression;
+    size_t operand_size_bytes = operand.data_type->get_size_bytes();
+    auto operation = unary->operation;
+    generate_expression(operand);
+    pop_stack_register("rax", 8, operand_size_bytes);
+
+    switch (operation) {
+        case UnaryOperation::negate:
+            m_generated << "\tneg rax; Negate expression" << std::endl;
+            break;
+        default:
+            assert(false && "Unknown unary operation");
+    }
+    auto& reg = size_bytes_to_register.at(size_bytes);
+    push_stack_register(reg, size_bytes);
 }

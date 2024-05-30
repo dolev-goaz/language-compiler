@@ -53,8 +53,7 @@ struct Generator::ExpressionVisitor {
         std::visit(Generator::ExpressionVisitor{.generator = generator, .size = size}, atomic.get()->value);
     }
     void operator()(const std::shared_ptr<ASTUnaryExpression>& unary) const {
-        (void)unary;
-        assert(false && "Didn't implement generation for unary expressions");
+        generator.generate_expression_unary(unary, size);
     }
 
     void operator()(const ASTParenthesisExpression& paren_expr) const {
