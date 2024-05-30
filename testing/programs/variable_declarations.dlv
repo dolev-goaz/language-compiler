@@ -1,0 +1,14 @@
+int_16 x1;
+int_16* x2;
+int_16 x3[5];
+
+char x4;
+char* x5;
+char x6[5];
+
+int_64 x7;
+int_64* x8;
+int_64 x9[5];
+
+char** x10;
+char x10[5][3];
