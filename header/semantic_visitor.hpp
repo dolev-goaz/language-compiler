@@ -1,7 +1,7 @@
 #pragma once
 #include "semantic_analyzer.hpp"
 struct SemanticAnalyzer::ExpressionAnalysisResult {
-    DataType data_type;
+    std::shared_ptr<DataType> data_type;
     bool is_literal;
 };
 

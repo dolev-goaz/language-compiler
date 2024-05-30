@@ -26,7 +26,7 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_int_literal(ASTIntLiteral& ignored) {
     (void)ignored;  // suppress unused
     return SemanticAnalyzer::ExpressionAnalysisResult{
-        .data_type = DataType::int_64,
+        .data_type = BasicType::makeBasicType(BasicDataType::INT64),
         .is_literal = true,
     };
 }
@@ -34,7 +34,7 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_char_literal(ASTCharLiteral& ignored) {
     (void)ignored;  // suppress unused
     return SemanticAnalyzer::ExpressionAnalysisResult{
-        .data_type = DataType::int_16,
+        .data_type = BasicType::makeBasicType(BasicDataType::INT16),
         .is_literal = true,
     };
 }

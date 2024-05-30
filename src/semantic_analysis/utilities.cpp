@@ -1,27 +1,67 @@
 #include "semantic_analyzer.hpp"
 #include "semantic_visitor.hpp"
 
-std::map<std::string, DataType> datatype_mapping = {
-    {"void", DataType::_void},  {"int_8", DataType::int_8},   {"int_16", DataType::int_16},
-    {"char", DataType::int_16}, {"int_32", DataType::int_32}, {"int_64", DataType::int_64},
-};
-
 void SemanticAnalyzer::semantic_warning(const std::string& message, const TokenMeta& position) {
     std::cout << "SEMANTIC WARNING AT "
               << Globals::getInstance().getCurrentFilePosition(position.line_num, position.line_pos) << ": " << message
               << std::endl;
 }
 
-void SemanticAnalyzer::assert_cast_expression(ASTExpression& expression, DataType data_type, bool show_warning) {
-    if (expression.data_type == data_type) {
-        // no casting needed
-        return;
-    }
-    // TODO: check if cast is possible.. if not, return throw exception
-    if (show_warning) {
-        semantic_warning("Implicit casting. Data will be narrowed/widened.", expression.start_token_meta);
-    }
+void SemanticAnalyzer::assert_cast_expression(ASTExpression& expression, std::shared_ptr<DataType> data_type,
+                                              bool show_warning) {
+    auto compatibility = expression.data_type->is_compatible(*data_type);
     expression.data_type = data_type;
+    switch (compatibility) {
+        case CompatibilityStatus::Compatible:
+            return;
+        case CompatibilityStatus::CompatibleWithWarning:
+            if (show_warning) {
+                semantic_warning("Implicit casting. Data will be narrowed/widened.", expression.start_token_meta);
+            }
+            return;
+        case CompatibilityStatus::NotCompatible:
+            throw SemanticAnalyzerException("Implicit casting of non-compatible datatypes",
+                                            expression.start_token_meta);
+        default:
+            assert(false && "Shouldn't reach here");
+    }
+}
+
+std::shared_ptr<DataType> SemanticAnalyzer::create_data_type(const std::vector<Token> data_type_tokens) {
+    Token base_type_token = data_type_tokens.at(0);
+    std::string& base_type_str = base_type_token.value.value();
+    std::shared_ptr<DataType> type;
+    try {
+        type = BasicType::makeBasicType(base_type_str);
+    } catch (const std::exception& e) {
+        throw SemanticAnalyzerException(e.what(), base_type_token.meta);
+    }
+
+    size_t token_index = 1;
+    auto token_count = data_type_tokens.size();
+
+    Token array_size_token;
+    size_t array_size;
+
+    while (token_index < token_count) {
+        auto current = data_type_tokens.at(token_index);
+        switch (current.type) {
+            case TokenType::star:
+                type = std::make_shared<PointerType>(type);
+                break;
+            case TokenType::open_square:
+                array_size_token = data_type_tokens.at(token_index + 1);
+                token_index += 2;  // read count and closing square token
+                array_size = std::stoi(array_size_token.value.value());
+                type = std::make_shared<ArrayType>(type, array_size);
+                break;
+            default:
+                assert(false && "Shouldn't reach here");
+        }
+        token_index += 1;
+    }
+
+    return type;
 }
 
 void SemanticAnalyzer::analyze() {

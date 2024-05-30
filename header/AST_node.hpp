@@ -5,16 +5,8 @@
 #include <variant>
 #include <vector>
 
+#include "data_type.hpp"
 #include "lexer.hpp"
-
-enum class DataType {
-    NONE = 0,
-    _void,
-    int_8,
-    int_16,
-    int_32,
-    int_64,
-};
 
 enum class BinOperation {
     NONE = 0,
@@ -61,7 +53,7 @@ struct ASTFunctionCall {
     TokenMeta start_token_meta;
     std::vector<ASTExpression> parameters;
     std::string function_name;
-    DataType return_data_type;
+    std::shared_ptr<DataType> return_data_type;
 };
 
 struct ASTAtomicExpression {
@@ -79,7 +71,7 @@ struct ASTBinExpression {
 struct ASTExpression {
     bool is_literal = false;
     TokenMeta start_token_meta;
-    DataType data_type;
+    std::shared_ptr<DataType> data_type;
     std::variant<std::shared_ptr<ASTAtomicExpression>, std::shared_ptr<ASTBinExpression>> expression;
 };
 
@@ -90,8 +82,10 @@ struct ASTStatementExit {
 
 struct ASTStatementVar {
     TokenMeta start_token_meta;
-    std::string data_type_str;
-    DataType data_type;
+    std::vector<Token> data_type_tokens;
+    std::vector<Token> array_modifiers;
+
+    std::shared_ptr<DataType> data_type;
     std::string name;
     std::optional<ASTExpression> value;
 };
@@ -123,8 +117,8 @@ struct ASTStatementWhile {
 // NOTE: same as ASTStatementVar
 struct ASTFunctionParam {
     TokenMeta start_token_meta;
-    std::string data_type_str;
-    DataType data_type;
+    std::vector<Token> data_type_tokens;
+    std::shared_ptr<DataType> data_type;
     std::string name;
     // std::optional<ASTExpression> initial_value; // TODO: support initial value
 };
@@ -135,8 +129,8 @@ struct ASTStatementFunction {
     std::vector<ASTFunctionParam> parameters;
     std::shared_ptr<ASTStatement> statement;
 
-    std::string return_data_type_str;
-    DataType return_data_type;
+    std::vector<Token> return_data_type_tokens;
+    std::shared_ptr<DataType> return_data_type;
 };
 
 struct ASTStatementReturn {

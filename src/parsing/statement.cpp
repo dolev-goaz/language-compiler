@@ -96,12 +96,17 @@ std::shared_ptr<ASTStatementExit> Parser::parse_statement_exit() {
 }
 
 std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
-    // [d_type] [identifier];
-    // [d_type] [identifier] = [expression];
-    if (!(test_peek(TokenType::identifier, 0) && test_peek(TokenType::identifier, 1))) return nullptr;
-    Token d_type_token = consume().value();  // consume data type
+    // [d_type] [pointer modifiers] [identifier] [array modifiers];
+    // [d_type] [pointer modifiers] [identifier] [array modifiers] = [expression];
+    if (!(test_peek(TokenType::identifier) && (test_peek(TokenType::star, 1) || test_peek(TokenType::identifier, 1)))) {
+        return nullptr;
+    }
+    auto meta = peek().value().meta;
 
-    Token identifier = consume().value();  // consume identifier
+    std::vector<Token> data_type_tokens = consume_data_type_tokens();
+    Token identifier = assert_consume(TokenType::identifier, "Expected variable name");
+    std::vector<Token> array_modifier_token = consume_array_modifier_tokens();
+
     std::optional<ASTExpression> value = std::nullopt;
 
     if (test_peek(TokenType::eq)) {
@@ -110,12 +115,12 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
         if (!expression.has_value()) {
             std::stringstream error_stream;
             error_stream << "Invalid initialize value for variable '" << identifier.value.value() << "'";
-            throw ParserException(error_stream.str(), d_type_token.meta);
+            throw ParserException(error_stream.str(), meta);
         }
 
         value = ASTExpression{
             .start_token_meta = expression.value().start_token_meta,
-            .data_type = DataType::NONE,
+            .data_type = nullptr,
             .expression = std::move(expression.value().expression),
         };
     }
@@ -123,9 +128,10 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
     assert_consume(TokenType::semicol, "Expected ';' after variable delcaration");
 
     return std::make_shared<ASTStatementVar>(ASTStatementVar{
-        .start_token_meta = d_type_token.meta,
-        .data_type_str = d_type_token.value.value(),
-        .data_type = DataType::NONE,
+        .start_token_meta = meta,
+        .data_type_tokens = data_type_tokens,
+        .array_modifiers = array_modifier_token,
+        .data_type = nullptr,
         .name = identifier.value.value(),
         .value = std::move(value),
     });

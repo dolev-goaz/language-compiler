@@ -4,10 +4,10 @@
 // --------- expression generation
 
 void Generator::generate_expression(const ASTExpression& expression) {
-    bool type_provided = expression.data_type != DataType::NONE && data_type_size_bytes.count(expression.data_type) > 0;
+    bool type_provided = (expression.data_type != nullptr);
     assert(type_provided && "Expression found with no data type. expression index- " + expression.expression.index());
 
-    size_t size_bytes = data_type_size_bytes.at(expression.data_type);
+    size_t size_bytes = expression.data_type->get_size_bytes();
     std::visit(Generator::ExpressionVisitor{.generator = *this, .size = size_bytes}, expression.expression);
 }
 
@@ -86,8 +86,8 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
     m_generated << ";\t" << operation << " Evaluation BEGIN" << std::endl;
     auto& lhsExp = *binary.get()->lhs.get();
     auto& rhsExp = *binary.get()->rhs.get();
-    size_t rhs_size_bytes = data_type_size_bytes.at(rhsExp.data_type);
-    size_t lhs_size_bytes = data_type_size_bytes.at(lhsExp.data_type);
+    size_t rhs_size_bytes = rhsExp.data_type->get_size_bytes();
+    size_t lhs_size_bytes = lhsExp.data_type->get_size_bytes();
     generate_expression(lhsExp);
     generate_expression(rhsExp);
     pop_stack_register("rbx", 8, rhs_size_bytes);  // rbx = rhs

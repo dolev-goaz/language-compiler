@@ -2,14 +2,6 @@
 
 #include "../header/generator_visitor.hpp"
 
-std::map<DataType, size_t> data_type_size_bytes = {
-    {DataType::NONE, 0},
-    {DataType::_void, 0},
-    {DataType::int_16, 2},
-    // {DataType::int_32, 4},
-    {DataType::int_64, 8},
-};
-
 std::map<size_t, std::string> size_bytes_to_size_keyword = {
     {2, "WORD"},
     {8, "QWORD"},

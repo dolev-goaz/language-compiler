@@ -166,7 +166,7 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
     }
     auto expr_lhs = ASTExpression{
         .start_token_meta = atomic.get()->start_token_meta,
-        .data_type = DataType::NONE,
+        .data_type = nullptr,
         .expression = atomic,
     };
     while (true) {
@@ -190,7 +190,7 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
         }
         auto new_expr_lhs = std::make_shared<ASTExpression>(ASTExpression{
             .start_token_meta = expr_lhs.start_token_meta,
-            .data_type = DataType::NONE,
+            .data_type = nullptr,
             .expression = expr_lhs.expression,
         });
         auto new_expr_rhs = std::make_shared<ASTExpression>(rhs.value());

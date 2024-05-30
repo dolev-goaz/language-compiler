@@ -23,6 +23,9 @@ class Parser {
     BinOperation try_consume_binary_operation();
     BinOperation peek_binary_operation();
 
+    std::vector<Token> consume_data_type_tokens();
+    std::vector<Token> consume_array_modifier_tokens();
+
     std::shared_ptr<ASTStatementExit> parse_statement_exit();
     std::shared_ptr<ASTStatementVar> parse_statement_var_declare();
     std::shared_ptr<ASTStatementAssign> parse_statement_var_assign();

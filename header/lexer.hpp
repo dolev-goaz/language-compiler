@@ -20,6 +20,8 @@ enum class TokenType {
     comment,
     comma,
     quote,
+    open_square,
+    close_square,
 
     // mathematical operations
     plus,

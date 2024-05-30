@@ -10,7 +10,7 @@ void Generator::generate_statement_exit(const ASTStatementExit& exit_statement) 
     m_generated << ";\tExit Statement" << std::endl;
     m_generated << "\tmov rax, 60" << std::endl;
 
-    size_t size = data_type_size_bytes.at(exit_statement.status_code.data_type);
+    size_t size = exit_statement.status_code.data_type->get_size_bytes();
     pop_stack_register("rdi", 8, size);
     m_generated << "\tsyscall" << std::endl;
 }
@@ -21,7 +21,7 @@ void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_
     m_generated << ";\tVariable Assigment " << var_assign_statement.name << " BEGIN" << std::endl;
 
     generate_expression(var_assign_statement.value);
-    auto& expression_size_bytes = data_type_size_bytes.at(var_assign_statement.value.data_type);
+    size_t expression_size_bytes = var_assign_statement.value.data_type->get_size_bytes();
 
     // NOTE: assumes 'size_bytes_to_register' holds registers rax, eax, ax, al
     // popping to the largest register to allow data widening if necessary, up to 8 bytes
@@ -35,7 +35,7 @@ void Generator::generate_statement_var_assignment(const ASTStatementAssign& var_
 
 void Generator::generate_statement_var_declare(const ASTStatementVar& var_statement) {
     // no need to check for duplicate variable names, since it was checked in semantic analysis
-    size_t size_bytes = data_type_size_bytes.at(var_statement.data_type);
+    size_t size_bytes = var_statement.data_type->get_size_bytes();
 
     Generator::Variable var = {
         .stack_location_bytes = m_stack_size,
@@ -72,7 +72,7 @@ void Generator::generate_statement_if(const ASTStatementIf& if_statement) {
     auto& expression = if_statement.expression;
     auto& success_statement = if_statement.success_statement;
     auto& fail_statement = if_statement.fail_statement;
-    size_t size_bytes = data_type_size_bytes.at(expression.data_type);
+    size_t size_bytes = expression.data_type->get_size_bytes();
     generate_expression(expression);
     pop_stack_register("rax", 8, size_bytes);  // rax = lhs
     m_generated << "\ttest rax, rax" << std::endl
@@ -101,7 +101,7 @@ void Generator::generate_statement_while(const ASTStatementWhile& while_statemen
 
     auto& expression = while_statement.expression;
     auto& success_statement = while_statement.success_statement;
-    size_t size_bytes = data_type_size_bytes.at(expression.data_type);
+    size_t size_bytes = expression.data_type->get_size_bytes();
 
     m_generated << before_while_label.str() << ":" << std::endl;
     generate_expression(expression);
