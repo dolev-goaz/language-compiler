@@ -113,6 +113,12 @@
         "should_compile": true,
         "expected_return_code": 1
     },
+    {
+        "name": "Variable Declaration- Different Data Types",
+        "file": "variable_declarations.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
 
 
 
