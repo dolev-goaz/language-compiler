@@ -4,7 +4,7 @@
 void SemanticAnalyzer::analyze_function_param(ASTFunctionParam& param) {
     auto& start_token_meta = param.start_token_meta;
     std::shared_ptr<DataType> data_type = create_data_type(param.data_type_tokens);
-    if (data_type->isVoid()) {
+    if (data_type->is_void()) {
         throw SemanticAnalyzerException("Function parameter can not be of type void", start_token_meta);
     }
     param.data_type = data_type;
@@ -46,7 +46,7 @@ void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
     m_symbol_table.exitScope();
     auto& function_header = m_function_table.at(func.name);
     // TODO: should handle all execution paths
-    if (!function_header.found_return_statement && !function_header.data_type->isVoid()) {
+    if (!function_header.found_return_statement && !function_header.data_type->is_void()) {
         throw SemanticAnalyzerException("Return statement not found", function_header.start_token_meta);
     }
 }
@@ -61,7 +61,7 @@ void SemanticAnalyzer::analyze_statement_return(const std::shared_ptr<ASTStateme
     function_header.found_return_statement = true;
     auto& possible_expression = return_statement.get()->expression;
     if (!possible_expression.has_value()) {
-        if (!function_header.data_type->isVoid()) {
+        if (!function_header.data_type->is_void()) {
             throw SemanticAnalyzerException("Return statement of function with return type must include an expression",
                                             meta);
         }
@@ -70,7 +70,7 @@ void SemanticAnalyzer::analyze_statement_return(const std::shared_ptr<ASTStateme
     auto& expression = possible_expression.value();
     auto analysis_result = analyze_expression(expression);
     expression.data_type = analysis_result.data_type;
-    if (function_header.data_type->isVoid() && !expression.data_type->isVoid()) {
+    if (function_header.data_type->is_void() && !expression.data_type->is_void()) {
         throw SemanticAnalyzerException("Can not return non-void expressions from void methods", meta);
     }
     if (expression.data_type != function_header.data_type) {

@@ -10,7 +10,7 @@ void SemanticAnalyzer::semantic_warning(const std::string& message, const TokenM
 void SemanticAnalyzer::assert_cast_expression(ASTExpression& expression, std::shared_ptr<DataType> data_type,
                                               bool show_warning) {
     expression.data_type = data_type;
-    auto compatibility = expression.data_type->isCompatible(*data_type);
+    auto compatibility = expression.data_type->is_compatible(*data_type);
     switch (compatibility) {
         case CompatibilityStatus::Compatible:
             return;

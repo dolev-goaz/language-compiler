@@ -17,7 +17,7 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
     type_tokens.insert(type_tokens.end(), var_declare->array_modifiers.begin(), var_declare->array_modifiers.end());
     
     std::shared_ptr<DataType> data_type = create_data_type(type_tokens);
-    if (data_type->isVoid()) {
+    if (data_type->is_void()) {
         throw SemanticAnalyzerException("Variables can not be of void type", start_token_meta);
     }
     bool is_initialized = var_declare.get()->value.has_value();
@@ -39,7 +39,7 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
     auto& expression = var_declare.get()->value.value();
     auto rhs_analysis = analyze_expression(expression);
     expression.data_type = rhs_analysis.data_type;
-    if (expression.data_type->isVoid()) {
+    if (expression.data_type->is_void()) {
         throw SemanticAnalyzerException("Can not assign 'void' to variables", start_token_meta);
     }
     if (expression.data_type != data_type) {
@@ -60,7 +60,7 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
     auto rhs_analysis = analyze_expression(expression);
     expression.data_type = rhs_analysis.data_type;
     variableData->is_initialized = true;
-    if (expression.data_type->isVoid()) {
+    if (expression.data_type->is_void()) {
         throw SemanticAnalyzerException("Can't assign 'void' to variables", meta);
     }
     if (expression.data_type != variableData->data_type) {
