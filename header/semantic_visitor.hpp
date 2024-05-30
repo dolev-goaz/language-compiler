@@ -27,8 +27,7 @@ struct SemanticAnalyzer::ExpressionVisitor {
         return analyzer->analyze_expression_binary(binExpr);
     }
     SemanticAnalyzer::ExpressionAnalysisResult operator()(const std::shared_ptr<ASTUnaryExpression>& unary) const {
-        (void)unary;
-        assert(false && "Didn't implement analysis for unary expressions");
+        return analyzer->analyze_expression_unary(unary);
     }
 
     SemanticAnalyzer::ExpressionAnalysisResult operator()(const ASTParenthesisExpression& paren_expr) const {

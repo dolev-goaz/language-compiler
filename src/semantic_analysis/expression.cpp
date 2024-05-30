@@ -44,6 +44,12 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     return std::visit(SemanticAnalyzer::ExpressionVisitor{this}, atomic.get()->value);
 }
 
+SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_unary(
+    const std::shared_ptr<ASTUnaryExpression>& unary) {
+    (void)unary;
+    assert(false && "Didn't implement analysis for unary expressions");
+}
+
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_binary(
     const std::shared_ptr<ASTBinExpression>& binExpr) {
     auto& lhs = *binExpr.get()->lhs.get();
