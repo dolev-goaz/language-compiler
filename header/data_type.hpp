@@ -1,8 +1,8 @@
 #pragma once
 
-#include <stdexcept>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 // Basic types enumeration
@@ -13,6 +13,7 @@ enum class BasicDataType {
     INT16,
     INT32,
     INT64,
+    CHAR,
 };
 
 enum class CompatibilityStatus { Compatible, NotCompatible, CompatibleWithWarning };
@@ -21,12 +22,14 @@ enum class CompatibilityStatus { Compatible, NotCompatible, CompatibleWithWarnin
 class DataType {
    public:
     static const std::map<std::string, BasicDataType> data_type_name_to_value;
+    static const std::map<BasicDataType, size_t> data_type_to_size_bytes;
 
     virtual ~DataType() = default;
     virtual std::string toString() const = 0;
     virtual bool operator==(const DataType& other) const = 0;
     virtual CompatibilityStatus isCompatible(const DataType& other) const = 0;
     virtual bool isVoid() const { return false; }
+    virtual size_t get_size_bytes() const = 0;
 };
 
 // Class for BasicDataType
@@ -58,10 +61,9 @@ class BasicType : public DataType {
         return CompatibilityStatus::NotCompatible;
     }
 
-    bool isVoid() const override {
-        return type == BasicDataType::VOID;
-    }
+    bool isVoid() const override { return type == BasicDataType::VOID; }
 
+    size_t get_size_bytes() const override { return data_type_to_size_bytes.at(type); }
 
    private:
     BasicDataType type;
@@ -89,6 +91,10 @@ class StructType : public DataType {
         }
         return CompatibilityStatus::NotCompatible;
     }
+    size_t get_size_bytes() const override {
+        // TODO: when implementing struct implement this as well
+        return 0;
+    }
 
    private:
     std::string name;
@@ -114,6 +120,11 @@ class PointerType : public DataType {
             return baseType->isCompatible(*(otherPointer->baseType));
         }
         return CompatibilityStatus::NotCompatible;
+    }
+
+    size_t get_size_bytes() const override {
+        // NOTE: pointer size is qword, or 8 bytes
+        return 8;
     }
 
    public:
@@ -148,6 +159,11 @@ class ArrayType : public DataType {
                                                                            : CompatibilityStatus::NotCompatible;
         }
         return CompatibilityStatus::NotCompatible;
+    }
+
+    size_t get_size_bytes() const override {
+        //
+        return size * elementType->get_size_bytes();
     }
 
    public:
