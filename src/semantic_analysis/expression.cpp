@@ -46,8 +46,10 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_unary(
     const std::shared_ptr<ASTUnaryExpression>& unary) {
-    (void)unary;
-    assert(false && "Didn't implement analysis for unary expressions");
+    static_assert((int)UnaryOperation::operationCount - 1 == 1,
+                  "Implemented unary operations without updating semantic analysis");
+    // NOTE: when adding reference/dereference/cast, should have some actual logic here
+    return analyze_expression(*unary->expression);
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_binary(

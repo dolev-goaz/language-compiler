@@ -27,6 +27,7 @@ enum class BinOperation {
 enum class UnaryOperation {
     NONE = 0,
     negate,  // -x
+    operationCount, // used for assertions
 };
 
 struct ASTExpression;
