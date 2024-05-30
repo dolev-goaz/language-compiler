@@ -4,7 +4,7 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
     m_stack.enterScope();
     // add function parameters to scope
     for (auto& func_param : function_statement.parameters) {
-        size_t size_bytes = data_type_size_bytes.at(func_param.data_type);
+        size_t size_bytes = func_param.data_type->get_size_bytes();
         Generator::Variable var{
             .stack_location_bytes = m_stack_size,
             .size_bytes = size_bytes,
@@ -34,7 +34,7 @@ void Generator::generate_statement_return(const ASTStatementReturn& return_state
     if (return_statement.expression.has_value()) {
         auto& expression = return_statement.expression.value();
         generate_expression(expression);
-        size_t return_size_bytes = data_type_size_bytes.at(expression.data_type);
+        size_t return_size_bytes = expression.data_type->get_size_bytes();
         if (return_size_bytes > 0) {
             auto& reg = size_bytes_to_register.at(return_size_bytes);
 
@@ -48,7 +48,7 @@ void Generator::generate_statement_return(const ASTStatementReturn& return_state
 }
 
 void Generator::generate_expression_function_call(const ASTFunctionCall& function_call_expr, size_t return_size_bytes) {
-    size_t return_type_size = data_type_size_bytes.at(function_call_expr.return_data_type);
+    size_t return_type_size = function_call_expr.return_data_type->get_size_bytes();
     if (return_type_size) {
         m_generated << "; BEGIN PREPARE RETURN LOCATION INTO RDI" << std::endl;
         push_stack_register("rdi", 8);
@@ -62,7 +62,7 @@ void Generator::generate_expression_function_call(const ASTFunctionCall& functio
     size_t total_function_params_size = 0;
     for (auto& func_param : function_call_expr.parameters) {
         generate_expression(func_param);
-        total_function_params_size += data_type_size_bytes.at(func_param.data_type);
+        total_function_params_size += func_param.data_type->get_size_bytes();
     };
     m_generated << "; END OF FUNCTION PARAMATERS FOR " << function_call_expr.function_name << std::endl;
 
