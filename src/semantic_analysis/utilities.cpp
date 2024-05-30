@@ -15,7 +15,9 @@ void SemanticAnalyzer::assert_cast_expression(ASTExpression& expression, std::sh
         case CompatibilityStatus::Compatible:
             return;
         case CompatibilityStatus::CompatibleWithWarning:
-            semantic_warning("Implicit casting. Data will be narrowed/widened.", expression.start_token_meta);
+            if (show_warning) {
+                semantic_warning("Implicit casting. Data will be narrowed/widened.", expression.start_token_meta);
+            }
             return;
         case CompatibilityStatus::NotCompatible:
             throw SemanticAnalyzerException("Implicit casting of non-compatible datatypes",
