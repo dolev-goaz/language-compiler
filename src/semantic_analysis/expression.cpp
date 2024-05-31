@@ -44,6 +44,20 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     return std::visit(SemanticAnalyzer::ExpressionVisitor{this}, atomic.get()->value);
 }
 
+SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_unary(
+    const std::shared_ptr<ASTUnaryExpression>& unary) {
+    static_assert((int)UnaryOperation::operationCount - 1 == 1,
+                  "Implemented unary operations without updating semantic analysis");
+    auto& operand = unary->expression;
+    auto analysis_result = analyze_expression(*operand);
+    operand->data_type = analysis_result.data_type;
+    // NOTE: when adding reference/dereference/cast, should have some actual logic on the data_type
+    return SemanticAnalyzer::ExpressionAnalysisResult{
+        .data_type = operand->data_type,
+        .is_literal = false,
+    };
+}
+
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_binary(
     const std::shared_ptr<ASTBinExpression>& binExpr) {
     auto& lhs = *binExpr.get()->lhs.get();

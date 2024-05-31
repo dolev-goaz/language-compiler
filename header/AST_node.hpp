@@ -24,6 +24,12 @@ enum class BinOperation {
     operationCount,  // used for assertions
 };
 
+enum class UnaryOperation {
+    NONE = 0,
+    negate,  // -x
+    operationCount, // used for assertions
+};
+
 struct ASTExpression;
 struct ASTStatement;
 
@@ -68,11 +74,19 @@ struct ASTBinExpression {
     std::shared_ptr<ASTExpression> rhs;
 };
 
+struct ASTUnaryExpression {
+    TokenMeta start_token_meta;
+    UnaryOperation operation;
+    std::shared_ptr<ASTExpression> expression;
+};
+
 struct ASTExpression {
     bool is_literal = false;
     TokenMeta start_token_meta;
     std::shared_ptr<DataType> data_type;
-    std::variant<std::shared_ptr<ASTAtomicExpression>, std::shared_ptr<ASTBinExpression>> expression;
+    std::variant<std::shared_ptr<ASTAtomicExpression>, std::shared_ptr<ASTBinExpression>,
+                 std::shared_ptr<ASTUnaryExpression>>
+        expression;
 };
 
 struct ASTStatementExit {

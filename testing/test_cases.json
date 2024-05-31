@@ -119,6 +119,12 @@
         "should_compile": true,
         "expected_return_code": 0
     },
+    {
+        "name": "Unary Operation- Negation",
+        "file": "negative_unary_op.dlv",
+        "should_compile": true,
+        "expected_return_code": 5
+    },
 
 
 

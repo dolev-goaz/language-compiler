@@ -20,8 +20,10 @@ class Parser {
     size_t m_token_index = 0;
 
     std::shared_ptr<ASTStatement> parse_statement();
-    BinOperation try_consume_binary_operation();
     BinOperation peek_binary_operation();
+    BinOperation try_consume_binary_operation();
+    std::optional<UnaryOperation> peek_unary_operation();
+    UnaryOperation assert_consume_unary_operation();
 
     std::vector<Token> consume_data_type_tokens();
     std::vector<Token> consume_array_modifier_tokens();
@@ -42,7 +44,12 @@ class Parser {
     // uses predence climbing, described here-
     // https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
     std::optional<ASTExpression> parse_expression(const int min_prec = 0);
+
+    std::shared_ptr<ASTUnaryExpression> try_parse_unary();
     std::shared_ptr<ASTAtomicExpression> try_parse_atomic();
+    
+    // attempts to parse either atomic or unary expressions, basically not binary operations.
+    std::shared_ptr<ASTExpression> try_parse_expr_lhs();
     std::optional<int> binary_operator_precedence(const BinOperation& operation);
 
     std::optional<Token> consume();

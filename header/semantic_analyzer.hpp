@@ -50,6 +50,7 @@ class SemanticAnalyzer {
     ExpressionAnalysisResult analyze_expression_int_literal(ASTIntLiteral& int_literal);
     ExpressionAnalysisResult analyze_expression_char_literal(ASTCharLiteral& char_literal);
     ExpressionAnalysisResult analyze_expression_atomic(const std::shared_ptr<ASTAtomicExpression>& atomic);
+    ExpressionAnalysisResult analyze_expression_unary(const std::shared_ptr<ASTUnaryExpression>& unary);
     ExpressionAnalysisResult analyze_expression_binary(const std::shared_ptr<ASTBinExpression>& binExpr);
     ExpressionAnalysisResult analyze_expression_parenthesis(const ASTParenthesisExpression& paren_expr);
     ExpressionAnalysisResult analyze_function_call(ASTFunctionCall& function_call_expr);
