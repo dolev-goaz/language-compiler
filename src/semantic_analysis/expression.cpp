@@ -51,10 +51,11 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     auto& operand = unary->expression;
     auto analysis_result = analyze_expression(*operand);
     operand->data_type = analysis_result.data_type;
+    operand->is_literal = analysis_result.is_literal;
     // NOTE: when adding reference/dereference/cast, should have some actual logic on the data_type
     return SemanticAnalyzer::ExpressionAnalysisResult{
         .data_type = operand->data_type,
-        .is_literal = false,
+        .is_literal = operand->is_literal,
     };
 }
 
