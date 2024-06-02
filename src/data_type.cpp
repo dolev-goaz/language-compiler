@@ -5,6 +5,14 @@ const std::map<std::string, BasicDataType> DataType::data_type_name_to_value = {
     {"int_32", BasicDataType::INT32}, {"int_64", BasicDataType::INT64}, {"char", BasicDataType::CHAR},
 };
 
+const std::map<BasicDataType, std::string> DataType::data_type_value_to_name = []() {
+    std::map<BasicDataType, std::string> reverse_map;
+    for (const auto& pair : DataType::data_type_name_to_value) {
+        reverse_map[pair.second] = pair.first;
+    }
+    return reverse_map;
+}();
+
 const std::map<BasicDataType, size_t> DataType::data_type_to_size_bytes = {
     {BasicDataType::VOID, 0},  {BasicDataType::INT8, 1},  {BasicDataType::INT16, 2},
     {BasicDataType::INT32, 4}, {BasicDataType::INT64, 8}, {BasicDataType::CHAR, 2},

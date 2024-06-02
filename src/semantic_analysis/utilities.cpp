@@ -10,17 +10,20 @@ void SemanticAnalyzer::semantic_warning(const std::string& message, const TokenM
 void SemanticAnalyzer::assert_cast_expression(ASTExpression& expression, std::shared_ptr<DataType> data_type,
                                               bool show_warning) {
     auto compatibility = expression.data_type->is_compatible(*data_type);
+    std::stringstream casting_msg;
+    casting_msg << "Casting '" << expression.data_type->toString() << "' to '" << data_type->toString() << "'.";
     expression.data_type = data_type;
     switch (compatibility) {
         case CompatibilityStatus::Compatible:
             return;
         case CompatibilityStatus::CompatibleWithWarning:
             if (show_warning) {
-                semantic_warning("Implicit casting. Data will be narrowed/widened.", expression.start_token_meta);
+                semantic_warning("Implicit casting. Data will be narrowed/widened. " + casting_msg.str(),
+                                 expression.start_token_meta);
             }
             return;
         case CompatibilityStatus::NotCompatible:
-            throw SemanticAnalyzerException("Implicit casting of non-compatible datatypes",
+            throw SemanticAnalyzerException("Implicit casting of non-compatible datatypes. " + casting_msg.str(),
                                             expression.start_token_meta);
         default:
             assert(false && "Shouldn't reach here");

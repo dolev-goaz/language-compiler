@@ -22,10 +22,12 @@ enum class CompatibilityStatus { Compatible, NotCompatible, CompatibleWithWarnin
 class DataType {
    public:
     static const std::map<std::string, BasicDataType> data_type_name_to_value;
+    static const std::map<BasicDataType, std::string> data_type_value_to_name;
     static const std::map<BasicDataType, size_t> data_type_to_size_bytes;
 
     virtual ~DataType() = default;
     virtual bool operator==(const DataType& other) const = 0;
+    virtual std::string toString() const = 0;
     virtual CompatibilityStatus is_compatible(const DataType& other) const = 0;
     virtual bool is_void() const { return false; }
     virtual size_t get_size_bytes() const = 0;
@@ -44,6 +46,9 @@ class BasicType : public DataType {
         }
         return false;
     }
+
+    std::string toString() const override { return DataType::data_type_value_to_name.at(type); }
+
     CompatibilityStatus is_compatible(const DataType& other) const override {
         // Basic types are compatible if they are the same
         if (const auto* otherBasic = dynamic_cast<const BasicType*>(&other)) {
@@ -74,6 +79,8 @@ class StructType : public DataType {
         return false;
     }
 
+    std::string toString() const override { return name; }
+
     CompatibilityStatus is_compatible(const DataType& other) const override {
         // Struct types are compatible only if they are the same
         if (const auto* otherStruct = dynamic_cast<const StructType*>(&other)) {
@@ -101,6 +108,8 @@ class PointerType : public DataType {
         }
         return false;
     }
+
+    std::string toString() const override { return baseType->toString() + "*"; }
 
     CompatibilityStatus is_compatible(const DataType& other) const override {
         // Pointers are compatible if they point to compatible types
@@ -130,6 +139,8 @@ class ArrayType : public DataType {
         }
         return false;
     }
+
+    std::string toString() const override { return elementType->toString() + "[" + std::to_string(size) + "]"; }
 
     CompatibilityStatus is_compatible(const DataType& other) const override {
         // Arrays are compatible if their element types are compatible and sizes are the same
