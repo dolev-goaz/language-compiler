@@ -46,8 +46,9 @@ class Parser {
     std::optional<ASTExpression> parse_expression(const int min_prec = 0);
 
     std::shared_ptr<ASTUnaryExpression> try_parse_unary();
+    std::shared_ptr<ASTArrayIndexExpression> try_parse_array_indexing(const std::shared_ptr<ASTExpression>& operand);
     std::shared_ptr<ASTAtomicExpression> try_parse_atomic();
-    
+
     // attempts to parse either atomic or unary expressions, basically not binary operations.
     std::shared_ptr<ASTExpression> try_parse_expr_lhs();
     std::optional<int> binary_operator_precedence(const BinOperation& operation);

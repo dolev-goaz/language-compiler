@@ -80,12 +80,18 @@ struct ASTUnaryExpression {
     std::shared_ptr<ASTExpression> expression;
 };
 
+struct ASTArrayIndexExpression {
+    TokenMeta start_token_meta;
+    std::shared_ptr<ASTExpression> index;
+    std::shared_ptr<ASTExpression> expression;
+};
+
 struct ASTExpression {
     bool is_literal = false;
     TokenMeta start_token_meta;
     std::shared_ptr<DataType> data_type;
     std::variant<std::shared_ptr<ASTAtomicExpression>, std::shared_ptr<ASTBinExpression>,
-                 std::shared_ptr<ASTUnaryExpression>>
+                 std::shared_ptr<ASTUnaryExpression>, std::shared_ptr<ASTArrayIndexExpression>>
         expression;
 };
 
