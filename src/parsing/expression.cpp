@@ -145,7 +145,7 @@ std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
     }
     if (auto func_call = parse_function_call(); func_call != nullptr) {
         return std::make_shared<ASTAtomicExpression>(
-            ASTAtomicExpression{.start_token_meta = meta, .value = *func_call.get()});
+            ASTAtomicExpression{.start_token_meta = meta, .value = *func_call});
     }
     if (test_peek(TokenType::identifier)) {
         Token name = consume().value();
@@ -267,12 +267,13 @@ std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {
             .expression = expr_lhs->expression,
         });
         auto new_expr_rhs = std::make_shared<ASTExpression>(rhs.value());
-        expr_lhs->expression = std::make_shared<ASTBinExpression>(
-            ASTBinExpression{.start_token_meta = new_expr_lhs.get()->start_token_meta,
-                             .operation = binOperation,
-                             .lhs = new_expr_lhs,
-                             .rhs = new_expr_rhs});
+        expr_lhs->expression = std::make_shared<ASTBinExpression>(ASTBinExpression{
+            .start_token_meta = new_expr_lhs->start_token_meta,
+            .operation = binOperation,
+            .lhs = new_expr_lhs,
+            .rhs = new_expr_rhs,
+        });
     }
 
-    return *expr_lhs.get(); // TODO: should probably just return the shared_ptr
+    return *expr_lhs;  // TODO: should probably just return the shared_ptr
 }

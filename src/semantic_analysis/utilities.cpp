@@ -70,15 +70,15 @@ void SemanticAnalyzer::analyze() {
     auto& functions = m_prog.functions;
     // first passage through functions- function header
     for (auto& function : functions) {
-        analyze_function_header(*function.get());
+        analyze_function_header(*function);
     }
     // pass through global statements
     for (auto& statement : statements) {
-        analyze_statement(*statement.get());
+        analyze_statement(*statement);
     }
     // second passage through functions- function body
     for (auto& function : functions) {
-        analyze_function_body(*function.get());
+        analyze_function_body(*function);
     }
     this->m_symbol_table.exitScope();
 }

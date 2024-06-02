@@ -31,7 +31,7 @@ std::shared_ptr<ASTStatementIf> Parser::parse_statement_if() {
         if (success_statement == nullptr) {
             throw ParserException("Expected statement after 'else' keyword", else_begin_meta);
         }
-        if_statement.get()->fail_statement = fail_statement;
+        if_statement->fail_statement = fail_statement;
     }
 
     return if_statement;
@@ -231,7 +231,7 @@ ASTProgram Parser::parse_program() {
         auto statement = parse_statement();
         if (type == TokenType::_function) {
             // NOTE: could probably figure out a better way to know the statement is a function statement
-            auto& func_statement = statement.get()->statement;
+            auto& func_statement = statement->statement;
             result.functions.push_back(std::get<std::shared_ptr<ASTStatementFunction>>(func_statement));
             continue;
         }

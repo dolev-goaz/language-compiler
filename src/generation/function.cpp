@@ -18,7 +18,7 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
     m_generated << function_statement.name << ":" << std::endl;
     push_stack_register("rbp", 8);                 // store the previous stack frame
     m_generated << "\tmov rbp, rsp" << std::endl;  // this is the current stack frame
-    generate_statement(*function_statement.statement.get());
+    generate_statement(*function_statement.statement);
     m_generated << ".return:" << std::endl;
     m_generated << "\tmov rsp, rbp" << std::endl;  // return the stack to its previous state
     pop_stack_register("rbp", 8, 8);               // restore the previous stack frame

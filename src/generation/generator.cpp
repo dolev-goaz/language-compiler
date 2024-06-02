@@ -32,7 +32,7 @@ std::string Generator::generate_program() {
     m_stack.enterScope();
     // generate all statements
     for (size_t i = 0; i < m_prog.statements.size(); ++i) {
-        auto current = m_prog.statements[i].get();
+        auto& current = m_prog.statements[i];
         generate_statement(*current);
     }
 
@@ -44,7 +44,7 @@ std::string Generator::generate_program() {
 
     // generate all functions at the end of the file
     for (size_t i = 0; i < m_prog.functions.size(); ++i) {
-        auto current = m_prog.functions[i].get();
+        auto& current = m_prog.functions[i];
         generate_statement_function(*current);
     }
     m_stack.exitScope();

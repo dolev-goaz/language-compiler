@@ -41,7 +41,7 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_atomic(
     const std::shared_ptr<ASTAtomicExpression>& atomic) {
-    return std::visit(SemanticAnalyzer::ExpressionVisitor{this}, atomic.get()->value);
+    return std::visit(SemanticAnalyzer::ExpressionVisitor{this}, atomic->value);
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_unary(
@@ -61,26 +61,25 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_binary(
     const std::shared_ptr<ASTBinExpression>& binExpr) {
-    auto& lhs = *binExpr.get()->lhs.get();
-    auto& rhs = *binExpr.get()->rhs.get();
-    auto lhs_analysis = analyze_expression(lhs);
-    auto rhs_analysis = analyze_expression(rhs);
-    lhs.data_type = lhs_analysis.data_type;
-    rhs.data_type = rhs_analysis.data_type;
+    auto& lhs = binExpr->lhs;
+    auto& rhs = binExpr->rhs;
+    auto lhs_analysis = analyze_expression(*lhs);
+    auto rhs_analysis = analyze_expression(*rhs);
+    lhs->data_type = lhs_analysis.data_type;
+    rhs->data_type = rhs_analysis.data_type;
 
-    if (rhs.data_type != lhs.data_type) {
+    if (rhs->data_type != lhs->data_type) {
         bool show_warnings = !lhs_analysis.is_literal && !rhs_analysis.is_literal;
-        assert_cast_expression(rhs, lhs.data_type, show_warnings);
+        assert_cast_expression(*rhs, lhs->data_type, show_warnings);
     }
 
     return SemanticAnalyzer::ExpressionAnalysisResult{
-        .data_type = lhs.data_type,
+        .data_type = lhs->data_type,
         .is_literal = (lhs_analysis.is_literal && rhs_analysis.is_literal),
     };
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_parenthesis(
     const ASTParenthesisExpression& paren_expr) {
-    auto& inner_expression = *paren_expr.expression.get();
-    return analyze_expression(inner_expression);
+    return analyze_expression(*paren_expr.expression);
 }

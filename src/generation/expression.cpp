@@ -46,7 +46,7 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
     static_assert((int)BinOperation::operationCount - 1 == 10,
                   "Binary Operations enum changed without changing generator");
     std::string operation;
-    switch (binary.get()->operation) {
+    switch (binary->operation) {
         case BinOperation::add:
             operation = "Addition";
             break;
@@ -83,16 +83,16 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
             exit(EXIT_FAILURE);
     }
     m_generated << ";\t" << operation << " Evaluation BEGIN" << std::endl;
-    auto& lhsExp = *binary.get()->lhs.get();
-    auto& rhsExp = *binary.get()->rhs.get();
-    size_t rhs_size_bytes = rhsExp.data_type->get_size_bytes();
-    size_t lhs_size_bytes = lhsExp.data_type->get_size_bytes();
-    generate_expression(lhsExp);
-    generate_expression(rhsExp);
+    auto& lhsExp = binary->lhs;
+    auto& rhsExp = binary->rhs;
+    size_t rhs_size_bytes = rhsExp->data_type->get_size_bytes();
+    size_t lhs_size_bytes = lhsExp->data_type->get_size_bytes();
+    generate_expression(*lhsExp);
+    generate_expression(*rhsExp);
     pop_stack_register("rbx", 8, rhs_size_bytes);  // rbx = rhs
     pop_stack_register("rax", 8, lhs_size_bytes);  // rax = lhs
 
-    auto bin_operation = binary.get()->operation;
+    auto bin_operation = binary->operation;
     switch (bin_operation) {
         case BinOperation::add:
             m_generated << "\tadd rax, rbx; rax += rbx" << std::endl;  // rax = rax + rbx

@@ -57,7 +57,7 @@ void Generator::generate_statement_var_declare(const ASTStatementVar& var_statem
 void Generator::generate_statement_scope(const ASTStatementScope& scope_statement) {
     enter_scope();
     for (auto& statement : scope_statement.statements) {
-        this->generate_statement(*statement.get());
+        this->generate_statement(*statement);
     }
     exit_scope();
 }
@@ -78,7 +78,7 @@ void Generator::generate_statement_if(const ASTStatementIf& if_statement) {
     m_generated << "\ttest rax, rax" << std::endl
                 << "\tjz " << after_if_label.str() << "; if the expression is false-y, skip the 'if' block's statements"
                 << std::endl;
-    generate_statement(*success_statement.get());
+    generate_statement(*success_statement);
     if (!fail_statement) {
         // no 'else' statement
         m_generated << after_if_label.str() << ":" << std::endl;
@@ -88,7 +88,7 @@ void Generator::generate_statement_if(const ASTStatementIf& if_statement) {
                 << "; after the truth-y block's statements, skip to after the else(false-y) block's statements"
                 << std::endl;  // skip else section
     m_generated << after_if_label.str() << ":" << std::endl;
-    generate_statement(*fail_statement.get());
+    generate_statement(*fail_statement);
     m_generated << after_else_label.str() << ":" << std::endl;
 }
 
@@ -109,7 +109,7 @@ void Generator::generate_statement_while(const ASTStatementWhile& while_statemen
     m_generated << "\ttest rax, rax" << std::endl
                 << "\tjz " << after_while_label.str()
                 << "; if the expression is false-y, skip the 'while' block's statements" << std::endl;
-    generate_statement(*success_statement.get());
+    generate_statement(*success_statement);
     m_generated << "\tjmp " << before_while_label.str()
                 << "; after the 'while' block ends, jump back to the condition checking" << std::endl;
     m_generated << after_while_label.str() << ":" << std::endl;

@@ -41,7 +41,7 @@ void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
             throw SemanticAnalyzerException(e.what(), start_token_meta);
         }
     }
-    analyze_statement(*func.statement.get());
+    analyze_statement(*func.statement);
     m_current_function_name = "";
     m_symbol_table.exitScope();
     auto& function_header = m_function_table.at(func.name);
@@ -53,13 +53,12 @@ void SemanticAnalyzer::analyze_function_body(ASTStatementFunction& func) {
 
 void SemanticAnalyzer::analyze_statement_return(const std::shared_ptr<ASTStatementReturn>& return_statement) {
     if (m_current_function_name.empty()) {
-        throw SemanticAnalyzerException("Can't use 'return' outside of a function",
-                                        return_statement.get()->start_token_meta);
+        throw SemanticAnalyzerException("Can't use 'return' outside of a function", return_statement->start_token_meta);
     }
-    auto& meta = return_statement.get()->start_token_meta;
+    auto& meta = return_statement->start_token_meta;
     auto& function_header = m_function_table.at(m_current_function_name);
     function_header.found_return_statement = true;
-    auto& possible_expression = return_statement.get()->expression;
+    auto& possible_expression = return_statement->expression;
     if (!possible_expression.has_value()) {
         if (!function_header.data_type->is_void()) {
             throw SemanticAnalyzerException("Return statement of function with return type must include an expression",
