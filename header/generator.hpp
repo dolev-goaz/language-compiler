@@ -31,14 +31,14 @@ class Generator {
     void generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes);
     void generate_expression_function_call(const ASTFunctionCall& function_call_expr, size_t return_size_bytes);
 
-    void generate_statement_exit(const ASTStatementExit& exit_statement);
-    void generate_statement_var_declare(const ASTStatementVar& var_statement);
-    void generate_statement_var_assignment(const ASTStatementAssign& var_assign_statement);
-    void generate_statement_scope(const ASTStatementScope& scope_statement);
-    void generate_statement_if(const ASTStatementIf& if_statement);
-    void generate_statement_while(const ASTStatementWhile& while_statement);
-    void generate_statement_function(const ASTStatementFunction& function_statement);
-    void generate_statement_return(const ASTStatementReturn& return_statement);
+    void generate_statement_exit(const std::shared_ptr<ASTStatementExit>& exit_statement);
+    void generate_statement_var_declare(const std::shared_ptr<ASTStatementVar>& var_statement);
+    void generate_statement_var_assignment(const std::shared_ptr<ASTStatementAssign>& var_assign_statement);
+    void generate_statement_scope(const std::shared_ptr<ASTStatementScope>& scope_statement);
+    void generate_statement_if(const std::shared_ptr<ASTStatementIf>& if_statement);
+    void generate_statement_while(const std::shared_ptr<ASTStatementWhile>& while_statement);
+    void generate_statement_function(const std::shared_ptr<ASTStatementFunction>& function_statement);
+    void generate_statement_return(const std::shared_ptr<ASTStatementReturn>& return_statement);
 
     void enter_scope();
     void exit_scope();

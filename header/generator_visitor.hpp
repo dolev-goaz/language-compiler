@@ -4,32 +4,30 @@
 struct Generator::StatementVisitor {
     Generator& generator;
 
-    void operator()(const std::shared_ptr<ASTStatementExit>& exit) const {
-        generator.generate_statement_exit(*exit.get());
-    }
+    void operator()(const std::shared_ptr<ASTStatementExit>& exit) const { generator.generate_statement_exit(exit); }
     void operator()(const std::shared_ptr<ASTStatementVar>& var_declare) const {
-        generator.generate_statement_var_declare(*var_declare.get());
+        generator.generate_statement_var_declare(var_declare);
     }
     void operator()(const std::shared_ptr<ASTStatementAssign>& var_assign) const {
-        generator.generate_statement_var_assignment(*var_assign.get());
+        generator.generate_statement_var_assignment(var_assign);
     }
     void operator()(const std::shared_ptr<ASTStatementScope>& scope) const {
-        generator.generate_statement_scope(*scope.get());
+        generator.generate_statement_scope(scope);
     }
     void operator()(const std::shared_ptr<ASTStatementIf>& if_statement) const {
-        generator.generate_statement_if(*if_statement.get());
+        generator.generate_statement_if(if_statement);
     }
     void operator()(const std::shared_ptr<ASTStatementWhile>& while_statement) const {
-        generator.generate_statement_while(*while_statement.get());
+        generator.generate_statement_while(while_statement);
     }
     void operator()(const std::shared_ptr<ASTStatementFunction>& function_statement) const {
-        generator.generate_statement_function(*function_statement.get());
+        generator.generate_statement_function(function_statement);
     }
     void operator()(const std::shared_ptr<ASTStatementReturn>& return_statement) const {
-        generator.generate_statement_return(*return_statement.get());
+        generator.generate_statement_return(return_statement);
     }
     void operator()(const std::shared_ptr<ASTFunctionCall>& function_call_statement) const {
-        generator.generate_expression_function_call(*function_call_statement.get(), 0);
+        generator.generate_expression_function_call(*function_call_statement, 0);
     }
 };
 
@@ -50,14 +48,14 @@ struct Generator::ExpressionVisitor {
     }
 
     void operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
-        std::visit(Generator::ExpressionVisitor{.generator = generator, .size = size}, atomic.get()->value);
+        std::visit(Generator::ExpressionVisitor{.generator = generator, .size = size}, atomic->value);
     }
     void operator()(const std::shared_ptr<ASTUnaryExpression>& unary) const {
         generator.generate_expression_unary(unary, size);
     }
 
     void operator()(const ASTParenthesisExpression& paren_expr) const {
-        auto& inner_expression = *paren_expr.expression.get();
+        auto& inner_expression = *paren_expr.expression;
         std::visit(Generator::ExpressionVisitor{.generator = generator, .size = size}, inner_expression.expression);
     }
 

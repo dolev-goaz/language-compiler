@@ -1,9 +1,9 @@
 #include "../header/generator.hpp"
 
-void Generator::generate_statement_function(const ASTStatementFunction& function_statement) {
+void Generator::generate_statement_function(const std::shared_ptr<ASTStatementFunction>& function_statement) {
     m_stack.enterScope();
     // add function parameters to scope
-    for (auto& func_param : function_statement.parameters) {
+    for (auto& func_param : function_statement->parameters) {
         size_t size_bytes = func_param.data_type->get_size_bytes();
         Generator::Variable var{
             .stack_location_bytes = m_stack_size,
@@ -14,25 +14,25 @@ void Generator::generate_statement_function(const ASTStatementFunction& function
     }
     m_stack_size += 8;  // return address pushed by 'call'
 
-    m_generated << std::endl << "; BEGIN OF FUNCTION '" << function_statement.name << "'" << std::endl;
-    m_generated << function_statement.name << ":" << std::endl;
+    m_generated << std::endl << "; BEGIN OF FUNCTION '" << function_statement->name << "'" << std::endl;
+    m_generated << function_statement->name << ":" << std::endl;
     push_stack_register("rbp", 8);                 // store the previous stack frame
     m_generated << "\tmov rbp, rsp" << std::endl;  // this is the current stack frame
-    generate_statement(*function_statement.statement);
+    generate_statement(*function_statement->statement);
     m_generated << ".return:" << std::endl;
     m_generated << "\tmov rsp, rbp" << std::endl;  // return the stack to its previous state
     pop_stack_register("rbp", 8, 8);               // restore the previous stack frame
     m_generated << "\tret" << std::endl;
-    m_generated << "; END OF FUNCTION '" << function_statement.name << "'" << std::endl << std::endl;
+    m_generated << "; END OF FUNCTION '" << function_statement->name << "'" << std::endl << std::endl;
 
     m_stack_size -= 8;  // return address popped by 'ret'
     m_stack.exitScope();
 }
 
-void Generator::generate_statement_return(const ASTStatementReturn& return_statement) {
+void Generator::generate_statement_return(const std::shared_ptr<ASTStatementReturn>& return_statement) {
     m_generated << "; BEGIN RETURN STATEMENT" << std::endl;
-    if (return_statement.expression.has_value()) {
-        auto& expression = return_statement.expression.value();
+    if (return_statement->expression.has_value()) {
+        auto& expression = return_statement->expression.value();
         generate_expression(expression);
         size_t return_size_bytes = expression.data_type->get_size_bytes();
         if (return_size_bytes > 0) {
