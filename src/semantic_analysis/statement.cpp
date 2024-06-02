@@ -7,7 +7,13 @@ void SemanticAnalyzer::analyze_statement(ASTStatement& statement) {
 
 void SemanticAnalyzer::analyze_statement_exit(const std::shared_ptr<ASTStatementExit>& exit) {
     auto& expression = exit->status_code;
-    expression.data_type = analyze_expression(expression).data_type;
+    auto analysis_result = analyze_expression(expression);
+    expression.data_type = analysis_result.data_type;
+    expression.is_literal = analysis_result.is_literal;
+    auto expected_data_type = BasicType::makeBasicType(BasicDataType::INT16);
+    if (expression.data_type != expected_data_type) {
+        assert_cast_expression(expression, expected_data_type, !expression.is_literal);
+    }
 }
 
 void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTStatementVar>& var_declare) {
