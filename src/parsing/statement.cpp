@@ -96,16 +96,16 @@ std::shared_ptr<ASTStatementExit> Parser::parse_statement_exit() {
 }
 
 std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
-    // [d_type] [pointer modifiers] [identifier] [array modifiers];
-    // [d_type] [pointer modifiers] [identifier] [array modifiers] = [expression];
-    if (!(test_peek(TokenType::identifier) && (test_peek(TokenType::star, 1) || test_peek(TokenType::identifier, 1)))) {
+    // [d_type] [pointer/array modifiers] [identifier];
+    // [d_type] [pointer/array modifiers] [identifier] = [expression];
+    if (!(test_peek(TokenType::identifier) && (test_peek(TokenType::star, 1) || test_peek(TokenType::open_square, 1) ||
+                                               test_peek(TokenType::identifier, 1)))) {
         return nullptr;
     }
     auto meta = peek().value().meta;
 
     std::vector<Token> data_type_tokens = consume_data_type_tokens();
     Token identifier = assert_consume(TokenType::identifier, "Expected variable name");
-    std::vector<Token> array_modifier_token = consume_array_modifier_tokens();
 
     std::optional<ASTExpression> value = std::nullopt;
 
@@ -130,7 +130,6 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
     return std::make_shared<ASTStatementVar>(ASTStatementVar{
         .start_token_meta = meta,
         .data_type_tokens = data_type_tokens,
-        .array_modifiers = array_modifier_token,
         .data_type = nullptr,
         .name = identifier.value.value(),
         .value = std::move(value),

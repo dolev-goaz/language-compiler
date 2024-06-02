@@ -26,8 +26,8 @@ enum class BinOperation {
 
 enum class UnaryOperation {
     NONE = 0,
-    negate,  // -x
-    operationCount, // used for assertions
+    negate,          // -x
+    operationCount,  // used for assertions
 };
 
 struct ASTExpression;
@@ -97,7 +97,6 @@ struct ASTStatementExit {
 struct ASTStatementVar {
     TokenMeta start_token_meta;
     std::vector<Token> data_type_tokens;
-    std::vector<Token> array_modifiers;
 
     std::shared_ptr<DataType> data_type;
     std::string name;

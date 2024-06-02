@@ -36,15 +36,24 @@ std::vector<Token> Parser::consume_data_type_tokens() {
     std::vector<Token> out;
 
     out.push_back(assert_consume(TokenType::identifier, "Expected identifier for data type"));
-    
-    while (test_peek(TokenType::star)) {
-        out.push_back(consume().value());
+
+    while (test_peek(TokenType::star) || test_peek(TokenType::open_square)) {
+        if (test_peek(TokenType::open_square)) {
+            // array declaration
+            out.push_back(consume().value());
+            out.push_back(assert_consume(TokenType::int_lit, "Expected array size"));
+            out.push_back(assert_consume(TokenType::close_square, "Expected closing bracket ']'"));
+        } else {
+            // star- pointer type
+            out.push_back(consume().value());
+        }
     }
 
     return out;
 }
 
 std::vector<Token> Parser::consume_array_modifier_tokens() {
+    // NOTE: could be used for array indexing
     std::vector<Token> out;
 
     while (test_peek(TokenType::open_square)) {

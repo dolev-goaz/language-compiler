@@ -18,11 +18,7 @@ void SemanticAnalyzer::analyze_statement_exit(const std::shared_ptr<ASTStatement
 
 void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTStatementVar>& var_declare) {
     auto& start_token_meta = var_declare->start_token_meta;
-    std::vector<Token> type_tokens;
-    type_tokens.insert(type_tokens.end(), var_declare->data_type_tokens.begin(), var_declare->data_type_tokens.end());
-    type_tokens.insert(type_tokens.end(), var_declare->array_modifiers.begin(), var_declare->array_modifiers.end());
-
-    std::shared_ptr<DataType> data_type = create_data_type(type_tokens);
+    std::shared_ptr<DataType> data_type = create_data_type(var_declare->data_type_tokens);
     if (data_type->is_void()) {
         throw SemanticAnalyzerException("Variables can not be of void type", start_token_meta);
     }
