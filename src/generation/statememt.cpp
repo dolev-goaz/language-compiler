@@ -45,8 +45,17 @@ void Generator::generate_statement_var_declare(const std::shared_ptr<ASTStatemen
     if (var_statement->value.has_value()) {
         generate_expression(var_statement->value.value());
     } else {
-        // allocate stack without initializing
         m_generated << "\tsub rsp, " << size_bytes << std::endl;
+        // allocate stack initializing to 0
+        auto is_array = (bool)(dynamic_cast<ArrayType*>(var_statement->data_type.get()));
+        if (is_array) {
+            // TODO: should probably only do this if the array doesnt get initialized with a value
+            m_generated << "\t; Initialize Arrays To 0" << std::endl
+                        << "\tmov rcx, " << size_bytes << std::endl
+                        << "\tmov rdi, rsp" << std::endl
+                        << "\tmov rax, 0" << std::endl
+                        << "\trep stosb" << std::endl;
+        }
         m_stack_size += size_bytes;
     }
 

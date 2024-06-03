@@ -12,7 +12,8 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
         errorMessage << "Unknown Identifier '" << identifier.value << "'";
         throw SemanticAnalyzerException(errorMessage.str(), identifier.start_token_meta);
     }
-    if (!literal_data->is_initialized) {
+    auto is_array = (bool)(dynamic_cast<ArrayType*>(literal_data->data_type.get()));
+    if (!literal_data->is_initialized && !is_array) {
         std::stringstream errorMessage;
         errorMessage << "Access to uninitialized variable '" << identifier.value << "'";
         throw SemanticAnalyzerException(errorMessage.str(), identifier.start_token_meta);
