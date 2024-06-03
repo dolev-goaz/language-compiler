@@ -83,3 +83,32 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     const ASTParenthesisExpression& paren_expr) {
     return analyze_expression(*paren_expr.expression);
 }
+
+SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_array_indexing(
+    const std::shared_ptr<ASTArrayIndexExpression>& arr_index_expr) {
+    auto& operand = arr_index_expr->expression;
+    auto& index = arr_index_expr->index;
+
+    auto operand_analysis = analyze_expression(*operand);
+    operand->data_type = operand_analysis.data_type;
+    operand->is_literal = operand_analysis.is_literal;
+
+    auto array_type = dynamic_cast<ArrayType*>(operand->data_type.get());
+    if (!array_type) {
+        throw SemanticAnalyzerException("Array indexing on non-array type", arr_index_expr->start_token_meta);
+    }
+    auto index_analysis = analyze_expression(*index);
+    index->data_type = index_analysis.data_type;
+    index->is_literal = index_analysis.is_literal;
+
+    auto regular_index_type = BasicType::makeBasicType(BasicDataType::INT64);
+    auto compatibility = index->data_type->is_compatible(*regular_index_type);
+    if (compatibility == CompatibilityStatus::NotCompatible) {
+        throw SemanticAnalyzerException("Array index must be numeric", index->start_token_meta);
+    }
+
+    return SemanticAnalyzer::ExpressionAnalysisResult{
+        .data_type = array_type->elementType,
+        .is_literal = false,
+    };
+}

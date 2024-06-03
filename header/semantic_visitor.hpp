@@ -39,8 +39,7 @@ struct SemanticAnalyzer::ExpressionVisitor {
     }
 
     SemanticAnalyzer::ExpressionAnalysisResult operator()(std::shared_ptr<ASTArrayIndexExpression>& arr_index) const {
-        (void)arr_index;
-        assert(false && "Not implemented array indexing analysis");
+        return analyzer->analyze_expression_array_indexing(arr_index);
     }
 };
 
