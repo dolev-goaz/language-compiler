@@ -64,7 +64,6 @@ struct Generator::ExpressionVisitor {
     }
 
     void operator()(const std::shared_ptr<ASTArrayIndexExpression>& arr_index) const {
-        (void)arr_index;
-        assert(false && "Not implemented array indexing generation");
+        generator.generate_expression_array_index(arr_index, size);
     }
 };

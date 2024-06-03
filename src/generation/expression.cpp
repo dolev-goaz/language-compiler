@@ -152,3 +152,10 @@ void Generator::generate_expression_unary(const std::shared_ptr<ASTUnaryExpressi
     auto& reg = size_bytes_to_register.at(size_bytes);
     push_stack_register(reg, size_bytes);
 }
+
+void Generator::generate_expression_array_index(const std::shared_ptr<ASTArrayIndexExpression>& array_index,
+                                                size_t return_size_bytes) {
+    (void)array_index;
+    (void)return_size_bytes;
+    assert(false && "Not implemented array indexing generation");
+}

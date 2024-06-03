@@ -29,6 +29,8 @@ class Generator {
     void generate_expression_char_literal(const ASTCharLiteral& literal, size_t size_bytes);
     void generate_expression_unary(const std::shared_ptr<ASTUnaryExpression>& unary, size_t size_bytes);
     void generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes);
+    void generate_expression_array_index(const std::shared_ptr<ASTArrayIndexExpression>& array_index,
+                                         size_t return_size_bytes);
     void generate_expression_function_call(const ASTFunctionCall& function_call_expr, size_t return_size_bytes);
 
     void generate_statement_exit(const std::shared_ptr<ASTStatementExit>& exit_statement);
