@@ -154,8 +154,33 @@ void Generator::generate_expression_unary(const std::shared_ptr<ASTUnaryExpressi
 }
 
 void Generator::generate_expression_array_index(const std::shared_ptr<ASTArrayIndexExpression>& array_index,
-                                                size_t return_size_bytes) {
-    (void)array_index;
-    (void)return_size_bytes;
-    assert(false && "Not implemented array indexing generation");
+                                                size_t requested_size_bytes) {
+    // should add a way to access the position of the *current* array.
+    // for 2d arrays, when accessing, we should get the memory address of a 1d array.
+
+    // TODO: for now, assumes the operand is always a variable
+    auto array_type = dynamic_cast<ArrayType*>(array_index->expression->data_type.get());
+    auto inner_type_size_bytes = array_type->elementType->get_size_bytes();
+
+    auto atomic = std::get<std::shared_ptr<ASTAtomicExpression>>(array_index->expression->expression);
+    auto identifier = std::get<ASTIdentifier>(atomic->value);
+
+    // NOTE: very similar to variable evaluation
+    std::string original_size_keyword = size_bytes_to_size_keyword.at(inner_type_size_bytes);
+    std::string original_data_reg = size_bytes_to_register.at(inner_type_size_bytes);
+    std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
+
+    // indexing
+    m_generated << "\t; Begin Array Index generation" << std::endl;
+    generate_expression(*array_index->index);
+    pop_stack_register("rax", 8, 8);
+    m_generated << "\tmov rbx, " << inner_type_size_bytes << std::endl << "\tmul rbx" << std::endl;
+    m_generated << "\t; End Array Index generation" << std::endl;
+
+    load_memory_address("rdx", identifier.value); // TODO: shouldn't rely on variables
+    m_generated << "\tadd rdx, rax ; Indexing offset" << std::endl;  // indexing
+
+    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rdx]" << std::endl;
+    m_generated << "\tpush " << requested_data_reg << std::endl;
+    m_stack_size += requested_size_bytes;
 }
