@@ -7,6 +7,13 @@
 #include "../header/parser.hpp"
 #include "../header/semantic_analyzer.hpp"
 
+
+#define IS_DEBUG_MODE true
+
+#if IS_DEBUG_MODE
+#include "debug_utils.hpp"
+#endif
+
 void handle_compile(std::string path);
 void create_executable(std::string asm_code, std::string filename);
 
@@ -56,6 +63,10 @@ void handle_compile(std::string path) {
         std::cerr << e.what() << std::endl;
         exit(EXIT_FAILURE);
     }
+
+#if IS_DEBUG_MODE
+    std::cout << debug_utils::visualize_ast(std::make_shared<ASTProgram>(program)) << std::endl;
+#endif
 
     Generator generator(program);
     std::string res = generator.generate_program();
