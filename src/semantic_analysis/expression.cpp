@@ -42,8 +42,29 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_array_initializer(
     ASTArrayInitializer& initializer) {
-    (void)initializer;
-    assert(false && "Not implemented analysis of array initializer");
+    auto& values = initializer.initialize_values;
+    if (values.size() == 0) {
+        throw SemanticAnalyzerException("Array initializer with no members", initializer.start_token_meta);
+    }
+    auto first_analysis_result = analyze_expression(values.at(0));
+    values.at(0).data_type = first_analysis_result.data_type;
+    values.at(0).is_literal = first_analysis_result.is_literal;
+
+    // skip first one since we already analyzed
+    for (size_t i = 1; i < values.size(); ++i) {
+        auto analysis_result = analyze_expression(values.at(i));
+        if (analysis_result.data_type != first_analysis_result.data_type) {
+            throw SemanticAnalyzerException("Array initializer with different data type of members",
+                                            initializer.start_token_meta);
+        }
+        values.at(i).data_type = analysis_result.data_type;
+        values.at(i).is_literal = analysis_result.is_literal;
+    }
+
+    return SemanticAnalyzer::ExpressionAnalysisResult{
+        .data_type = std::make_shared<ArrayType>(first_analysis_result.data_type, values.size()),
+        .is_literal = false,
+    };
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_atomic(
