@@ -3,9 +3,6 @@
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression(
     ASTExpression& expression, const std::shared_ptr<DataType>& lhs_datatype) {
-    if (lhs_datatype) {
-        std::cout << lhs_datatype->toString() << std::endl;
-    }
     return std::visit(SemanticAnalyzer::ExpressionVisitor{.analyzer = this, .lhs_datatype = lhs_datatype},
                       expression.expression);
 }

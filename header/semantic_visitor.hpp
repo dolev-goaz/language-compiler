@@ -21,9 +21,6 @@ struct SemanticAnalyzer::ExpressionVisitor {
     }
 
     SemanticAnalyzer::ExpressionAnalysisResult operator()(ASTArrayInitializer& initializer) const {
-        if (lhs_datatype) {
-            std::cout << lhs_datatype->toString() << std::endl;
-        }
         return analyzer->analyze_expression_array_initializer(initializer, lhs_datatype);
     }
 

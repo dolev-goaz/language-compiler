@@ -39,7 +39,6 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
     }
 
     auto& expression = var_declare->value.value();
-    std::cout << data_type->toString() << std::endl;
     auto rhs_analysis = analyze_expression(expression, data_type);
     expression.data_type = rhs_analysis.data_type;
     if (expression.data_type->is_void()) {
