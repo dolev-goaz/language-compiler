@@ -44,13 +44,16 @@ class SemanticAnalyzer {
     void analyze_function_body(ASTStatementFunction& func);
     void analyze_function_param(ASTFunctionParam& param);
 
-    ExpressionAnalysisResult analyze_expression(ASTExpression& expression);
+    ExpressionAnalysisResult analyze_expression(ASTExpression& expression,
+                                                const std::shared_ptr<DataType>& lhs_datatype = nullptr);
 
     ExpressionAnalysisResult analyze_expression_identifier(ASTIdentifier& identifier);
     ExpressionAnalysisResult analyze_expression_int_literal(ASTIntLiteral& int_literal);
     ExpressionAnalysisResult analyze_expression_char_literal(ASTCharLiteral& char_literal);
-    ExpressionAnalysisResult analyze_expression_array_initializer(ASTArrayInitializer& initializer);
-    ExpressionAnalysisResult analyze_expression_atomic(const std::shared_ptr<ASTAtomicExpression>& atomic);
+    ExpressionAnalysisResult analyze_expression_array_initializer(ASTArrayInitializer& initializer,
+                                                                  const std::shared_ptr<DataType>& lhs_datatype);
+    ExpressionAnalysisResult analyze_expression_atomic(const std::shared_ptr<ASTAtomicExpression>& atomic,
+                                                       const std::shared_ptr<DataType>& lhs_datatype = nullptr);
     ExpressionAnalysisResult analyze_expression_unary(const std::shared_ptr<ASTUnaryExpression>& unary);
     ExpressionAnalysisResult analyze_expression_binary(const std::shared_ptr<ASTBinExpression>& binExpr);
     ExpressionAnalysisResult analyze_expression_parenthesis(const ASTParenthesisExpression& paren_expr);

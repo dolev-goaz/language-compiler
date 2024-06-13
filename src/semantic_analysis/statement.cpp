@@ -39,7 +39,8 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
     }
 
     auto& expression = var_declare->value.value();
-    auto rhs_analysis = analyze_expression(expression);
+    std::cout << data_type->toString() << std::endl;
+    auto rhs_analysis = analyze_expression(expression, data_type);
     expression.data_type = rhs_analysis.data_type;
     if (expression.data_type->is_void()) {
         throw SemanticAnalyzerException("Can not assign 'void' to variables", start_token_meta);
@@ -59,7 +60,7 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
         error << "Assignment of variable '" << name << "' which does not exist in current scope";
         throw SemanticAnalyzerException(error.str(), meta);
     }
-    auto rhs_analysis = analyze_expression(expression);
+    auto rhs_analysis = analyze_expression(expression, variableData->data_type);
     expression.data_type = rhs_analysis.data_type;
     variableData->is_initialized = true;
     if (expression.data_type->is_void()) {

@@ -1,8 +1,13 @@
 #include "semantic_analyzer.hpp"
 #include "semantic_visitor.hpp"
 
-SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression(ASTExpression& expression) {
-    return std::visit(SemanticAnalyzer::ExpressionVisitor{this}, expression.expression);
+SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression(
+    ASTExpression& expression, const std::shared_ptr<DataType>& lhs_datatype) {
+    if (lhs_datatype) {
+        std::cout << lhs_datatype->toString() << std::endl;
+    }
+    return std::visit(SemanticAnalyzer::ExpressionVisitor{.analyzer = this, .lhs_datatype = lhs_datatype},
+                      expression.expression);
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_identifier(ASTIdentifier& identifier) {
@@ -41,33 +46,39 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_array_initializer(
-    ASTArrayInitializer& initializer) {
+    ASTArrayInitializer& initializer, const std::shared_ptr<DataType>& lhs_datatype) {
     auto& values = initializer.initialize_values;
     if (values.size() == 0) {
         throw SemanticAnalyzerException("Array initializer with no members", initializer.start_token_meta);
     }
-    auto first_analysis_result = analyze_expression(values.at(0));
-    values.at(0).data_type = first_analysis_result.data_type;
-    values.at(0).is_literal = first_analysis_result.is_literal;
+    auto array_type = dynamic_cast<ArrayType*>(lhs_datatype.get());
+    if (!array_type) {
+        throw SemanticAnalyzerException("Unexpected datatype for array initializer", initializer.start_token_meta);
+    }
+    if (values.size() != array_type->size) {
+        std::stringstream err;
+        err << "Expected initializer of size " << array_type->size << ". Instead got " << values.size() << ".";
+        throw SemanticAnalyzerException(err.str(), initializer.start_token_meta);
+    }
+    auto expected_inner_type = array_type->elementType;
 
-    // skip first one since we already analyzed
-    for (size_t i = 1; i < values.size(); ++i) {
-        auto analysis_result = analyze_expression(values.at(i));
-        values.at(i).data_type = analysis_result.data_type;
-        values.at(i).is_literal = analysis_result.is_literal;
+    for (auto& value : values) {
+        auto analysis_result = analyze_expression(value);
+        value.data_type = analysis_result.data_type;
+        value.is_literal = analysis_result.is_literal;
 
-        assert_cast_expression(values.at(i), first_analysis_result.data_type, !analysis_result.is_literal);
+        assert_cast_expression(value, expected_inner_type, !analysis_result.is_literal);
     }
 
     return SemanticAnalyzer::ExpressionAnalysisResult{
-        .data_type = std::make_shared<ArrayType>(first_analysis_result.data_type, values.size()),
+        .data_type = lhs_datatype,
         .is_literal = false,
     };
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_atomic(
-    const std::shared_ptr<ASTAtomicExpression>& atomic) {
-    return std::visit(SemanticAnalyzer::ExpressionVisitor{this}, atomic->value);
+    const std::shared_ptr<ASTAtomicExpression>& atomic, const std::shared_ptr<DataType>& lhs_datatype) {
+    return std::visit(SemanticAnalyzer::ExpressionVisitor{this, lhs_datatype}, atomic->value);
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_unary(

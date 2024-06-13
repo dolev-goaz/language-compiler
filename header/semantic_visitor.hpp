@@ -7,6 +7,7 @@ struct SemanticAnalyzer::ExpressionAnalysisResult {
 
 struct SemanticAnalyzer::ExpressionVisitor {
     SemanticAnalyzer* analyzer;
+    std::shared_ptr<DataType> lhs_datatype;  // used for array initializing for now
     SemanticAnalyzer::ExpressionAnalysisResult operator()(ASTIdentifier& identifier) const {
         return analyzer->analyze_expression_identifier(identifier);
     }
@@ -20,11 +21,14 @@ struct SemanticAnalyzer::ExpressionVisitor {
     }
 
     SemanticAnalyzer::ExpressionAnalysisResult operator()(ASTArrayInitializer& initializer) const {
-        return analyzer->analyze_expression_array_initializer(initializer);
+        if (lhs_datatype) {
+            std::cout << lhs_datatype->toString() << std::endl;
+        }
+        return analyzer->analyze_expression_array_initializer(initializer, lhs_datatype);
     }
 
     SemanticAnalyzer::ExpressionAnalysisResult operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
-        return analyzer->analyze_expression_atomic(atomic);
+        return analyzer->analyze_expression_atomic(atomic, lhs_datatype);
     }
 
     SemanticAnalyzer::ExpressionAnalysisResult operator()(const std::shared_ptr<ASTBinExpression>& binExpr) const {
