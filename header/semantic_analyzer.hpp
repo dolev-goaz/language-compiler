@@ -46,6 +46,7 @@ class SemanticAnalyzer {
 
     ExpressionAnalysisResult analyze_expression(ASTExpression& expression,
                                                 const std::shared_ptr<DataType>& lhs_datatype = nullptr);
+    ExpressionAnalysisResult analyze_expression_lhs(ASTExpression& expression, bool is_initializing = false);
 
     ExpressionAnalysisResult analyze_expression_identifier(ASTIdentifier& identifier);
     ExpressionAnalysisResult analyze_expression_int_literal(ASTIntLiteral& int_literal);

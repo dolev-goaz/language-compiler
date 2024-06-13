@@ -30,7 +30,7 @@ class Parser {
 
     std::shared_ptr<ASTStatementExit> parse_statement_exit();
     std::shared_ptr<ASTStatementVar> parse_statement_var_declare();
-    std::shared_ptr<ASTStatementAssign> parse_statement_var_assign();
+    std::shared_ptr<ASTStatementAssign> try_parse_statement_var_assign(const std::shared_ptr<ASTExpression>& operand);
     std::shared_ptr<ASTStatementScope> parse_statement_scope();
     std::shared_ptr<ASTStatementIf> parse_statement_if();
     std::shared_ptr<ASTStatementWhile> parse_statement_while();

@@ -16,9 +16,7 @@ void Generator::generate_statement_exit(const std::shared_ptr<ASTStatementExit>&
 }
 
 void Generator::generate_statement_var_assignment(const std::shared_ptr<ASTStatementAssign>& var_assign_statement) {
-    Generator::Variable variableData = assert_get_variable_data(var_assign_statement->name);
-
-    m_generated << ";\tVariable Assigment " << var_assign_statement->name << " BEGIN" << std::endl;
+    m_generated << ";\tVariable Assigment BEGIN" << std::endl;
 
     generate_expression(var_assign_statement->value);
     size_t expression_size_bytes = var_assign_statement->value.data_type->get_size_bytes();
@@ -26,16 +24,13 @@ void Generator::generate_statement_var_assignment(const std::shared_ptr<ASTState
     // NOTE: assumes 'size_bytes_to_register' holds registers rax, eax, ax, al
     // popping to the largest register to allow data widening if necessary, up to 8 bytes
     pop_stack_register("rax", 8, expression_size_bytes);
-    std::string& temp_register = size_bytes_to_register.at(variableData.size_bytes);
+    size_t size_bytes = var_assign_statement->lhs->data_type->get_size_bytes();
+    std::string& temp_register = size_bytes_to_register.at(size_bytes);
 
-    // TODO: this should not be created here. should create identifier for the var_assign
-    load_memory_address_var(ASTIdentifier{
-        .start_token_meta = var_assign_statement->start_token_meta,
-        .value = var_assign_statement->name,
-    });
+    load_memory_address_expr(*var_assign_statement->lhs);
     pop_stack_register("rdx", 8, 8);
     m_generated << "\tmov [rdx], " << temp_register << std::endl;
-    m_generated << ";\tVariable Assigment " << var_assign_statement->name << " END" << std::endl << std::endl;
+    m_generated << ";\tVariable Assigment END" << std::endl << std::endl;
 }
 
 void Generator::generate_statement_var_declare(const std::shared_ptr<ASTStatementVar>& var_statement) {

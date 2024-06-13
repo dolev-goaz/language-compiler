@@ -118,7 +118,7 @@ struct ASTStatementVar {
 
 struct ASTStatementAssign {
     TokenMeta start_token_meta;
-    std::string name;
+    std::shared_ptr<ASTExpression> lhs;
     ASTExpression value;
 };
 

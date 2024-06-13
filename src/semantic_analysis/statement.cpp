@@ -51,22 +51,20 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
 
 void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTStatementAssign>& var_assign) {
     auto& meta = var_assign->start_token_meta;
-    auto& name = var_assign->name;
-    auto& expression = var_assign->value;
-    SymbolTable::Variable* variableData = nullptr;
-    if (!m_symbol_table.lookup(name, &variableData)) {
-        std::stringstream error;
-        error << "Assignment of variable '" << name << "' which does not exist in current scope";
-        throw SemanticAnalyzerException(error.str(), meta);
-    }
-    auto rhs_analysis = analyze_expression(expression, variableData->data_type);
-    expression.data_type = rhs_analysis.data_type;
-    variableData->is_initialized = true;
-    if (expression.data_type->is_void()) {
+    auto& lhs = var_assign->lhs;
+    auto& rhs = var_assign->value;
+
+    auto lhs_analysis = analyze_expression_lhs(*lhs, true);
+    lhs->data_type = lhs_analysis.data_type;
+
+    auto rhs_analysis = analyze_expression(rhs, lhs->data_type);
+    rhs.data_type = rhs_analysis.data_type;
+    rhs.is_literal = rhs_analysis.is_literal;
+    if (rhs.data_type->is_void()) {
         throw SemanticAnalyzerException("Can't assign 'void' to variables", meta);
     }
-    if (expression.data_type != variableData->data_type) {
-        assert_cast_expression(expression, variableData->data_type, !rhs_analysis.is_literal);
+    if (rhs.data_type != lhs->data_type) {
+        assert_cast_expression(rhs, lhs->data_type, !rhs_analysis.is_literal);
     }
 }
 

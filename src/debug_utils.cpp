@@ -100,7 +100,8 @@ std::string debug_utils::visualize_statement_var(const ASTStatementVar& stmt) {
 
 std::string debug_utils::visualize_statement_assign(const ASTStatementAssign& stmt) {
     std::stringstream out;
-    out << stmt.name << " = " << visualize_expression(std::make_shared<ASTExpression>(stmt.value)) << ";";
+    out << visualize_expression(stmt.lhs) << " = " << visualize_expression(std::make_shared<ASTExpression>(stmt.value))
+        << ";";
     return out.str();
 }
 

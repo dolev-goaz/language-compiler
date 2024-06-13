@@ -7,6 +7,39 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression(
                       expression.expression);
 }
 
+SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_lhs(ASTExpression& expression,
+                                                                                    bool is_initializing) {
+    auto analysis_result = analyze_expression(expression);
+    if (std::holds_alternative<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression)) {
+        assert(false && "Not implemented analysis for indexing assignment");
+        // auto array_index = std::get<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression);
+        // auto array_type = dynamic_cast<ArrayType*>(array_index->expression->data_type.get());
+        // auto inner_type_size_bytes = array_type->elementType->get_size_bytes();
+        return analysis_result;
+    }
+
+    // must be atomic expression
+    if (!std::holds_alternative<std::shared_ptr<ASTAtomicExpression>>(expression.expression)) {
+        throw SemanticAnalyzerException("Unexpected lhs expression", expression.start_token_meta);
+    }
+    auto atomic = std::get<std::shared_ptr<ASTAtomicExpression>>(expression.expression);
+    if (std::holds_alternative<ASTIdentifier>(atomic->value)) {
+        auto identifier = std::get<ASTIdentifier>(atomic->value);
+        auto name = identifier.value;
+        SymbolTable::Variable* variableData = nullptr;
+        if (!m_symbol_table.lookup(name, &variableData)) {
+            std::stringstream error;
+            error << "LHS variable does not exist in current scope- " << name;
+            throw SemanticAnalyzerException(error.str(), expression.start_token_meta);
+        }
+        variableData->is_initialized = is_initializing;
+
+        return analysis_result;
+    }
+
+    throw SemanticAnalyzerException("Didn't implement the provided LHS expression", expression.start_token_meta);
+}
+
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_identifier(ASTIdentifier& identifier) {
     SymbolTable::Variable* literal_data = nullptr;
     if (!m_symbol_table.lookup(identifier.value, &literal_data)) {

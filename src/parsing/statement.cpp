@@ -136,14 +136,14 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
     });
 }
 
-std::shared_ptr<ASTStatementAssign> Parser::parse_statement_var_assign() {
+std::shared_ptr<ASTStatementAssign> Parser::try_parse_statement_var_assign(
+    const std::shared_ptr<ASTExpression>& operand) {
     // only if its in the form [identifier] = ....
-    if (!test_peek(TokenType::identifier, 0) || !test_peek(TokenType::eq, 1)) {
+    if (!test_peek(TokenType::eq)) {
         return nullptr;
     }
 
-    auto identifier = consume().value();
-    auto& statement_meta = identifier.meta;
+    auto& statement_meta = operand->start_token_meta;
     consume();  // eq operator
     auto expression = parse_expression();
     if (!expression.has_value()) {
@@ -153,7 +153,7 @@ std::shared_ptr<ASTStatementAssign> Parser::parse_statement_var_assign() {
 
     return std::make_shared<ASTStatementAssign>(ASTStatementAssign{
         .start_token_meta = statement_meta,
-        .name = identifier.value.value(),
+        .lhs = operand,
         .value = expression.value(),
     });
 }
@@ -192,11 +192,6 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
             ASTStatement{.start_token_meta = meta, .statement = std::move(while_statement)});
     }
 
-    if (auto assign_statement = parse_statement_var_assign(); assign_statement != nullptr) {
-        return std::make_shared<ASTStatement>(
-            ASTStatement{.start_token_meta = meta, .statement = std::move(assign_statement)});
-    }
-
     if (auto func_statement = parse_statement_function(); func_statement != nullptr) {
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(func_statement)});
@@ -213,8 +208,20 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
             ASTStatement{.start_token_meta = meta, .statement = std::move(func_call)});
     }
 
-    // fallback- no matching statement found
-    throw ParserException("Invalid statement", meta);
+    // all statements from here rely on an expression
+
+    auto expression = parse_expression();
+    if (!expression.has_value()) {
+        // fallback- no matching statement found
+        throw ParserException("Invalid statement", meta);
+    }
+    auto shared_ptr_expr = std::make_shared<ASTExpression>(expression.value());
+    if (auto assign_statement = try_parse_statement_var_assign(shared_ptr_expr); assign_statement != nullptr) {
+        return std::make_shared<ASTStatement>(
+            ASTStatement{.start_token_meta = meta, .statement = std::move(assign_statement)});
+    }
+
+    assert(false && "In the future expressions will be statements as well");
 }
 
 ASTProgram Parser::parse_program() {
