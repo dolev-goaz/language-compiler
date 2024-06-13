@@ -44,8 +44,11 @@ void Generator::generate_expression_char_literal(const ASTCharLiteral& literal, 
 }
 
 void Generator::generate_expression_array_initializer(const ASTArrayInitializer& array_initializer) {
-    (void)array_initializer;
-    assert(false && "Not yet implemented");
+    // push them in reverse(stack reverses order)
+    for (auto cur = array_initializer.initialize_values.rbegin(); cur != array_initializer.initialize_values.rend();
+         ++cur) {
+        generate_expression(*cur);
+    }
 }
 
 void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes) {
