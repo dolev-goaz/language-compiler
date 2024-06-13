@@ -24,7 +24,8 @@ void Generator::generate_expression_identifier(const ASTIdentifier& identifier, 
     std::string original_data_reg = size_bytes_to_register.at(variable_data.size_bytes);
     std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
 
-    load_memory_address_var("rdx", variable_name);
+    load_memory_address_var(identifier);
+    pop_stack_register("rdx", 8, 8);
     m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rdx]" << std::endl;
 
     // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
@@ -163,29 +164,30 @@ void Generator::generate_expression_array_index(const std::shared_ptr<ASTArrayIn
     std::string original_data_reg = size_bytes_to_register.at(inner_type_size_bytes);
     std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
 
-    load_memory_address_expr("rdx", *array_index->expression);
+    load_memory_address_expr(*array_index->expression);
+    pop_stack_register("rcx", 8, 8);
     // indexing
     m_generated << "\t; Begin Array Index generation" << std::endl;
     generate_expression(*array_index->index);
     pop_stack_register("rax", 8, 8);
     m_generated << "\tmov rbx, " << inner_type_size_bytes << std::endl << "\tmul rbx" << std::endl;
     m_generated << "\t; End Array Index generation" << std::endl;
-    m_generated << "\tadd rdx, rax ; Indexing offset" << std::endl;  // indexing
+    m_generated << "\tadd rcx, rax ; Indexing offset" << std::endl;  // indexing
 
-    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rdx]" << std::endl;
+    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rcx]" << std::endl;
 
     push_stack_register(requested_data_reg, requested_size_bytes);
 }
 
-void Generator::load_memory_address_expr(const std::string& reg, const ASTExpression& expression) {
+void Generator::load_memory_address_expr(const ASTExpression& expression) {
     if (std::holds_alternative<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression)) {
         m_generated << "\t; Evaluate array index memory address BEGIN" << std::endl;
         auto array_index = std::get<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression);
         auto array_type = dynamic_cast<ArrayType*>(array_index->expression->data_type.get());
         auto inner_type_size_bytes = array_type->elementType->get_size_bytes();
 
-        load_memory_address_expr("rdx",
-                                 *array_index->expression);  // TODO: rdx is affected by mul. just put in on the stack
+        load_memory_address_expr(*array_index->expression);
+        pop_stack_register("rcx", 8, 8);
 
         // indexing
         m_generated << "\t; Begin Array Index generation" << std::endl;
@@ -194,8 +196,8 @@ void Generator::load_memory_address_expr(const std::string& reg, const ASTExpres
         m_generated << "\tmov rbx, " << inner_type_size_bytes << std::endl << "\tmul rbx" << std::endl;
         m_generated << "\t; End Array Index generation" << std::endl;
 
-        m_generated << "\tadd rdx, rax ; Indexing offset" << std::endl;  // indexing
-        m_generated << "\tmov " << reg << ", rdx" << std::endl;          // ASSUMES REG IS ALWAYS QWORD
+        m_generated << "\tadd rcx, rax ; Indexing offset" << std::endl;  // indexing
+        push_stack_register("rcx", 8);
         m_generated << "\t; Evaluate array index memory address END" << std::endl;
         return;
     }
@@ -208,7 +210,7 @@ void Generator::load_memory_address_expr(const std::string& reg, const ASTExpres
     auto atomic = std::get<std::shared_ptr<ASTAtomicExpression>>(expression.expression);
     if (std::holds_alternative<ASTIdentifier>(atomic->value)) {
         auto identifier = std::get<ASTIdentifier>(atomic->value);
-        load_memory_address_var(reg, identifier.value);
+        load_memory_address_var(identifier);
         return;
     }
 }
