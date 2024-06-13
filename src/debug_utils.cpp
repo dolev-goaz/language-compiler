@@ -23,6 +23,20 @@ std::string debug_utils::visualize_function_call(const ASTFunctionCall& funcCall
     ;
 }
 
+std::string debug_utils::visualize_initializer_expression(const ASTArrayInitializer& initializer_expr) {
+    std::stringstream out;
+    std::stringstream members;
+    for (const auto& param : initializer_expr.initialize_values) {
+        members << visualize_expression(std::make_shared<ASTExpression>(param)) << ",";
+    }
+    std::string members_str = members.str();
+    members_str = members_str.substr(0, members_str.size() - 1);
+
+    out << "{" << members_str << "}";
+    return out.str();
+    ;
+}
+
 std::string debug_utils::visualize_atomic_expression(const ASTAtomicExpression& atomicExpr) {
     std::stringstream out;
     std::visit(
@@ -38,6 +52,8 @@ std::string debug_utils::visualize_atomic_expression(const ASTAtomicExpression& 
                 out << "(" << visualize_expression(value.expression) << ")";
             } else if constexpr (std::is_same_v<T, ASTFunctionCall>) {
                 out << visualize_function_call(value);
+            } else if constexpr (std::is_same_v<T, ASTArrayInitializer>) {
+                out << visualize_initializer_expression(value);
             }
         },
         atomicExpr.value);

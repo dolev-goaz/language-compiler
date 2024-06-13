@@ -20,6 +20,8 @@ std::string visualize_function_call(const ASTFunctionCall& funcCall);
 
 std::string visualize_atomic_expression(const ASTAtomicExpression& atomicExpr);
 
+std::string visualize_initializer_expression(const ASTArrayInitializer& initializer_expr);
+
 std::string visualize_statement_exit(const ASTStatementExit& stmt);
 
 std::string visualize_statement_var(const ASTStatementVar& stmt);
