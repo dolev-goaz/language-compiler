@@ -43,10 +43,8 @@ void Generator::generate_expression_char_literal(const ASTCharLiteral& literal, 
     push_stack_literal(ascii_value, size_bytes);
 }
 
-void Generator::generate_expression_array_index(const ASTArrayInitializer& array_initializer,
-                                                size_t return_size_bytes) {
+void Generator::generate_expression_array_initializer(const ASTArrayInitializer& array_initializer) {
     (void)array_initializer;
-    (void)return_size_bytes;
     assert(false && "Not yet implemented");
 }
 

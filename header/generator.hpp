@@ -27,7 +27,7 @@ class Generator {
     void generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes);
     void generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes);
     void generate_expression_char_literal(const ASTCharLiteral& literal, size_t size_bytes);
-    void generate_expression_array_index(const ASTArrayInitializer& array_initializer, size_t return_size_bytes);
+    void generate_expression_array_initializer(const ASTArrayInitializer& array_initializer);
 
     void generate_expression_unary(const std::shared_ptr<ASTUnaryExpression>& unary, size_t size_bytes);
     void generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes);

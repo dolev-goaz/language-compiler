@@ -44,7 +44,7 @@ struct Generator::ExpressionVisitor {
     void operator()(const ASTCharLiteral& literal) const { generator.generate_expression_char_literal(literal, size); }
 
     void operator()(const ASTArrayInitializer& initializer) const {
-        generator.generate_expression_array_index(initializer, size);
+        generator.generate_expression_array_initializer(initializer);
     }
 
     void operator()(const std::shared_ptr<ASTBinExpression>& binary) const {
