@@ -63,7 +63,7 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     auto expected_inner_type = array_type->elementType;
 
     for (auto& value : values) {
-        auto analysis_result = analyze_expression(value);
+        auto analysis_result = analyze_expression(value, expected_inner_type);
         value.data_type = analysis_result.data_type;
         value.is_literal = analysis_result.is_literal;
 
