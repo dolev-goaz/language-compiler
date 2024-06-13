@@ -53,12 +53,10 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     // skip first one since we already analyzed
     for (size_t i = 1; i < values.size(); ++i) {
         auto analysis_result = analyze_expression(values.at(i));
-        if (analysis_result.data_type != first_analysis_result.data_type) {
-            throw SemanticAnalyzerException("Array initializer with different data type of members",
-                                            initializer.start_token_meta);
-        }
         values.at(i).data_type = analysis_result.data_type;
         values.at(i).is_literal = analysis_result.is_literal;
+
+        assert_cast_expression(values.at(i), first_analysis_result.data_type, !analysis_result.is_literal);
     }
 
     return SemanticAnalyzer::ExpressionAnalysisResult{
