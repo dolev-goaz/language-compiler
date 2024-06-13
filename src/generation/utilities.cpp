@@ -18,7 +18,7 @@ void Generator::load_memory_address_var(const ASTIdentifier& identifier) {
         m_generated << "\tmov r11, " << "rsp" << std::endl;
         m_generated << "\tadd r11, " << offset << std::endl;
     }
-    m_generated << "\tpush r11" << std::endl;
+    push_stack_register("r11", 8);
     m_generated << "\t; End Load Memory Address Of " << variable_name << std::endl;
 }
 

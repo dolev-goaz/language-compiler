@@ -1,14 +1,14 @@
 int_16 x1;
 int_16* x2;
-int_16 x3[5];
+int_16[5] x3;
 
 char x4;
 char* x5;
-char x6[5];
+char[5] x6;
 
 int_64 x7;
 int_64* x8;
-int_64 x9[5];
+int_64[5] x9;
 
 char** x10;
-char x11[5][3];
+char[5][3] x11;
