@@ -19,6 +19,10 @@ struct SemanticAnalyzer::ExpressionVisitor {
         return analyzer->analyze_expression_char_literal(char_literal);
     }
 
+    SemanticAnalyzer::ExpressionAnalysisResult operator()(ASTArrayInitializer& initializer) const {
+        return analyzer->analyze_expression_array_initializer(initializer);
+    }
+
     SemanticAnalyzer::ExpressionAnalysisResult operator()(const std::shared_ptr<ASTAtomicExpression>& atomic) const {
         return analyzer->analyze_expression_atomic(atomic);
     }

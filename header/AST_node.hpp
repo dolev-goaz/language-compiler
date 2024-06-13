@@ -62,9 +62,16 @@ struct ASTFunctionCall {
     std::shared_ptr<DataType> return_data_type;
 };
 
+struct ASTArrayInitializer {
+    TokenMeta start_token_meta;
+    std::vector<ASTExpression> initialize_values;
+};
+
 struct ASTAtomicExpression {
     TokenMeta start_token_meta;
-    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCall, ASTCharLiteral> value;
+    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCall, ASTCharLiteral,
+                 ASTArrayInitializer>
+        value;
 };
 
 struct ASTBinExpression {

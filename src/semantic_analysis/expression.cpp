@@ -40,6 +40,12 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     };
 }
 
+SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_array_initializer(
+    ASTArrayInitializer& initializer) {
+    (void)initializer;
+    assert(false && "Not implemented analysis of array initializer");
+}
+
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_atomic(
     const std::shared_ptr<ASTAtomicExpression>& atomic) {
     return std::visit(SemanticAnalyzer::ExpressionVisitor{this}, atomic->value);
