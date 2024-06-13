@@ -28,7 +28,7 @@ void Generator::generate_statement_var_assignment(const std::shared_ptr<ASTState
     pop_stack_register("rax", 8, expression_size_bytes);
     std::string& temp_register = size_bytes_to_register.at(variableData.size_bytes);
 
-    load_memory_address("rdx", var_assign_statement->name);
+    load_memory_address_var("rdx", var_assign_statement->name);
     m_generated << "\tmov [rdx], " << temp_register << std::endl;
     m_generated << ";\tVariable Assigment " << var_assign_statement->name << " END" << std::endl << std::endl;
 }

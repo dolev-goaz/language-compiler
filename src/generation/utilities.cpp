@@ -1,6 +1,6 @@
 #include "generator.hpp"
 
-void Generator::load_memory_address(const std::string& reg, const std::string& variable_name) {
+void Generator::load_memory_address_var(const std::string& reg, const std::string& variable_name) {
     auto variable_data = assert_get_variable_data(variable_name);
 
     bool is_global = m_stack.is_variable_global(variable_name);
@@ -10,7 +10,8 @@ void Generator::load_memory_address(const std::string& reg, const std::string& v
     m_generated << "\t; Load Memory Address Of " << variable_name << std::endl;
     if (is_global) {
         m_generated << "\tmov " << reg << ", " << "[global_variables_base]" << std::endl;
-        m_generated << "\tsub " << reg << ", " << offset << std::endl;;
+        m_generated << "\tsub " << reg << ", " << offset << std::endl;
+        ;
     } else {
         offset = m_stack_size - offset;
         m_generated << "\tmov " << reg << ", " << "rsp" << std::endl;
