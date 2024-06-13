@@ -46,6 +46,8 @@ std::shared_ptr<DataType> SemanticAnalyzer::create_data_type(const std::vector<T
     Token array_size_token;
     size_t array_size;
 
+    std::stack<size_t> array_sizes;
+
     while (token_index < token_count) {
         auto current = data_type_tokens.at(token_index);
         switch (current.type) {
@@ -56,12 +58,19 @@ std::shared_ptr<DataType> SemanticAnalyzer::create_data_type(const std::vector<T
                 array_size_token = data_type_tokens.at(token_index + 1);
                 token_index += 2;  // read count and closing square token
                 array_size = std::stoi(array_size_token.value.value());
-                type = std::make_shared<ArrayType>(type, array_size);
+                array_sizes.push(array_size);
                 break;
             default:
                 assert(false && "Shouldn't reach here");
         }
         token_index += 1;
+    }
+
+    // we invert the order of declaration, like c does(for some reason)
+    while (!array_sizes.empty()) {
+        array_size = array_sizes.top();
+        array_sizes.pop();
+        type = std::make_shared<ArrayType>(type, array_size);
     }
 
     return type;
