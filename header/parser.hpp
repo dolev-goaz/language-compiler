@@ -11,13 +11,14 @@
 extern std::map<TokenType, BinOperation> singleCharBinOperationMapping;
 class Parser {
    public:
-    Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0) {}
+    Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0), m_temp_consume_count(0) {}
 
     ASTProgram parse_program();
 
    private:
     std::vector<Token> m_tokens;
-    size_t m_token_index = 0;
+    size_t m_token_index;
+    size_t m_temp_consume_count;
 
     std::shared_ptr<ASTStatement> parse_statement();
     BinOperation peek_binary_operation();
@@ -53,6 +54,10 @@ class Parser {
     // attempts to parse either atomic or unary expressions, basically not binary operations.
     std::shared_ptr<ASTExpression> try_parse_expr_lhs();
     std::optional<int> binary_operator_precedence(const BinOperation& operation);
+
+    void undo_consumption();
+    void undo_consumption(size_t count);
+    void finalize_consumption();
 
     std::optional<Token> consume();
     std::optional<Token> peek(int offset = 0);

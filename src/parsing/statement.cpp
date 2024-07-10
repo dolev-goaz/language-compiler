@@ -167,46 +167,62 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
     }
     auto meta = nextToken.value().meta;
     if (auto exit_statement = parse_statement_exit(); exit_statement != nullptr) {
+        finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(exit_statement)});
     }
+    undo_consumption();
 
     // check for variable declaration statement
     if (auto var_declare_statement = parse_statement_var_declare(); var_declare_statement != nullptr) {
+        finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(var_declare_statement)});
     }
+    undo_consumption();
 
     if (auto scope_statement = parse_statement_scope(); scope_statement != nullptr) {
+        finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(scope_statement)});
     }
+    undo_consumption();
 
     if (auto if_statement = parse_statement_if(); if_statement != nullptr) {
+        finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(if_statement)});
     }
+    undo_consumption();
 
     if (auto while_statement = parse_statement_while(); while_statement != nullptr) {
+        finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(while_statement)});
     }
+    undo_consumption();
 
     if (auto func_statement = parse_statement_function(); func_statement != nullptr) {
+        finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(func_statement)});
     }
+    undo_consumption();
 
     if (auto return_statement = parse_statement_return(); return_statement != nullptr) {
+        finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(return_statement)});
     }
+    undo_consumption();
 
     if (auto func_call = parse_function_call(); func_call != nullptr) {
         assert_consume(TokenType::semicol, "Expected ';' after function call statement");
+        finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(func_call)});
     }
+    undo_consumption();
 
     // all statements from here rely on an expression
 
