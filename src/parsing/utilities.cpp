@@ -1,10 +1,20 @@
 #include "parser.hpp"
 
+void Parser::finalize_consumption() { m_temp_consume_count = 0; }
+
+void Parser::undo_consumption() { undo_consumption(m_temp_consume_count); }
+
+void Parser::undo_consumption(size_t count) {
+    m_token_index -= count;
+    m_temp_consume_count -= count;
+}
+
 std::optional<Token> Parser::consume() {
     if (m_token_index >= m_tokens.size()) {
         return std::nullopt;
     }
 
+    m_temp_consume_count += 1;
     return m_tokens.at(m_token_index++);
 }
 std::optional<Token> Parser::peek(int offset) {
