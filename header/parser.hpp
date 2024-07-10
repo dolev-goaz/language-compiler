@@ -11,7 +11,7 @@
 extern std::map<TokenType, BinOperation> singleCharBinOperationMapping;
 class Parser {
    public:
-    Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0), m_temp_consume_count(0) {}
+    Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0), m_temp_consume_count(0), m_error_msg("") {}
 
     ASTProgram parse_program();
 
@@ -19,6 +19,7 @@ class Parser {
     std::vector<Token> m_tokens;
     size_t m_token_index;
     size_t m_temp_consume_count;
+    std::string m_error_msg;
 
     std::shared_ptr<ASTStatement> parse_statement();
     BinOperation peek_binary_operation();

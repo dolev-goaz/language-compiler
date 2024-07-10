@@ -105,7 +105,13 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
     auto meta = peek().value().meta;
 
     std::vector<Token> data_type_tokens = consume_data_type_tokens();
-    Token identifier = assert_consume(TokenType::identifier, "Expected variable name");
+
+    if (!test_peek(TokenType::identifier)) {
+        // TODO: should replace most assert_consume with error messages
+        m_error_msg = "Expected variable name";
+        return nullptr;
+    }
+    Token identifier = consume().value();
 
     std::optional<ASTExpression> value = std::nullopt;
 
@@ -229,12 +235,17 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
     auto expression = parse_expression();
     if (!expression.has_value()) {
         // fallback- no matching statement found
-        throw ParserException("Invalid statement", meta);
+        std::string err = !m_error_msg.empty() ? m_error_msg : "Invalid statement";
+        throw ParserException(err, meta);
     }
     auto shared_ptr_expr = std::make_shared<ASTExpression>(expression.value());
     if (auto assign_statement = try_parse_statement_var_assign(shared_ptr_expr); assign_statement != nullptr) {
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(assign_statement)});
+    }
+
+    if (!m_error_msg.empty()) {
+        throw ParserException(m_error_msg, meta);
     }
 
     assert(false && "In the future expressions will be statements as well");
