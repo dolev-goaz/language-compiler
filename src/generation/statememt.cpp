@@ -18,17 +18,19 @@ void Generator::generate_statement_exit(const std::shared_ptr<ASTStatementExit>&
 void Generator::generate_statement_var_assignment(const std::shared_ptr<ASTStatementAssign>& var_assign_statement) {
     m_generated << ";\tVariable Assigment BEGIN" << std::endl;
 
-    generate_expression(var_assign_statement->value);
     size_t expression_size_bytes = var_assign_statement->value.data_type->get_size_bytes();
+    size_t lhs_size_bytes = var_assign_statement->lhs->data_type->get_size_bytes();
+    std::string& temp_register = size_bytes_to_register.at(lhs_size_bytes);
+
+    generate_expression(var_assign_statement->value);
+    load_memory_address_expr(*var_assign_statement->lhs);
+
+    pop_stack_register("rdx", 8, 8);  // memory address is always 8 bytes
 
     // NOTE: assumes 'size_bytes_to_register' holds registers rax, eax, ax, al
     // popping to the largest register to allow data widening if necessary, up to 8 bytes
     pop_stack_register("rax", 8, expression_size_bytes);
-    size_t size_bytes = var_assign_statement->lhs->data_type->get_size_bytes();
-    std::string& temp_register = size_bytes_to_register.at(size_bytes);
 
-    load_memory_address_expr(*var_assign_statement->lhs);
-    pop_stack_register("rdx", 8, 8);
     m_generated << "\tmov [rdx], " << temp_register << std::endl;
     m_generated << ";\tVariable Assigment END" << std::endl << std::endl;
 }

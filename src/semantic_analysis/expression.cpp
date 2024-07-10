@@ -11,10 +11,12 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
                                                                                     bool is_initializing) {
     auto analysis_result = analyze_expression(expression);
     if (std::holds_alternative<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression)) {
-        assert(false && "Not implemented analysis for indexing assignment");
-        // auto array_index = std::get<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression);
-        // auto array_type = dynamic_cast<ArrayType*>(array_index->expression->data_type.get());
+        // TODO: idk what to do here for now
+
+        // auto array_indexing = std::get<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression);
+        // auto array_type = dynamic_cast<ArrayType*>(array_indexing->expression->data_type.get());
         // auto inner_type_size_bytes = array_type->elementType->get_size_bytes();
+
         return analysis_result;
     }
 
