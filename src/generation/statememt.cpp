@@ -16,21 +16,23 @@ void Generator::generate_statement_exit(const std::shared_ptr<ASTStatementExit>&
 }
 
 void Generator::generate_statement_var_assignment(const std::shared_ptr<ASTStatementAssign>& var_assign_statement) {
-    Generator::Variable variableData = assert_get_variable_data(var_assign_statement->name);
+    m_generated << ";\tVariable Assigment BEGIN" << std::endl;
 
-    m_generated << ";\tVariable Assigment " << var_assign_statement->name << " BEGIN" << std::endl;
+    size_t expression_size_bytes = var_assign_statement->value.data_type->get_size_bytes();
+    size_t lhs_size_bytes = var_assign_statement->lhs->data_type->get_size_bytes();
+    std::string& temp_register = size_bytes_to_register.at(lhs_size_bytes);
 
     generate_expression(var_assign_statement->value);
-    size_t expression_size_bytes = var_assign_statement->value.data_type->get_size_bytes();
+    load_memory_address_expr(*var_assign_statement->lhs);
+
+    pop_stack_register("rdx", 8, 8);  // memory address is always 8 bytes
 
     // NOTE: assumes 'size_bytes_to_register' holds registers rax, eax, ax, al
     // popping to the largest register to allow data widening if necessary, up to 8 bytes
     pop_stack_register("rax", 8, expression_size_bytes);
-    std::string& temp_register = size_bytes_to_register.at(variableData.size_bytes);
 
-    load_memory_address("rdx", var_assign_statement->name);
     m_generated << "\tmov [rdx], " << temp_register << std::endl;
-    m_generated << ";\tVariable Assigment " << var_assign_statement->name << " END" << std::endl << std::endl;
+    m_generated << ";\tVariable Assigment END" << std::endl << std::endl;
 }
 
 void Generator::generate_statement_var_declare(const std::shared_ptr<ASTStatementVar>& var_statement) {
@@ -45,8 +47,17 @@ void Generator::generate_statement_var_declare(const std::shared_ptr<ASTStatemen
     if (var_statement->value.has_value()) {
         generate_expression(var_statement->value.value());
     } else {
-        // allocate stack without initializing
         m_generated << "\tsub rsp, " << size_bytes << std::endl;
+        // allocate stack initializing to 0
+        auto is_array = (bool)(dynamic_cast<ArrayType*>(var_statement->data_type.get()));
+        if (is_array) {
+            // TODO: should probably only do this if the array doesnt get initialized with a value
+            m_generated << "\t; Initialize Arrays To 0" << std::endl
+                        << "\tmov rcx, " << size_bytes << std::endl
+                        << "\tmov rdi, rsp" << std::endl
+                        << "\tmov rax, 0" << std::endl
+                        << "\trep stosb" << std::endl;
+        }
         m_stack_size += size_bytes;
     }
 

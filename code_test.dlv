@@ -1,3 +1,3 @@
-int_64 x = 5;
-
-int_64 y = -x + 5;
+char[] x = {'a', 'b', 'c'};
+int_16 y = 2;
+exit(x[y]);

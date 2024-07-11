@@ -190,6 +190,10 @@ std::shared_ptr<ASTAtomicExpression> Parser::try_parse_atomic() {
                 },
         });
     }
+    if (auto array_initializer = try_parse_array_initializer(); array_initializer.has_value()) {
+        return std::make_shared<ASTAtomicExpression>(
+            ASTAtomicExpression{.start_token_meta = meta, .value = array_initializer.value()});
+    }
 
     return nullptr;
 }
@@ -217,10 +221,34 @@ std::shared_ptr<ASTUnaryExpression> Parser::try_parse_unary() {
     });
 }
 
+std::shared_ptr<ASTArrayIndexExpression> Parser::try_parse_array_indexing(
+    const std::shared_ptr<ASTExpression>& operand) {
+    if (!test_peek(TokenType::open_square)) {
+        return nullptr;
+    }
+    consume();  // consume open square
+    auto index = parse_expression();
+    if (!index.has_value()) {
+        auto nextToken = peek();
+        if (nextToken.has_value()) {
+            throw ParserException("Expected index expression", nextToken.value().meta);
+        } else {
+            throw ParserException("Expected index expression");
+        }
+    }
+    assert_consume(TokenType::close_square, "Expected closing ']' after indexing");
+    return std::make_shared<ASTArrayIndexExpression>(ASTArrayIndexExpression{
+        .start_token_meta = operand->start_token_meta,
+        .index = std::make_shared<ASTExpression>(index.value()),
+        .expression = operand,
+    });
+}
+
 std::shared_ptr<ASTExpression> Parser::try_parse_expr_lhs() {
+    std::shared_ptr<ASTExpression> expr = nullptr;
     auto unary = try_parse_unary();
     if (unary != nullptr) {
-        return std::make_shared<ASTExpression>(ASTExpression{
+        expr = std::make_shared<ASTExpression>(ASTExpression{
             .start_token_meta = unary->start_token_meta,
             .data_type = nullptr,
             .expression = unary,
@@ -228,13 +256,56 @@ std::shared_ptr<ASTExpression> Parser::try_parse_expr_lhs() {
     }
     auto atomic = try_parse_atomic();
     if (atomic != nullptr) {
-        return std::make_shared<ASTExpression>(ASTExpression{
+        expr = std::make_shared<ASTExpression>(ASTExpression{
             .start_token_meta = atomic->start_token_meta,
             .data_type = nullptr,
             .expression = atomic,
         });
     }
-    return nullptr;
+
+    if (expr != nullptr) {
+        while (test_peek(TokenType::open_square)) {
+            expr = std::make_shared<ASTExpression>(ASTExpression{
+                .is_literal = false,
+                .start_token_meta = expr->start_token_meta,
+                .data_type = nullptr,
+                .expression = try_parse_array_indexing(expr),
+            });
+        }
+    }
+    return expr;
+}
+
+std::optional<ASTArrayInitializer> Parser::try_parse_array_initializer() {
+    if (!test_peek(TokenType::open_curly)) {
+        return std::nullopt;
+    }
+    auto start_token = consume().value();
+    // NOTE: pretty much the same as parse_function_call_params
+    std::vector<ASTExpression> members;
+    while (peek().has_value() && peek().value().type != TokenType::close_curly) {
+        if (members.size() > 0) {
+            assert_consume(TokenType::comma, "Expected comma after parameter and before closing paren ')'");
+        }
+        auto expression = parse_expression();
+        if (!expression.has_value()) {
+            auto nextToken = peek();
+            if (nextToken.has_value()) {
+                throw ParserException("Expected parameter expression", nextToken.value().meta);
+            } else {
+                throw ParserException("Expected expression after opening parenthesis '('");
+            }
+        }
+        // TODO: check for initial value
+        members.push_back(expression.value());
+    }
+
+    assert_consume(TokenType::close_curly, "Expected '}' after array initializer");
+
+    return ASTArrayInitializer{
+        .start_token_meta = start_token.meta,
+        .initialize_values = members,
+    };
 }
 
 std::optional<ASTExpression> Parser::parse_expression(const int min_prec) {

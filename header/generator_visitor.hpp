@@ -43,6 +43,10 @@ struct Generator::ExpressionVisitor {
 
     void operator()(const ASTCharLiteral& literal) const { generator.generate_expression_char_literal(literal, size); }
 
+    void operator()(const ASTArrayInitializer& initializer) const {
+        generator.generate_expression_array_initializer(initializer);
+    }
+
     void operator()(const std::shared_ptr<ASTBinExpression>& binary) const {
         generator.generate_expression_binary(binary, size);
     }
@@ -61,5 +65,9 @@ struct Generator::ExpressionVisitor {
 
     void operator()(const ASTFunctionCall& function_call_expr) const {
         generator.generate_expression_function_call(function_call_expr, size);
+    }
+
+    void operator()(const std::shared_ptr<ASTArrayIndexExpression>& arr_index) const {
+        generator.generate_expression_array_index(arr_index, size);
     }
 };

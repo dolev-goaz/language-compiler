@@ -62,9 +62,16 @@ struct ASTFunctionCall {
     std::shared_ptr<DataType> return_data_type;
 };
 
+struct ASTArrayInitializer {
+    TokenMeta start_token_meta;
+    std::vector<ASTExpression> initialize_values;
+};
+
 struct ASTAtomicExpression {
     TokenMeta start_token_meta;
-    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCall, ASTCharLiteral> value;
+    std::variant<ASTIntLiteral, ASTIdentifier, ASTParenthesisExpression, ASTFunctionCall, ASTCharLiteral,
+                 ASTArrayInitializer>
+        value;
 };
 
 struct ASTBinExpression {
@@ -80,12 +87,18 @@ struct ASTUnaryExpression {
     std::shared_ptr<ASTExpression> expression;
 };
 
+struct ASTArrayIndexExpression {
+    TokenMeta start_token_meta;
+    std::shared_ptr<ASTExpression> index;
+    std::shared_ptr<ASTExpression> expression;
+};
+
 struct ASTExpression {
     bool is_literal = false;
     TokenMeta start_token_meta;
     std::shared_ptr<DataType> data_type;
     std::variant<std::shared_ptr<ASTAtomicExpression>, std::shared_ptr<ASTBinExpression>,
-                 std::shared_ptr<ASTUnaryExpression>>
+                 std::shared_ptr<ASTUnaryExpression>, std::shared_ptr<ASTArrayIndexExpression>>
         expression;
 };
 
@@ -105,7 +118,7 @@ struct ASTStatementVar {
 
 struct ASTStatementAssign {
     TokenMeta start_token_meta;
-    std::string name;
+    std::shared_ptr<ASTExpression> lhs;
     ASTExpression value;
 };
 

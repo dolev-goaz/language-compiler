@@ -24,7 +24,8 @@ void Generator::generate_expression_identifier(const ASTIdentifier& identifier, 
     std::string original_data_reg = size_bytes_to_register.at(variable_data.size_bytes);
     std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
 
-    load_memory_address("rdx", variable_name);
+    load_memory_address_var(identifier);
+    pop_stack_register("rdx", 8, 8);
     m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rdx]" << std::endl;
 
     // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
@@ -40,6 +41,14 @@ void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, si
 void Generator::generate_expression_char_literal(const ASTCharLiteral& literal, size_t size_bytes) {
     auto ascii_value = std::to_string(literal.value);
     push_stack_literal(ascii_value, size_bytes);
+}
+
+void Generator::generate_expression_array_initializer(const ASTArrayInitializer& array_initializer) {
+    // push them in reverse(stack reverses order)
+    for (auto cur = array_initializer.initialize_values.rbegin(); cur != array_initializer.initialize_values.rend();
+         ++cur) {
+        generate_expression(*cur);
+    }
 }
 
 void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes) {
@@ -151,4 +160,67 @@ void Generator::generate_expression_unary(const std::shared_ptr<ASTUnaryExpressi
     }
     auto& reg = size_bytes_to_register.at(size_bytes);
     push_stack_register(reg, size_bytes);
+}
+
+void Generator::generate_expression_array_index(const std::shared_ptr<ASTArrayIndexExpression>& array_index,
+                                                size_t requested_size_bytes) {
+    auto array_type = dynamic_cast<ArrayType*>(array_index->expression->data_type.get());
+    auto inner_type_size_bytes = array_type->elementType->get_size_bytes();
+
+    // NOTE: very similar to variable evaluation
+    std::string original_size_keyword = size_bytes_to_size_keyword.at(inner_type_size_bytes);
+    std::string original_data_reg = size_bytes_to_register.at(inner_type_size_bytes);
+    std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
+
+    size_t index_size_bytes = array_index->index->data_type->get_size_bytes();
+
+    load_memory_address_expr(*array_index->expression);
+
+    generate_expression(*array_index->index);
+
+    pop_stack_register("rax", 8, index_size_bytes);  // index is in rax
+    pop_stack_register("rcx", 8, 8);                 // offset is in rcx
+
+    m_generated << "\tmov rbx, " << inner_type_size_bytes << std::endl << "\tmul rbx" << std::endl;
+    m_generated << "\tadd rcx, rax ; Indexing offset" << std::endl;  // indexing
+
+    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rcx]" << std::endl;
+
+    push_stack_register(requested_data_reg, requested_size_bytes);
+}
+
+void Generator::load_memory_address_expr(const ASTExpression& expression) {
+    if (std::holds_alternative<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression)) {
+        m_generated << "\t; Evaluate array index memory address BEGIN" << std::endl;
+        auto array_index = std::get<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression);
+        auto array_type = dynamic_cast<ArrayType*>(array_index->expression->data_type.get());
+        auto inner_type_size_bytes = array_type->elementType->get_size_bytes();
+
+        load_memory_address_expr(*array_index->expression);
+        pop_stack_register("rcx", 8, 8);
+
+        // indexing
+        m_generated << "\t; Begin Array Index generation" << std::endl;
+        generate_expression(*array_index->index);
+        pop_stack_register("rax", 8, 8);
+        m_generated << "\tmov rbx, " << inner_type_size_bytes << std::endl << "\tmul rbx" << std::endl;
+        m_generated << "\t; End Array Index generation" << std::endl;
+
+        m_generated << "\tadd rcx, rax ; Indexing offset" << std::endl;  // indexing
+        push_stack_register("rcx", 8);
+        m_generated << "\t; Evaluate array index memory address END" << std::endl;
+        return;
+    }
+
+    // must be atomic expression
+    if (!std::holds_alternative<std::shared_ptr<ASTAtomicExpression>>(expression.expression)) {
+        std::cerr << "Generation: unexpected expression to calculate address of" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    auto atomic = std::get<std::shared_ptr<ASTAtomicExpression>>(expression.expression);
+    if (std::holds_alternative<ASTIdentifier>(atomic->value)) {
+        auto identifier = std::get<ASTIdentifier>(atomic->value);
+        load_memory_address_var(identifier);
+        return;
+    }
 }

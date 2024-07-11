@@ -1,10 +1,20 @@
 #include "parser.hpp"
 
+void Parser::finalize_consumption() { m_temp_consume_count = 0; }
+
+void Parser::undo_consumption() { undo_consumption(m_temp_consume_count); }
+
+void Parser::undo_consumption(size_t count) {
+    m_token_index -= count;
+    m_temp_consume_count -= count;
+}
+
 std::optional<Token> Parser::consume() {
     if (m_token_index >= m_tokens.size()) {
         return std::nullopt;
     }
 
+    m_temp_consume_count += 1;
     return m_tokens.at(m_token_index++);
 }
 std::optional<Token> Parser::peek(int offset) {
@@ -41,7 +51,9 @@ std::vector<Token> Parser::consume_data_type_tokens() {
         if (test_peek(TokenType::open_square)) {
             // array declaration
             out.push_back(consume().value());
-            out.push_back(assert_consume(TokenType::int_lit, "Expected array size"));
+            if (test_peek(TokenType::int_lit)) {
+                out.push_back(consume().value());  // consume array size- EXPLICIT array size
+            }
             out.push_back(assert_consume(TokenType::close_square, "Expected closing bracket ']'"));
         } else {
             // star- pointer type

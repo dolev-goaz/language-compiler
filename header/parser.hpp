@@ -11,13 +11,15 @@
 extern std::map<TokenType, BinOperation> singleCharBinOperationMapping;
 class Parser {
    public:
-    Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0) {}
+    Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0), m_temp_consume_count(0), m_error_msg("") {}
 
     ASTProgram parse_program();
 
    private:
     std::vector<Token> m_tokens;
-    size_t m_token_index = 0;
+    size_t m_token_index;
+    size_t m_temp_consume_count;
+    std::string m_error_msg;
 
     std::shared_ptr<ASTStatement> parse_statement();
     BinOperation peek_binary_operation();
@@ -30,7 +32,7 @@ class Parser {
 
     std::shared_ptr<ASTStatementExit> parse_statement_exit();
     std::shared_ptr<ASTStatementVar> parse_statement_var_declare();
-    std::shared_ptr<ASTStatementAssign> parse_statement_var_assign();
+    std::shared_ptr<ASTStatementAssign> try_parse_statement_var_assign(const std::shared_ptr<ASTExpression>& operand);
     std::shared_ptr<ASTStatementScope> parse_statement_scope();
     std::shared_ptr<ASTStatementIf> parse_statement_if();
     std::shared_ptr<ASTStatementWhile> parse_statement_while();
@@ -46,11 +48,17 @@ class Parser {
     std::optional<ASTExpression> parse_expression(const int min_prec = 0);
 
     std::shared_ptr<ASTUnaryExpression> try_parse_unary();
+    std::shared_ptr<ASTArrayIndexExpression> try_parse_array_indexing(const std::shared_ptr<ASTExpression>& operand);
     std::shared_ptr<ASTAtomicExpression> try_parse_atomic();
-    
+    std::optional<ASTArrayInitializer> try_parse_array_initializer();
+
     // attempts to parse either atomic or unary expressions, basically not binary operations.
     std::shared_ptr<ASTExpression> try_parse_expr_lhs();
     std::optional<int> binary_operator_precedence(const BinOperation& operation);
+
+    void undo_consumption();
+    void undo_consumption(size_t count);
+    void finalize_consumption();
 
     std::optional<Token> consume();
     std::optional<Token> peek(int offset = 0);

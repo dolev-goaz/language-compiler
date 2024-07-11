@@ -27,8 +27,12 @@ class Generator {
     void generate_expression_identifier(const ASTIdentifier& identifier, size_t size_bytes);
     void generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes);
     void generate_expression_char_literal(const ASTCharLiteral& literal, size_t size_bytes);
+    void generate_expression_array_initializer(const ASTArrayInitializer& array_initializer);
+
     void generate_expression_unary(const std::shared_ptr<ASTUnaryExpression>& unary, size_t size_bytes);
     void generate_expression_binary(const std::shared_ptr<ASTBinExpression>& binary, size_t size_bytes);
+    void generate_expression_array_index(const std::shared_ptr<ASTArrayIndexExpression>& array_index,
+                                         size_t return_size_bytes);
     void generate_expression_function_call(const ASTFunctionCall& function_call_expr, size_t return_size_bytes);
 
     void generate_statement_exit(const std::shared_ptr<ASTStatementExit>& exit_statement);
@@ -43,7 +47,9 @@ class Generator {
     void enter_scope();
     void exit_scope();
 
-    void load_memory_address(const std::string& reg, const std::string& variable_name);
+    void load_memory_address_var(const ASTIdentifier& variable);
+    void load_memory_address_arr_index(const std::shared_ptr<ASTArrayIndexExpression>& index_expr);
+    void load_memory_address_expr(const ASTExpression& expression);
     Generator::Variable assert_get_variable_data(std::string variable_name);
 
     // push a literal value to the stack
