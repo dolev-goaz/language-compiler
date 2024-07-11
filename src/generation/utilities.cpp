@@ -48,13 +48,21 @@ void Generator::exit_scope() {
 }
 
 void Generator::push_stack_literal(const std::string& value, size_t size) {
-    std::string size_keyword = size_bytes_to_size_keyword.at(size);
-    m_generated << "\tpush " << size_keyword << " " << value << std::endl;
+    if (size == 1) {
+        m_generated << "\tsub rsp, 1" << std::endl << "\tmov byte [rsp], " << value << std::endl;
+    } else {
+        std::string size_keyword = size_bytes_to_size_keyword.at(size);
+        m_generated << "\tpush " << size_keyword << " " << value << std::endl;
+    }
     m_stack_size += size;
 }
 
 void Generator::push_stack_register(const std::string& reg, size_t size) {
-    m_generated << "\tpush " << reg << std::endl;
+    if (size == 1) {
+        m_generated << "\tsub rsp, 1" << std::endl << "\tmov byte [rsp], " << reg << std::endl;
+    } else {
+        m_generated << "\tpush " << reg << std::endl;
+    }
     m_stack_size += size;
 }
 

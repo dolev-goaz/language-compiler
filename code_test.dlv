@@ -1,1 +1,4 @@
+int_16[] x = { 1, 2, 3 };
 char[] a = "hello";
+char test = a[0];
+exit(test);

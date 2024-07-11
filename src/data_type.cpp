@@ -15,7 +15,7 @@ const std::map<BasicDataType, std::string> DataType::data_type_value_to_name = [
 
 const std::map<BasicDataType, size_t> DataType::data_type_to_size_bytes = {
     {BasicDataType::VOID, 0},  {BasicDataType::INT8, 1},  {BasicDataType::INT16, 2},
-    {BasicDataType::INT32, 4}, {BasicDataType::INT64, 8}, {BasicDataType::CHAR, 2},
+    {BasicDataType::INT32, 4}, {BasicDataType::INT64, 8}, {BasicDataType::CHAR, 1},
 };
 
 std::shared_ptr<DataType> BasicType::makeBasicType(BasicDataType type) { return std::make_shared<BasicType>(type); }
