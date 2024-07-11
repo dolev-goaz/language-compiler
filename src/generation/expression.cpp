@@ -172,14 +172,16 @@ void Generator::generate_expression_array_index(const std::shared_ptr<ASTArrayIn
     std::string original_data_reg = size_bytes_to_register.at(inner_type_size_bytes);
     std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
 
+    size_t index_size_bytes = array_index->index->data_type->get_size_bytes();
+
     load_memory_address_expr(*array_index->expression);
-    pop_stack_register("rcx", 8, 8);
-    // indexing
-    m_generated << "\t; Begin Array Index generation" << std::endl;
+
     generate_expression(*array_index->index);
-    pop_stack_register("rax", 8, 8);
+
+    pop_stack_register("rax", 8, index_size_bytes);  // index is in rax
+    pop_stack_register("rcx", 8, 8);                 // offset is in rcx
+
     m_generated << "\tmov rbx, " << inner_type_size_bytes << std::endl << "\tmul rbx" << std::endl;
-    m_generated << "\t; End Array Index generation" << std::endl;
     m_generated << "\tadd rcx, rax ; Indexing offset" << std::endl;  // indexing
 
     m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rcx]" << std::endl;
