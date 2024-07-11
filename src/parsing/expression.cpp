@@ -276,7 +276,47 @@ std::shared_ptr<ASTExpression> Parser::try_parse_expr_lhs() {
     return expr;
 }
 
+ASTExpression Parser::convert_char_to_expression(char ch, const TokenMeta& pos) {
+    ASTCharLiteral literal = {
+        .start_token_meta = pos,
+        .value = ch,
+    };
+    ASTAtomicExpression expression = {
+        .start_token_meta = pos,
+        .value = literal,
+    };
+    return ASTExpression{
+        .is_literal = true,
+        .start_token_meta = pos,
+        .data_type = nullptr,
+        .expression = std::make_shared<ASTAtomicExpression>(expression),
+    };
+}
+
+std::optional<ASTArrayInitializer> Parser::try_parse_string_as_array_initializer() {
+    if (!test_peek(TokenType::string)) {
+        return std::nullopt;
+    }
+    auto start_token = consume().value();
+    auto str = start_token.value.value();
+    std::vector<ASTExpression> characters;
+    for (auto&& character : str) {
+        characters.push_back(convert_char_to_expression(character, start_token.meta));
+    }
+    characters.push_back(convert_char_to_expression('\0', start_token.meta));
+
+    return ASTArrayInitializer{
+        .start_token_meta = start_token.meta,
+        .initialize_values = characters,
+    };
+}
+
 std::optional<ASTArrayInitializer> Parser::try_parse_array_initializer() {
+    auto string_array_initializer = try_parse_string_as_array_initializer();
+    if (string_array_initializer.has_value()) {
+        return string_array_initializer;
+    }
+
     if (!test_peek(TokenType::open_curly)) {
         return std::nullopt;
     }
