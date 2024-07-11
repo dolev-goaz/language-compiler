@@ -35,6 +35,10 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
     }
 
     if (!is_initialized) {
+        auto array_type = dynamic_cast<ArrayType*>(data_type.get());
+        if (array_type && array_type->size == 0) {
+            throw SemanticAnalyzerException("Array size can not be 0!", start_token_meta);
+        }
         return;
     }
 

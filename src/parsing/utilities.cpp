@@ -51,7 +51,9 @@ std::vector<Token> Parser::consume_data_type_tokens() {
         if (test_peek(TokenType::open_square)) {
             // array declaration
             out.push_back(consume().value());
-            out.push_back(assert_consume(TokenType::int_lit, "Expected array size"));
+            if (test_peek(TokenType::int_lit)) {
+                out.push_back(consume().value());  // consume array size- EXPLICIT array size
+            }
             out.push_back(assert_consume(TokenType::close_square, "Expected closing bracket ']'"));
         } else {
             // star- pointer type

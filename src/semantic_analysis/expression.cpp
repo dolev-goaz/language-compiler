@@ -87,6 +87,9 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     if (!array_type) {
         throw SemanticAnalyzerException("Unexpected datatype for array initializer", initializer.start_token_meta);
     }
+    if (array_type->size == 0) {
+        array_type->size = values.size();
+    }
     if (values.size() != array_type->size) {
         std::stringstream err;
         err << "Expected initializer of size " << array_type->size << ". Instead got " << values.size() << ".";

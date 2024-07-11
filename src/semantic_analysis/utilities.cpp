@@ -55,9 +55,14 @@ std::shared_ptr<DataType> SemanticAnalyzer::create_data_type(const std::vector<T
                 type = std::make_shared<PointerType>(type);
                 break;
             case TokenType::open_square:
+                // NOTE: might want array_size to be int to allow -1(for uninitialized)
+                array_size = 0;
                 array_size_token = data_type_tokens.at(token_index + 1);
-                token_index += 2;  // read count and closing square token
-                array_size = std::stoi(array_size_token.value.value());
+                if (array_size_token.type == TokenType::int_lit) {
+                    array_size = std::stoi(array_size_token.value.value());
+                    token_index += 1;  // read count
+                }
+                token_index += 1;  // read close paren
                 array_sizes.push(array_size);
                 break;
             default:
