@@ -18,6 +18,7 @@ enum class TokenType {
     open_curly,
     close_curly,
     comment,
+    string,
     comma,
     quote,
     open_square,
@@ -77,4 +78,5 @@ class Lexer {
     bool try_consume_number();
     bool try_consume_char(char character);
     bool try_consume_comment();
+    bool try_consume_string();
 };

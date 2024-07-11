@@ -19,7 +19,7 @@ std::map<char, TokenType> tokenMappingsSymbols = {
     {'+', TokenType::plus},          {'-', TokenType::minus},          {'*', TokenType::star},
     {'/', TokenType::fslash},        {'%', TokenType::percent},        {',', TokenType::comma},
     {'<', TokenType::open_triangle}, {'>', TokenType::close_triangle}, {'\'', TokenType::quote},
-    {'[', TokenType::open_square}, {']', TokenType::close_square},
+    {'[', TokenType::open_square},   {']', TokenType::close_square},
 };
 
 char Lexer::consume() {
@@ -180,6 +180,37 @@ bool Lexer::try_consume_comment() {
     return true;
 }
 
+bool Lexer::try_consume_string() {
+    std::string buffer;
+    size_t line = m_line, col = m_col;
+    if (!this->test_peek('"', 0)) {
+        return false;
+    }
+    consume();
+    bool found_end_quote = false;
+    while (peek().has_value()) {
+        if (test_peek('"')) {
+            // consume string end
+            consume();
+            found_end_quote = true;
+            break;
+        }
+        buffer.push_back(consume());
+    }
+    if (!found_end_quote) {
+        throw LexerException("Closing quote \" not found.", line, col);
+    }
+    TokenMeta meta = {.line_num = line, .line_pos = col};
+    Token token = {
+        .meta = meta,
+        .type = TokenType::string,
+        .value = buffer,
+    };
+    this->tokens.push_back(token);
+
+    return true;
+}
+
 std::vector<Token> Lexer::tokenize() {
     // initialize m_line to the first line, m_col to the first column
     m_line = 1, m_col = 1;
@@ -201,7 +232,9 @@ std::vector<Token> Lexer::tokenize() {
         if (this->try_consume_comment()) {
             continue;
         }
-
+        if (this->try_consume_string()) {
+            continue;
+        }
         // consume special characters
 
         if (tokenMappingsSymbols.count(current) > 0) {
