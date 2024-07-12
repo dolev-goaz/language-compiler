@@ -51,6 +51,9 @@ class Parser {
     std::shared_ptr<ASTArrayIndexExpression> try_parse_array_indexing(const std::shared_ptr<ASTExpression>& operand);
     std::shared_ptr<ASTAtomicExpression> try_parse_atomic();
     std::optional<ASTArrayInitializer> try_parse_array_initializer();
+    std::optional<ASTArrayInitializer> try_parse_string_as_array_initializer();
+
+    ASTExpression convert_char_to_expression(char ch, const TokenMeta& pos);
 
     // attempts to parse either atomic or unary expressions, basically not binary operations.
     std::shared_ptr<ASTExpression> try_parse_expr_lhs();

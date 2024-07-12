@@ -30,8 +30,7 @@ void Generator::generate_expression_identifier(const ASTIdentifier& identifier, 
 
     // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
     // probably just don't support 8-bit variables, lol
-    m_generated << "\tpush " << requested_data_reg << std::endl;
-    m_stack_size += requested_size_bytes;
+    push_stack_register(requested_data_reg, requested_size_bytes);
 }
 
 void Generator::generate_expression_int_literal(const ASTIntLiteral& literal, size_t size_bytes) {
