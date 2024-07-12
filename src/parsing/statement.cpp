@@ -108,7 +108,7 @@ std::shared_ptr<ASTStatementVar> Parser::parse_statement_var_declare() {
 
     if (!test_peek(TokenType::identifier)) {
         // TODO: should replace most assert_consume with error messages
-        m_error_msg = "Expected variable name";
+        parse_stack.set_error_msg("Expected variable name");
         return nullptr;
     }
     Token identifier = consume().value();
@@ -166,6 +166,7 @@ std::shared_ptr<ASTStatementAssign> Parser::try_parse_statement_var_assign(
 
 // throws ParserException if couldn't parse statement
 std::shared_ptr<ASTStatement> Parser::parse_statement() {
+    ParseStatementStackHandler handler(&parse_stack);
     // check for exit statement
     auto nextToken = peek();
     if (!nextToken.has_value()) {
@@ -173,79 +174,81 @@ std::shared_ptr<ASTStatement> Parser::parse_statement() {
     }
     auto meta = nextToken.value().meta;
     if (auto exit_statement = parse_statement_exit(); exit_statement != nullptr) {
-        finalize_consumption();
+        parse_stack.finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(exit_statement)});
     }
-    undo_consumption();
+    parse_stack.undo_consumption();
 
     // check for variable declaration statement
     if (auto var_declare_statement = parse_statement_var_declare(); var_declare_statement != nullptr) {
-        finalize_consumption();
+        parse_stack.finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(var_declare_statement)});
     }
-    undo_consumption();
+    parse_stack.undo_consumption();
 
     if (auto scope_statement = parse_statement_scope(); scope_statement != nullptr) {
-        finalize_consumption();
+        parse_stack.finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(scope_statement)});
     }
-    undo_consumption();
+    parse_stack.undo_consumption();
 
     if (auto if_statement = parse_statement_if(); if_statement != nullptr) {
-        finalize_consumption();
+        parse_stack.finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(if_statement)});
     }
-    undo_consumption();
+    parse_stack.undo_consumption();
 
     if (auto while_statement = parse_statement_while(); while_statement != nullptr) {
-        finalize_consumption();
+        parse_stack.finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(while_statement)});
     }
-    undo_consumption();
+    parse_stack.undo_consumption();
 
     if (auto func_statement = parse_statement_function(); func_statement != nullptr) {
-        finalize_consumption();
+        parse_stack.finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(func_statement)});
     }
-    undo_consumption();
+    parse_stack.undo_consumption();
 
     if (auto return_statement = parse_statement_return(); return_statement != nullptr) {
-        finalize_consumption();
+        parse_stack.finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(return_statement)});
     }
-    undo_consumption();
+    parse_stack.undo_consumption();
 
     if (auto func_call = parse_function_call(); func_call != nullptr) {
         assert_consume(TokenType::semicol, "Expected ';' after function call statement");
-        finalize_consumption();
+        parse_stack.finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(func_call)});
     }
-    undo_consumption();
+    parse_stack.undo_consumption();
 
     // all statements from here rely on an expression
 
     auto expression = parse_expression();
     if (!expression.has_value()) {
         // fallback- no matching statement found
-        std::string err = !m_error_msg.empty() ? m_error_msg : "Invalid statement";
+        std::string err = !parse_stack.get_error_msg().empty() ? parse_stack.get_error_msg() : "Invalid statement";
         throw ParserException(err, meta);
     }
     auto shared_ptr_expr = std::make_shared<ASTExpression>(expression.value());
     if (auto assign_statement = try_parse_statement_var_assign(shared_ptr_expr); assign_statement != nullptr) {
+        parse_stack.finalize_consumption();
         return std::make_shared<ASTStatement>(
             ASTStatement{.start_token_meta = meta, .statement = std::move(assign_statement)});
     }
+    parse_stack.undo_consumption();
 
-    if (!m_error_msg.empty()) {
-        throw ParserException(m_error_msg, meta);
+    if (!parse_stack.get_error_msg().empty()) {
+        throw ParserException(parse_stack.get_error_msg(), meta);
     }
 
     assert(false && "In the future expressions will be statements as well");
@@ -258,7 +261,7 @@ ASTProgram Parser::parse_program() {
         auto type = peek().value().type;
         // skip through comments
         if (type == TokenType::comment) {
-            consume();
+            consume_raw();
             continue;
         }
         auto statement = parse_statement();

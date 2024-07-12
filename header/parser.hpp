@@ -7,19 +7,19 @@
 #include "./AST_node.hpp"
 #include "./error/parser_error.hpp"
 #include "./lexer.hpp"
+#include "parse_statement_stack.hpp"
 
 extern std::map<TokenType, BinOperation> singleCharBinOperationMapping;
 class Parser {
    public:
-    Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0), m_temp_consume_count(0), m_error_msg("") {}
+    Parser(std::vector<Token> tokens) : m_tokens(tokens), m_token_index(0) {}
 
     ASTProgram parse_program();
 
    private:
     std::vector<Token> m_tokens;
     size_t m_token_index;
-    size_t m_temp_consume_count;
-    std::string m_error_msg;
+    ParseStatementStack parse_stack;
 
     std::shared_ptr<ASTStatement> parse_statement();
     BinOperation peek_binary_operation();
@@ -59,11 +59,8 @@ class Parser {
     std::shared_ptr<ASTExpression> try_parse_expr_lhs();
     std::optional<int> binary_operator_precedence(const BinOperation& operation);
 
-    void undo_consumption();
-    void undo_consumption(size_t count);
-    void finalize_consumption();
-
     std::optional<Token> consume();
+    std::optional<Token> consume_raw();
     std::optional<Token> peek(int offset = 0);
     std::optional<Token> try_consume(TokenType type);
     bool test_peek(TokenType type, int offset = 0);
