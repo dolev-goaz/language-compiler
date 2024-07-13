@@ -7,6 +7,12 @@ void SemanticAnalyzer::analyze_function_param(ASTFunctionParam& param) {
     if (data_type->is_void()) {
         throw SemanticAnalyzerException("Function parameter can not be of type void", start_token_meta);
     }
+    bool is_primitive = (bool)dynamic_cast<BasicType*>(data_type.get());
+    bool is_pointer = (bool)dynamic_cast<PointerType*>(data_type.get());
+    if (!is_primitive && !is_pointer) {
+        throw SemanticAnalyzerException("Function parameters must be primitive! Try passing a pointer instead.",
+                                        start_token_meta);
+    }
     param.data_type = data_type;
 }
 

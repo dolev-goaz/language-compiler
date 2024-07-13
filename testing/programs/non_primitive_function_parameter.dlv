@@ -1,0 +1,6 @@
+int_64[3] data = {1,2,3};
+exit(hello(data));
+
+func int_64 hello(int_64[3] variables) {
+    return variables[0];
+}

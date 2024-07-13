@@ -158,6 +158,11 @@
 
 
     {
+        "name": "Function with non-primitive parameter",
+        "file": "non_primitive_function_parameter.dlv",
+        "should_compile": false
+    },
+    {
         "name": "Array Declaration without Size or Values",
         "file": "array_declaration_no_size_no_values.dlv",
         "should_compile": false
