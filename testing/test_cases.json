@@ -125,9 +125,53 @@
         "should_compile": true,
         "expected_return_code": 5
     },
+    {
+        "name": "Array Declaration and Default Initialization",
+        "file": "array_declaration_default_init.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
+        "name": "Array Initialization with Values",
+        "file": "array_initialization_no_size_with_values.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
+        "name": "Array Initialization with Values and Size",
+        "file": "array_initialization_size_values.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
+        "name": "Array Element Assignment and Access",
+        "file": "array_element_assignment_and_access.dlv",
+        "should_compile": true,
+        "expected_return_code": 5
+    },
+    {
+        "name": "Array Element Default Value",
+        "file": "array_element_default_value.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
 
 
-
+    {
+        "name": "Array Declaration without Size or Values",
+        "file": "array_declaration_no_size_no_values.dlv",
+        "should_compile": false
+    },
+    {
+        "name": "Array Declaration with non-matching size and initializer size",
+        "file": "array_initialization_mismatching_size.dlv",
+        "should_compile": false
+    },
+    {
+        "name": "Array Declaration with size 0",
+        "file": "array_declaration_size_0.dlv",
+        "should_compile": false
+    },
     {
         "name": "Returning value from void method",
         "file": "function_return_value_void.dlv",
