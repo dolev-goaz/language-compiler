@@ -155,8 +155,36 @@
         "should_compile": true,
         "expected_return_code": 0
     },
-
-
+    {
+        "name": "String Declaration and Initialization",
+        "file": "string_declaration_initialization.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
+        "name": "String Element Access",
+        "file": "string_element_access.dlv",
+        "should_compile": true,
+        "expected_return_code": 108
+    },
+    {
+        "name": "String Termination Character",
+        "file": "string_termination_character.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
+        "name": "String declaration- Empty String",
+        "file": "string_declaration_empty_string.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    
+    {
+        "name": "Invalid String Declaration",
+        "file": "invalid_string_declaration.dlv",
+        "should_compile": false
+    },
     {
         "name": "Function with non-primitive parameter",
         "file": "non_primitive_function_parameter.dlv",

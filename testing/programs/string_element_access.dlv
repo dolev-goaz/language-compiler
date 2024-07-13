@@ -1,0 +1,3 @@
+char[] a = "hello";
+int_64 x = a[2];  // 'l'
+exit(x);
