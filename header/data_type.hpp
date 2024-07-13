@@ -52,8 +52,8 @@ class BasicType : public DataType {
     CompatibilityStatus is_compatible(const DataType& other) const override {
         // Basic types are compatible if they are the same
         if (const auto* otherBasic = dynamic_cast<const BasicType*>(&other)) {
-            return type == otherBasic->type ? CompatibilityStatus::Compatible
-                                            : CompatibilityStatus::CompatibleWithWarning;
+            return get_size_bytes() == otherBasic->get_size_bytes() ? CompatibilityStatus::Compatible
+                                                                    : CompatibilityStatus::CompatibleWithWarning;
         }
         return CompatibilityStatus::NotCompatible;
     }
