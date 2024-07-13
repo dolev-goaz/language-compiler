@@ -1,3 +1,5 @@
 char[] a = "hello";
-// a[3] = 'c';
-exit(a[3]);
+int_64 x = a[0];
+x = x + 5;
+a[0] = x;
+exit(a[0]);

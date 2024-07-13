@@ -59,6 +59,10 @@ class Parser {
     std::shared_ptr<ASTExpression> try_parse_expr_lhs();
     std::optional<int> binary_operator_precedence(const BinOperation& operation);
 
+    void finalize_consumption();
+    void undo_consumption();
+    void undo_consumption(size_t count);
+
     std::optional<Token> consume();
     std::optional<Token> consume_raw();
     std::optional<Token> peek(int offset = 0);

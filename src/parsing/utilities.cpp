@@ -1,5 +1,15 @@
 #include "parser.hpp"
 
+void Parser::finalize_consumption() { parse_stack.finalize_consumption(); }
+void Parser::undo_consumption() {
+    size_t consumed_in_layer = parse_stack.get_consume_count();
+    undo_consumption(consumed_in_layer);
+}
+void Parser::undo_consumption(size_t count) {
+    parse_stack.undo_consumption(count);
+    m_token_index -= count;
+}
+
 std::optional<Token> Parser::consume_raw() {
     if (m_token_index >= m_tokens.size()) {
         return std::nullopt;
