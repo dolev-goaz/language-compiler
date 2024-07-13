@@ -10,7 +10,7 @@ void SemanticAnalyzer::analyze_statement_exit(const std::shared_ptr<ASTStatement
     auto analysis_result = analyze_expression(expression);
     expression.data_type = analysis_result.data_type;
     expression.is_literal = analysis_result.is_literal;
-    auto expected_data_type = BasicType::makeBasicType(BasicDataType::INT16);
+    auto expected_data_type = BasicType::makeBasicType(BasicDataType::INT8);
     if (expression.data_type != expected_data_type) {
         assert_cast_expression(expression, expected_data_type, !expression.is_literal);
     }
