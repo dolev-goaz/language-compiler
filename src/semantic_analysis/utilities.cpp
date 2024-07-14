@@ -53,29 +53,33 @@ std::shared_ptr<DataType> SemanticAnalyzer::create_data_type(const std::vector<T
         switch (current.type) {
             case TokenType::star:
                 type = std::make_shared<PointerType>(type);
+                token_index += 1;
                 break;
             case TokenType::open_square:
                 // NOTE: might want array_size to be int to allow -1(for uninitialized)
-                array_size = 0;
-                array_size_token = data_type_tokens.at(token_index + 1);
-                if (array_size_token.type == TokenType::int_lit) {
-                    array_size = std::stoi(array_size_token.value.value());
-                    token_index += 1;  // read count
+                while (token_index < token_count && data_type_tokens.at(token_index).type == TokenType::open_square) {
+                    array_size = 0;
+                    token_index += 1;  // read open_square
+                    array_size_token = data_type_tokens.at(token_index);
+                    if (array_size_token.type == TokenType::int_lit) {
+                        array_size = std::stoi(array_size_token.value.value());
+                        token_index += 1;  // read size parameter
+                    }
+                    token_index += 1;  // read close_square
+                    array_sizes.push(array_size);
                 }
-                token_index += 1;  // read close paren
-                array_sizes.push(array_size);
+
+                // we invert the order of declaration, like c does(for some reason)
+                while (!array_sizes.empty()) {
+                    array_size = array_sizes.top();
+                    array_sizes.pop();
+                    type = std::make_shared<ArrayType>(type, array_size);
+                }
+
                 break;
             default:
                 assert(false && "Shouldn't reach here");
         }
-        token_index += 1;
-    }
-
-    // we invert the order of declaration, like c does(for some reason)
-    while (!array_sizes.empty()) {
-        array_size = array_sizes.top();
-        array_sizes.pop();
-        type = std::make_shared<ArrayType>(type, array_size);
     }
 
     return type;
