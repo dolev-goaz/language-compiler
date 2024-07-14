@@ -82,6 +82,9 @@ std::optional<UnaryOperation> Parser::peek_unary_operation() {
         // NOTE: could add support for --, ++, so on
         return UnaryOperation::negate;
     }
+    if (test_peek(TokenType::ampersand)) {
+        return UnaryOperation::dereference;
+    }
     return std::nullopt;
 }
 
@@ -99,6 +102,7 @@ UnaryOperation Parser::assert_consume_unary_operation() {
     size_t consume_count = 0;
     switch (unary_operation) {
         case UnaryOperation::negate:
+        case UnaryOperation::dereference:
             consume_count = 1;
             break;
         default:
