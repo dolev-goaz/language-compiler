@@ -118,13 +118,23 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_unary(
     const std::shared_ptr<ASTUnaryExpression>& unary) {
-    static_assert((int)UnaryOperation::operationCount - 1 == 1,
+    static_assert((int)UnaryOperation::operationCount - 1 == 2,
                   "Implemented unary operations without updating semantic analysis");
     auto& operand = unary->expression;
     auto analysis_result = analyze_expression(*operand);
-    operand->data_type = analysis_result.data_type;
-    operand->is_literal = analysis_result.is_literal;
-    // NOTE: when adding reference/dereference/cast, should have some actual logic on the data_type
+    switch (unary->operation) {
+        case UnaryOperation::negate:
+            operand->data_type = analysis_result.data_type;
+            operand->is_literal = analysis_result.is_literal;
+            break;
+
+        case UnaryOperation::dereference:
+            operand->data_type = std::make_shared<PointerType>(analysis_result.data_type);
+            operand->is_literal = false;
+            break;
+        default:
+            throw SemanticAnalyzerException("Unknown unary operation", unary->start_token_meta);
+    }
     return SemanticAnalyzer::ExpressionAnalysisResult{
         .data_type = operand->data_type,
         .is_literal = operand->is_literal,
