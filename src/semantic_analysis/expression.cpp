@@ -9,15 +9,13 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression(
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_lhs(ASTExpression& expression,
                                                                                     bool is_initializing) {
-    auto analysis_result = analyze_expression(expression);
     if (std::holds_alternative<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression)) {
         // TODO: idk what to do here for now
 
         // auto array_indexing = std::get<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression);
         // auto array_type = dynamic_cast<ArrayType*>(array_indexing->expression->data_type.get());
         // auto inner_type_size_bytes = array_type->elementType->get_size_bytes();
-
-        return analysis_result;
+        return analyze_expression(expression);
     }
 
     // must be atomic expression
@@ -35,8 +33,7 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
             throw SemanticAnalyzerException(error.str(), expression.start_token_meta);
         }
         variableData->is_initialized = is_initializing;
-
-        return analysis_result;
+        return analyze_expression(expression);
     }
 
     throw SemanticAnalyzerException("Didn't implement the provided LHS expression", expression.start_token_meta);
