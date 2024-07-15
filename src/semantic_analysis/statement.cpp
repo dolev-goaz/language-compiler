@@ -44,6 +44,9 @@ void SemanticAnalyzer::analyze_statement_var_declare(const std::shared_ptr<ASTSt
 
     auto& expression = var_declare->value.value();
     auto rhs_analysis = analyze_expression(expression, data_type);
+    if (DataTypeUtils::is_array_type(data_type) && !is_array_initializer(expression)) {
+        throw SemanticAnalyzerException("Can only initialize arrays with array initializers.", start_token_meta);
+    }
     expression.data_type = rhs_analysis.data_type;
     if (expression.data_type->is_void()) {
         throw SemanticAnalyzerException("Can not assign 'void' to variables", start_token_meta);
@@ -64,6 +67,10 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
     auto rhs_analysis = analyze_expression(rhs, lhs->data_type);
     rhs.data_type = rhs_analysis.data_type;
     rhs.is_literal = rhs_analysis.is_literal;
+    if (DataTypeUtils::is_array_type(lhs->data_type) && !is_array_initializer(rhs)) {
+        throw SemanticAnalyzerException("Can only initialize arrays with array initializers.", meta);
+    }
+
     if (rhs.data_type->is_void()) {
         throw SemanticAnalyzerException("Can't assign 'void' to variables", meta);
     }

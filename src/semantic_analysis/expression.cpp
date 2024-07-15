@@ -191,3 +191,11 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
         .is_literal = false,
     };
 }
+
+bool SemanticAnalyzer::is_array_initializer(const ASTExpression& expr) {
+    if (!std::holds_alternative<std::shared_ptr<ASTAtomicExpression>>(expr.expression)) {
+        return false;
+    }
+    auto atomic = std::get<std::shared_ptr<ASTAtomicExpression>>(expr.expression);
+    return std::holds_alternative<ASTArrayInitializer>(atomic->value);
+}

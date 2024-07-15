@@ -25,3 +25,7 @@ std::shared_ptr<DataType> BasicType::makeBasicType(const std::string& type_str) 
     }
     return BasicType::makeBasicType(data_type_name_to_value.at(type_str));
 }
+
+bool DataTypeUtils::is_array_type(const std::shared_ptr<DataType>& data_type) {
+    return data_type && (bool)dynamic_cast<ArrayType*>(data_type.get());
+}
