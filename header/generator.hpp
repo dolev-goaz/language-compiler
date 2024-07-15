@@ -78,5 +78,10 @@ class Generator {
 
         // variable size in bytes
         size_t size_bytes;
+
+        // variable data type
+        std::shared_ptr<DataType> data_type;
+
+        // TODO: size_bytes can be inferred from data_type
     };
 };

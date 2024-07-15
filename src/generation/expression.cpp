@@ -17,16 +17,30 @@ void Generator::generate_expression_identifier(const ASTIdentifier& identifier, 
 
     m_generated << ";\tEvaluate Variable " << variable_name << std::endl;
 
+    bool is_pointer_type = (bool)dynamic_cast<PointerType*>(variable_data.data_type.get());
+    bool is_base_type = (bool)dynamic_cast<BasicType*>(variable_data.data_type.get());
+    bool is_complex_type = (!is_base_type && !is_pointer_type);  // complex types are having their pointers copied
+
+    load_memory_address_var(identifier);
+    pop_stack_register("rdx", 8, 8);  // address is always 8 bytes
+
+    size_t data_size = is_complex_type ? 8 : variable_data.size_bytes;  // if complex type, we only assign the address
+
     // NOTE: assumes that if theres type-changing, it is narrowing
     // to handle type-widening, we need to first clear the entire a register before writing to it,
     // and then zero/sign filling it with the data we read from the stack.
-    std::string original_size_keyword = size_bytes_to_size_keyword.at(variable_data.size_bytes);
-    std::string original_data_reg = size_bytes_to_register.at(variable_data.size_bytes);
+    std::string original_size_keyword = size_bytes_to_size_keyword.at(data_size);
+    std::string original_data_reg = size_bytes_to_register.at(data_size);
     std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
 
-    load_memory_address_var(identifier);
-    pop_stack_register("rdx", 8, 8);
-    m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rdx]" << std::endl;
+    if (is_complex_type) {
+        // copy reference
+        m_generated << "\t; RESOLVE ADDRESS OF VARIABLE" << std::endl;
+        m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " rdx" << std::endl;
+    } else {
+        m_generated << "\t; RESOLVE VALUE OF VARIABLE" << std::endl;
+        m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " [rdx]" << std::endl;
+    }
 
     // NOTE: if reading a singular byte, we need to byteswap the read data(little endian shenanigans)
     // probably just don't support 8-bit variables, lol

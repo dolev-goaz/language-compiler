@@ -8,6 +8,7 @@ void Generator::generate_statement_function(const std::shared_ptr<ASTStatementFu
         Generator::Variable var{
             .stack_location_bytes = m_stack_size,
             .size_bytes = size_bytes,
+            .data_type = func_param.data_type,
         };
         m_stack.insert(func_param.name, var);
         m_stack_size += size_bytes;
