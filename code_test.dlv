@@ -1,2 +1,3 @@
 char[] a = "hello world";
-char[12] b = a;
+char* b = a;
+exit(b[11]);

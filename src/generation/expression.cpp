@@ -184,7 +184,13 @@ void Generator::generate_expression_unary(const std::shared_ptr<ASTUnaryExpressi
 void Generator::generate_expression_array_index(const std::shared_ptr<ASTArrayIndexExpression>& array_index,
                                                 size_t requested_size_bytes) {
     auto array_type = dynamic_cast<ArrayType*>(array_index->expression->data_type.get());
-    auto inner_type_size_bytes = array_type->elementType->get_size_bytes();
+    auto pointer_type = dynamic_cast<PointerType*>(array_index->expression->data_type.get());
+    if (!pointer_type && !array_type) {
+        std::cerr << "Generation: unexpected expression to index" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    auto& inner_element = array_type ? array_type->elementType : pointer_type->baseType;
+    auto inner_type_size_bytes = inner_element->get_size_bytes();
 
     // NOTE: very similar to variable evaluation
     std::string original_size_keyword = size_bytes_to_size_keyword.at(inner_type_size_bytes);
@@ -193,7 +199,11 @@ void Generator::generate_expression_array_index(const std::shared_ptr<ASTArrayIn
 
     size_t index_size_bytes = array_index->index->data_type->get_size_bytes();
 
-    load_memory_address_expr(*array_index->expression);
+    if (array_type) {
+        load_memory_address_expr(*array_index->expression);
+    } else {
+        generate_expression(*array_index->expression);
+    }
 
     generate_expression(*array_index->index);
 

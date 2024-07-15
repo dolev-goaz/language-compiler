@@ -173,7 +173,8 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     operand->is_literal = operand_analysis.is_literal;
 
     auto array_type = dynamic_cast<ArrayType*>(operand->data_type.get());
-    if (!array_type) {
+    auto pointer_type = dynamic_cast<PointerType*>(operand->data_type.get());
+    if (!array_type && !pointer_type) {
         throw SemanticAnalyzerException("Array indexing on non-array type", arr_index_expr->start_token_meta);
     }
     auto index_analysis = analyze_expression(*index);
@@ -186,8 +187,10 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
         throw SemanticAnalyzerException("Array index must be numeric", index->start_token_meta);
     }
 
+    auto element_type = array_type ? array_type->elementType : pointer_type->baseType;
+
     return SemanticAnalyzer::ExpressionAnalysisResult{
-        .data_type = array_type->elementType,
+        .data_type = element_type,
         .is_literal = false,
     };
 }
