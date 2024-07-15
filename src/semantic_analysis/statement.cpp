@@ -67,8 +67,9 @@ void SemanticAnalyzer::analyze_statement_var_assign(const std::shared_ptr<ASTSta
     auto rhs_analysis = analyze_expression(rhs, lhs->data_type);
     rhs.data_type = rhs_analysis.data_type;
     rhs.is_literal = rhs_analysis.is_literal;
-    if (DataTypeUtils::is_array_type(lhs->data_type) && !is_array_initializer(rhs)) {
-        throw SemanticAnalyzerException("Can only initialize arrays with array initializers.", meta);
+    // TODO: this should be for all non-basic types
+    if (DataTypeUtils::is_array_type(lhs->data_type)) {
+        throw SemanticAnalyzerException("Can not assign to array types", meta);
     }
 
     if (rhs.data_type->is_void()) {
