@@ -1,2 +1,3 @@
 char[] a = "hello world";
-char[12]* b = &a; // this should work :) fix this
+char* b = a;
+exit(b[11]);
