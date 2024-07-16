@@ -79,6 +79,8 @@ class SemanticAnalyzer {
 
     static void semantic_warning(const std::string& message, const TokenMeta& position);
 
+    bool is_array_initializer(const ASTExpression& expr);
+
     ASTProgram m_prog;
     SymbolTable::SemanticScopeStack m_symbol_table;
     SymbolTable::SemanticFunctionTable m_function_table;

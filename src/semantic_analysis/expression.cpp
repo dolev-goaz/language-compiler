@@ -9,15 +9,13 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression(
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_lhs(ASTExpression& expression,
                                                                                     bool is_initializing) {
-    auto analysis_result = analyze_expression(expression);
     if (std::holds_alternative<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression)) {
         // TODO: idk what to do here for now
 
         // auto array_indexing = std::get<std::shared_ptr<ASTArrayIndexExpression>>(expression.expression);
         // auto array_type = dynamic_cast<ArrayType*>(array_indexing->expression->data_type.get());
         // auto inner_type_size_bytes = array_type->elementType->get_size_bytes();
-
-        return analysis_result;
+        return analyze_expression(expression);
     }
 
     // must be atomic expression
@@ -35,8 +33,7 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
             throw SemanticAnalyzerException(error.str(), expression.start_token_meta);
         }
         variableData->is_initialized = is_initializing;
-
-        return analysis_result;
+        return analyze_expression(expression);
     }
 
     throw SemanticAnalyzerException("Didn't implement the provided LHS expression", expression.start_token_meta);
@@ -118,17 +115,39 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_unary(
     const std::shared_ptr<ASTUnaryExpression>& unary) {
-    static_assert((int)UnaryOperation::operationCount - 1 == 1,
+    static_assert((int)UnaryOperation::operationCount - 1 == 3,
                   "Implemented unary operations without updating semantic analysis");
     auto& operand = unary->expression;
     auto analysis_result = analyze_expression(*operand);
     operand->data_type = analysis_result.data_type;
     operand->is_literal = analysis_result.is_literal;
-    // NOTE: when adding reference/dereference/cast, should have some actual logic on the data_type
-    return SemanticAnalyzer::ExpressionAnalysisResult{
-        .data_type = operand->data_type,
-        .is_literal = operand->is_literal,
-    };
+    std::shared_ptr<DataType> inner_type;
+    switch (unary->operation) {
+        case UnaryOperation::negate:
+            return SemanticAnalyzer::ExpressionAnalysisResult{
+                .data_type = operand->data_type,
+                .is_literal = operand->is_literal,
+            };
+
+        case UnaryOperation::dereference:
+            return SemanticAnalyzer::ExpressionAnalysisResult{
+                .data_type = std::make_shared<PointerType>(operand->data_type),
+                .is_literal = false,
+            };
+        case UnaryOperation::reference:
+            inner_type = DataTypeUtils::get_inner_type(operand->data_type);
+            if (!inner_type) {
+                std::stringstream error;
+                error << "Can't reference type '" << operand->data_type->toString() << "'!";
+                throw SemanticAnalyzerException(error.str(), unary->start_token_meta);
+            }
+            return SemanticAnalyzer::ExpressionAnalysisResult{
+                .data_type = inner_type,
+                .is_literal = false,
+            };
+        default:
+            throw SemanticAnalyzerException("Unknown unary operation", unary->start_token_meta);
+    }
 }
 
 SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_binary(
@@ -166,7 +185,8 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
     operand->is_literal = operand_analysis.is_literal;
 
     auto array_type = dynamic_cast<ArrayType*>(operand->data_type.get());
-    if (!array_type) {
+    auto pointer_type = dynamic_cast<PointerType*>(operand->data_type.get());
+    if (!array_type && !pointer_type) {
         throw SemanticAnalyzerException("Array indexing on non-array type", arr_index_expr->start_token_meta);
     }
     auto index_analysis = analyze_expression(*index);
@@ -179,8 +199,18 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
         throw SemanticAnalyzerException("Array index must be numeric", index->start_token_meta);
     }
 
+    auto element_type = array_type ? array_type->elementType : pointer_type->baseType;
+
     return SemanticAnalyzer::ExpressionAnalysisResult{
-        .data_type = array_type->elementType,
+        .data_type = element_type,
         .is_literal = false,
     };
+}
+
+bool SemanticAnalyzer::is_array_initializer(const ASTExpression& expr) {
+    if (!std::holds_alternative<std::shared_ptr<ASTAtomicExpression>>(expr.expression)) {
+        return false;
+    }
+    auto atomic = std::get<std::shared_ptr<ASTAtomicExpression>>(expr.expression);
+    return std::holds_alternative<ASTArrayInitializer>(atomic->value);
 }

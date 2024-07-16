@@ -42,6 +42,7 @@ void Generator::generate_statement_var_declare(const std::shared_ptr<ASTStatemen
     Generator::Variable var = {
         .stack_location_bytes = m_stack_size,
         .size_bytes = size_bytes,
+        .data_type = var_statement->data_type,
     };
     m_generated << ";\tVariable Declaration " << var_statement->name << " BEGIN" << std::endl;
     if (var_statement->value.has_value()) {

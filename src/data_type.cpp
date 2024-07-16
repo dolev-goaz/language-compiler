@@ -25,3 +25,68 @@ std::shared_ptr<DataType> BasicType::makeBasicType(const std::string& type_str) 
     }
     return BasicType::makeBasicType(data_type_name_to_value.at(type_str));
 }
+
+bool DataTypeUtils::is_array_type(const std::shared_ptr<DataType>& data_type) {
+    return data_type && (bool)dynamic_cast<ArrayType*>(data_type.get());
+}
+
+std::shared_ptr<DataType> DataTypeUtils::get_inner_type(const std::shared_ptr<DataType>& data_type) {
+    auto array_type = dynamic_cast<ArrayType*>(data_type.get());
+    auto pointer_type = dynamic_cast<PointerType*>(data_type.get());
+    if (!array_type && !pointer_type) {
+        return nullptr;
+    }
+
+    return array_type ? array_type->elementType : pointer_type->baseType;
+}
+
+CompatibilityStatus BasicType::is_compatible(const DataType& other) const {
+    // Basic types are compatible if they are the same
+    // also compatible with pointers
+    if (const auto* otherBasic = dynamic_cast<const BasicType*>(&other)) {
+        return get_size_bytes() == otherBasic->get_size_bytes() ? CompatibilityStatus::Compatible
+                                                                : CompatibilityStatus::CompatibleWithWarning;
+    }
+    if (const auto* otherPointer = dynamic_cast<const PointerType*>(&other)) {
+        return CompatibilityStatus::CompatibleWithWarning;
+    }
+    return CompatibilityStatus::NotCompatible;
+}
+
+CompatibilityStatus StructType::is_compatible(const DataType& other) const {
+    // Struct types are compatible only if they are the same
+    if (const auto* otherStruct = dynamic_cast<const StructType*>(&other)) {
+        return name == otherStruct->name ? CompatibilityStatus::Compatible : CompatibilityStatus::NotCompatible;
+    }
+    return CompatibilityStatus::NotCompatible;
+}
+
+CompatibilityStatus PointerType::is_compatible(const DataType& other) const {
+    // Pointers are compatible
+    if (const auto* otherPointer = dynamic_cast<const PointerType*>(&other)) {
+        return baseType == otherPointer->baseType ? CompatibilityStatus::Compatible
+                                                  : CompatibilityStatus::CompatibleWithWarning;
+    }
+
+    // could also cast to basic types(numerics)
+    if (const auto* other_basic = dynamic_cast<const BasicType*>(&other)) {
+        return CompatibilityStatus::CompatibleWithWarning;
+    }
+    return CompatibilityStatus::NotCompatible;
+}
+
+CompatibilityStatus ArrayType::is_compatible(const DataType& other) const {
+    // Arrays are compatible if their element types are compatible and sizes are the same
+    if (const auto* otherArray = dynamic_cast<const ArrayType*>(&other)) {
+        return (*elementType == *(otherArray->elementType) && size == otherArray->size)
+                   ? CompatibilityStatus::Compatible
+                   : CompatibilityStatus::NotCompatible;
+    }
+    // Arrays are also compatible with pointers to compatible types- pointer decay
+    if (const auto* otherPointer = dynamic_cast<const PointerType*>(&other)) {
+        auto compatibility_status = elementType->is_compatible(*(otherPointer->baseType));
+        return compatibility_status == CompatibilityStatus::Compatible ? CompatibilityStatus::CompatibleWithWarning
+                                                                       : CompatibilityStatus::NotCompatible;
+    }
+    return CompatibilityStatus::NotCompatible;
+}

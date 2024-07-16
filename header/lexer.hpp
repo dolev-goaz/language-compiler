@@ -30,6 +30,7 @@ enum class TokenType {
     star,
     fslash,
     percent,
+    ampersand,
 
     eq,
     open_triangle,
