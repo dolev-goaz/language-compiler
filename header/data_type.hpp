@@ -49,14 +49,7 @@ class BasicType : public DataType {
 
     std::string toString() const override { return DataType::data_type_value_to_name.at(type); }
 
-    CompatibilityStatus is_compatible(const DataType& other) const override {
-        // Basic types are compatible if they are the same
-        if (const auto* otherBasic = dynamic_cast<const BasicType*>(&other)) {
-            return get_size_bytes() == otherBasic->get_size_bytes() ? CompatibilityStatus::Compatible
-                                                                    : CompatibilityStatus::CompatibleWithWarning;
-        }
-        return CompatibilityStatus::NotCompatible;
-    }
+    CompatibilityStatus is_compatible(const DataType& other) const override;
 
     bool is_void() const override { return type == BasicDataType::VOID; }
 
@@ -81,13 +74,7 @@ class StructType : public DataType {
 
     std::string toString() const override { return name; }
 
-    CompatibilityStatus is_compatible(const DataType& other) const override {
-        // Struct types are compatible only if they are the same
-        if (const auto* otherStruct = dynamic_cast<const StructType*>(&other)) {
-            return name == otherStruct->name ? CompatibilityStatus::Compatible : CompatibilityStatus::NotCompatible;
-        }
-        return CompatibilityStatus::NotCompatible;
-    }
+    CompatibilityStatus is_compatible(const DataType& other) const override;
     size_t get_size_bytes() const override {
         // TODO: when implementing struct implement this as well
         return 0;
@@ -111,13 +98,7 @@ class PointerType : public DataType {
 
     std::string toString() const override { return baseType->toString() + "*"; }
 
-    CompatibilityStatus is_compatible(const DataType& other) const override {
-        // Pointers are compatible if they point to compatible types
-        if (const auto* otherPointer = dynamic_cast<const PointerType*>(&other)) {
-            return baseType->is_compatible(*(otherPointer->baseType));
-        }
-        return CompatibilityStatus::NotCompatible;
-    }
+    CompatibilityStatus is_compatible(const DataType& other) const override;
 
     size_t get_size_bytes() const override {
         // NOTE: pointer size is qword, or 8 bytes
@@ -142,21 +123,7 @@ class ArrayType : public DataType {
 
     std::string toString() const override { return elementType->toString() + "[" + std::to_string(size) + "]"; }
 
-    CompatibilityStatus is_compatible(const DataType& other) const override {
-        // Arrays are compatible if their element types are compatible and sizes are the same
-        if (const auto* otherArray = dynamic_cast<const ArrayType*>(&other)) {
-            return (*elementType == *(otherArray->elementType) && size == otherArray->size)
-                       ? CompatibilityStatus::Compatible
-                       : CompatibilityStatus::NotCompatible;
-        }
-        // Arrays are also compatible with pointers to compatible types
-        if (const auto* otherPointer = dynamic_cast<const PointerType*>(&other)) {
-            auto compatibility_status = elementType->is_compatible(*(otherPointer->baseType));
-            return compatibility_status == CompatibilityStatus::Compatible ? CompatibilityStatus::CompatibleWithWarning
-                                                                           : CompatibilityStatus::NotCompatible;
-        }
-        return CompatibilityStatus::NotCompatible;
-    }
+    CompatibilityStatus is_compatible(const DataType& other) const override;
 
     size_t get_size_bytes() const override {
         //
