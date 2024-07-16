@@ -1,0 +1,9 @@
+char[] str = "hello";
+char* ptr = str;
+
+if (*ptr == 'h') {
+    if (*(ptr + 1) == 'e') {
+        exit(0);
+    }
+}
+exit(1);

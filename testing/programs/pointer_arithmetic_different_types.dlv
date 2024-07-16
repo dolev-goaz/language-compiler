@@ -1,0 +1,11 @@
+int_64 a = 1024;
+int_8* ptr8 = &a;
+int_16* ptr16 = &a;
+
+if (*ptr8 == 0) {
+    if (*ptr16 == 1024) {
+        exit(0);
+    }
+}
+exit(1);
+

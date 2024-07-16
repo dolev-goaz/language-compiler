@@ -1,0 +1,9 @@
+int_64 a = 5;
+int_64* ptr1 = &a;
+int_64** ptr2 = &ptr1;
+
+if (**ptr2 == 5) {
+    exit(0);
+} else {
+    exit(1);
+}

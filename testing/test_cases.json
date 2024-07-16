@@ -179,7 +179,45 @@
         "should_compile": true,
         "expected_return_code": 0
     },
-    
+    {
+        "name": "Pointer Manipulation",
+        "file": "pointer_manipulation.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
+        "name": "Pointer Arithmetic",
+        "file": "pointer_arithmetic.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
+        "name": "Dereferencing and Referencing",
+        "file": "dereferencing_referencing.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
+        "name": "Pointer Assignment",
+        "file": "pointer_assignment.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
+        "name": "Pointer to Char Array",
+        "file": "pointer_to_char_array.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+    {
+        "name": "Pointer Arithmetic with Different Data Types",
+        "file": "pointer_arithmetic_different_types.dlv",
+        "should_compile": true,
+        "expected_return_code": 0
+    },
+
+
+
     {
         "name": "Invalid String Declaration",
         "file": "invalid_string_declaration.dlv",

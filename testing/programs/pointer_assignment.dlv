@@ -1,0 +1,10 @@
+int_64 a = 100;
+int_64 b = 200;
+int_64* ptr = &a;
+ptr = &b;
+
+if (*ptr == 200) {
+    exit(0);
+} else {
+    exit(1);
+}

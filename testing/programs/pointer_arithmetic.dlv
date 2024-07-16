@@ -1,0 +1,12 @@
+int_64[5] arr = {1, 2, 3, 4, 5};
+int_64* ptr = arr;
+char* char_ptr = ptr;
+int_64 SIZE_OF_INT_64 = 8;
+
+ptr = (char_ptr + 2 * SIZE_OF_INT_64);  // Correctly add bytes
+
+if (*ptr == 3) {
+    exit(0);
+} else {
+    exit(1);
+}

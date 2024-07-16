@@ -1,0 +1,9 @@
+int_64 a = 10;
+int_64* ptr = &a;
+*ptr = 20;
+
+if (a == 20) {
+    exit(0);
+} else {
+    exit(1);
+}
