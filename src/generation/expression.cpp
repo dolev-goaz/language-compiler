@@ -34,7 +34,7 @@ void Generator::generate_expression_identifier(const ASTIdentifier& identifier, 
     std::string requested_data_reg = size_bytes_to_register.at(requested_size_bytes);
 
     if (is_complex_type) {
-        // copy reference
+        // copy reference- pointer decay
         m_generated << "\t; RESOLVE ADDRESS OF VARIABLE" << std::endl;
         m_generated << "\tmov " << original_data_reg << ", " << original_size_keyword << " rdx" << std::endl;
     } else {

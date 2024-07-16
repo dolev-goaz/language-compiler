@@ -72,7 +72,7 @@ CompatibilityStatus ArrayType::is_compatible(const DataType& other) const {
                    ? CompatibilityStatus::Compatible
                    : CompatibilityStatus::NotCompatible;
     }
-    // Arrays are also compatible with pointers to compatible types
+    // Arrays are also compatible with pointers to compatible types- pointer decay
     if (const auto* otherPointer = dynamic_cast<const PointerType*>(&other)) {
         auto compatibility_status = elementType->is_compatible(*(otherPointer->baseType));
         return compatibility_status == CompatibilityStatus::Compatible ? CompatibilityStatus::CompatibleWithWarning
