@@ -246,6 +246,14 @@ void Generator::load_memory_address_expr(const ASTExpression& expression) {
         m_generated << "\t; Evaluate array index memory address END" << std::endl;
         return;
     }
+    // TODO: extract this 'check if reference' to another method(reuse)
+    if (std::holds_alternative<std::shared_ptr<ASTUnaryExpression>>(expression.expression)) {
+        auto unary = std::get<std::shared_ptr<ASTUnaryExpression>>(expression.expression);
+        if (unary->operation == UnaryOperation::reference) {
+            generate_expression(*unary->expression);  // the address is the operand of *
+            return;
+        }
+    }
 
     // must be atomic expression
     if (!std::holds_alternative<std::shared_ptr<ASTAtomicExpression>>(expression.expression)) {

@@ -18,6 +18,13 @@ SemanticAnalyzer::ExpressionAnalysisResult SemanticAnalyzer::analyze_expression_
         return analyze_expression(expression);
     }
 
+    if (std::holds_alternative<std::shared_ptr<ASTUnaryExpression>>(expression.expression)) {
+        auto unary = std::get<std::shared_ptr<ASTUnaryExpression>>(expression.expression);
+        if (unary->operation == UnaryOperation::reference) {
+            return analyze_expression(expression);
+        }
+    }
+
     // must be atomic expression
     if (!std::holds_alternative<std::shared_ptr<ASTAtomicExpression>>(expression.expression)) {
         throw SemanticAnalyzerException("Unexpected lhs expression", expression.start_token_meta);
