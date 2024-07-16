@@ -155,15 +155,15 @@ void Generator::generate_expression_binary(const std::shared_ptr<ASTBinExpressio
 }
 
 void Generator::generate_expression_unary(const std::shared_ptr<ASTUnaryExpression>& unary, size_t size_bytes) {
-    static_assert((int)UnaryOperation::operationCount - 1 == 2,
+    static_assert((int)UnaryOperation::operationCount - 1 == 3,
                   "Implemented unary operations without updating generator");
 
     auto& operand = *unary->expression;
     auto operation = unary->operation;
+    size_t operand_size_bytes = operand.data_type->get_size_bytes();
 
     switch (operation) {
         case UnaryOperation::negate: {
-            size_t operand_size_bytes = operand.data_type->get_size_bytes();
             generate_expression(operand);
             pop_stack_register("rax", 8, operand_size_bytes);
             m_generated << "\tneg rax; Negate expression" << std::endl;
@@ -172,6 +172,12 @@ void Generator::generate_expression_unary(const std::shared_ptr<ASTUnaryExpressi
         case UnaryOperation::dereference: {
             load_memory_address_expr(operand);
             pop_stack_register("rax", 8, 8);  // pointers are always qword
+            break;
+        }
+        case UnaryOperation::reference: {
+            generate_expression(operand);
+            pop_stack_register("rax", 8, operand_size_bytes);
+            m_generated << "\tmov rax, [rax]" << std::endl;
             break;
         }
         default:

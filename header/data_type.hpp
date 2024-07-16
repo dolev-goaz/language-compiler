@@ -137,4 +137,5 @@ class ArrayType : public DataType {
 
 namespace DataTypeUtils {
 bool is_array_type(const std::shared_ptr<DataType>& data_type);
+std::shared_ptr<DataType> get_inner_type(const std::shared_ptr<DataType>& data_type);
 };  // namespace DataTypeUtils

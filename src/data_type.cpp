@@ -30,6 +30,16 @@ bool DataTypeUtils::is_array_type(const std::shared_ptr<DataType>& data_type) {
     return data_type && (bool)dynamic_cast<ArrayType*>(data_type.get());
 }
 
+std::shared_ptr<DataType> DataTypeUtils::get_inner_type(const std::shared_ptr<DataType>& data_type) {
+    auto array_type = dynamic_cast<ArrayType*>(data_type.get());
+    auto pointer_type = dynamic_cast<PointerType*>(data_type.get());
+    if (!array_type && !pointer_type) {
+        return nullptr;
+    }
+
+    return array_type ? array_type->elementType : pointer_type->baseType;
+}
+
 CompatibilityStatus BasicType::is_compatible(const DataType& other) const {
     // Basic types are compatible if they are the same
     // also compatible with pointers

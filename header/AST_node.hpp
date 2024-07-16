@@ -27,7 +27,8 @@ enum class BinOperation {
 enum class UnaryOperation {
     NONE = 0,
     negate,          // -x
-    dereference,     // &
+    dereference,     // &x
+    reference,       // *x
     operationCount,  // used for assertions
 };
 

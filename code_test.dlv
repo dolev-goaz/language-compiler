@@ -1,4 +1,4 @@
-char[] a = "hello world";
-char* b = a;
-char* c = b + 2;
-exit(c[0]);
+int_64 a = 0x12131415;
+char* b = &a;
+char test = *(b + 1); // NOTE: little endian, so it takes 0x14=20
+exit(test);

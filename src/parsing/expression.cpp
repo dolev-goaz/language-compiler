@@ -77,6 +77,8 @@ BinOperation Parser::try_consume_binary_operation() {
 }
 
 std::optional<UnaryOperation> Parser::peek_unary_operation() {
+    static_assert((int)UnaryOperation::operationCount - 1 == 3, "Implemented unary operations without updating parser");
+
     if (!peek().has_value()) return std::nullopt;
     if (test_peek(TokenType::minus)) {
         // NOTE: could add support for --, ++, so on
@@ -85,10 +87,15 @@ std::optional<UnaryOperation> Parser::peek_unary_operation() {
     if (test_peek(TokenType::ampersand)) {
         return UnaryOperation::dereference;
     }
+    if (test_peek(TokenType::star)) {
+        return UnaryOperation::reference;
+    }
     return std::nullopt;
 }
 
 UnaryOperation Parser::assert_consume_unary_operation() {
+    static_assert((int)UnaryOperation::operationCount - 1 == 3, "Implemented unary operations without updating parser");
+
     auto unary_operation_opt = peek_unary_operation();
     if (!unary_operation_opt.has_value()) {
         auto msg = "Expected Unary Operation";
@@ -103,6 +110,7 @@ UnaryOperation Parser::assert_consume_unary_operation() {
     switch (unary_operation) {
         case UnaryOperation::negate:
         case UnaryOperation::dereference:
+        case UnaryOperation::reference:
             consume_count = 1;
             break;
         default:
