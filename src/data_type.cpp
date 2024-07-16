@@ -47,7 +47,7 @@ CompatibilityStatus BasicType::is_compatible(const DataType& other) const {
         return get_size_bytes() == otherBasic->get_size_bytes() ? CompatibilityStatus::Compatible
                                                                 : CompatibilityStatus::CompatibleWithWarning;
     }
-    if (const auto* otherPointer = dynamic_cast<const PointerType*>(&other)) {
+    if (dynamic_cast<const PointerType*>(&other)) {
         return CompatibilityStatus::CompatibleWithWarning;
     }
     return CompatibilityStatus::NotCompatible;
@@ -69,7 +69,7 @@ CompatibilityStatus PointerType::is_compatible(const DataType& other) const {
     }
 
     // could also cast to basic types(numerics)
-    if (const auto* other_basic = dynamic_cast<const BasicType*>(&other)) {
+    if (dynamic_cast<const BasicType*>(&other)) {
         return CompatibilityStatus::CompatibleWithWarning;
     }
     return CompatibilityStatus::NotCompatible;
