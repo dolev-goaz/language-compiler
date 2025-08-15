@@ -1,4 +1,4 @@
-#include "../header/generator.hpp"
+#include "generator.hpp"
 
 void Generator::generate_statement_function(const std::shared_ptr<ASTStatementFunction>& function_statement) {
     m_stack.enterScope();

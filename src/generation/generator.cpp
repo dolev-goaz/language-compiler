@@ -1,6 +1,4 @@
-#include "../header/generator.hpp"
-
-#include "../header/generator_visitor.hpp"
+#include "generator.hpp"
 
 std::map<size_t, std::string> size_bytes_to_size_keyword = {
     {1, "BYTE"},

@@ -1,5 +1,4 @@
 #include "semantic_analyzer.hpp"
-#include "semantic_visitor.hpp"
 
 void SemanticAnalyzer::semantic_warning(const std::string& message, const TokenMeta& position) {
     std::cout << "SEMANTIC WARNING AT "

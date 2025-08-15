@@ -1,4 +1,4 @@
-#include "../header/parser.hpp"
+#include "parser.hpp"
 
 std::shared_ptr<ASTStatementIf> Parser::parse_statement_if() {
     if (!test_peek(TokenType::_if)) return nullptr;

@@ -1,4 +1,4 @@
-#include "../header/semantic_analyzer.hpp"
+#include "semantic_analyzer.hpp"
 #include "semantic_visitor.hpp"
 
 void SemanticAnalyzer::analyze_function_param(ASTFunctionParam& param) {

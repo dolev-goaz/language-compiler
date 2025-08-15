@@ -1,11 +1,11 @@
 #include <string.h>
 
-#include "../header/file_util.hpp"
-#include "../header/generator.hpp"
-#include "../header/globals.hpp"
-#include "../header/lexer.hpp"
-#include "../header/parser.hpp"
-#include "../header/semantic_analyzer.hpp"
+#include "file_util.hpp"
+#include "generator.hpp"
+#include "globals.hpp"
+#include "lexer.hpp"
+#include "parser.hpp"
+#include "semantic_analyzer.hpp"
 
 
 #define IS_DEBUG_MODE true

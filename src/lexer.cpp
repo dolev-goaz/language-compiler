@@ -1,4 +1,4 @@
-#include "../header/lexer.hpp"
+#include "lexer.hpp"
 
 bool number_verify(const std::string& num_str) {
     // Hexadecimal 0[xX][0-9a-fA-F]+

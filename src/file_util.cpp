@@ -1,4 +1,4 @@
-#include "../header/file_util.hpp"
+#include "file_util.hpp"
 
 std::string read_file(const std::string& path) {
     std::ifstream file = std::ifstream(path.c_str());
